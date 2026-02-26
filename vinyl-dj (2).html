@@ -1,0 +1,3386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>DRC — Disc Recording Collection</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0c0c0c;--bg2:#141414;--bg3:#1c1c1c;
+  --border:#2a2a2a;--text:#e8e8e0;--muted:#666;
+  --accent:#ff3c00;--accent2:#ffcc00;--green:#39ff14;--blue:#38bdf8;--purple:#c084fc;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:.8rem 2rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(12,12,12,.95);backdrop-filter:blur(10px);z-index:100;gap:1rem}
+.logo{font-family:var(--display);font-size:2rem;letter-spacing:6px;color:var(--text);line-height:1}
+.logo span{color:var(--accent)}
+.header-stats{display:flex;gap:1.5rem;font-family:var(--mono);font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px}
+.header-stats strong{color:var(--accent2);font-size:.9rem;display:block}
+.nav-backup{display:flex;gap:.3rem;align-items:center;margin-left:auto;padding:0 .5rem;flex-shrink:0}
+.save-toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--green);color:var(--green);font-family:var(--mono);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;padding:.5rem 1rem;border-radius:2px;z-index:1000;opacity:0;transition:opacity .3s;pointer-events:none}
+.save-toast.show{opacity:1}
+
+/* NAV */
+.nav{display:flex;border-bottom:1px solid var(--border);padding:0 2rem;overflow-x:auto;position:sticky;top:var(--header-h,60px);z-index:99;background:var(--bg)}
+.nav-btn{font-family:var(--mono);font-size:.72rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;padding:1rem 1.5rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.nav-btn:hover{color:var(--text)}.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+main{max-width:1400px;margin:0 auto;padding:2rem}
+.view{display:none}.view.active{display:block}
+
+.section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+.section-title{font-family:var(--display);font-size:3.5rem;letter-spacing:4px;line-height:1}
+.section-title small{display:block;font-family:var(--mono);font-size:.65rem;letter-spacing:3px;color:var(--muted);margin-bottom:.3rem}
+
+/* CONTROLS */
+.filters{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.filter-select{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:.5rem .8rem;border-radius:2px;outline:none;cursor:pointer;text-transform:uppercase}
+.filter-select:focus{border-color:var(--accent)}
+.search-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:.5rem .8rem;border-radius:2px;outline:none;width:160px;transition:border-color .15s}
+.search-input:focus{border-color:var(--accent)}
+
+.btn{font-family:var(--mono);font-size:.72rem;letter-spacing:2px;text-transform:uppercase;padding:.6rem 1.2rem;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;transition:all .15s;border-radius:2px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.btn-primary:hover{background:#ff5520;border-color:#ff5520;color:#000}
+.btn-blue{background:var(--blue);border-color:var(--blue);color:#000;font-weight:700}
+.btn-blue:hover{background:#60ccff;border-color:#60ccff;color:#000}
+.btn-green{background:var(--green);border-color:var(--green);color:#000;font-weight:700}
+.btn-green:hover{background:#55ff30;border-color:#55ff30;color:#000}
+.btn-sm{padding:.35rem .7rem;font-size:.65rem}
+.btn-danger{color:#ff4444;border-color:#ff4444}
+.btn-danger:hover{background:#ff4444;color:#fff;border-color:#ff4444}
+.btn-purple{background:var(--purple);border-color:var(--purple);color:#000;font-weight:700}
+.btn-purple:hover{background:#d8a4ff;border-color:#d8a4ff;color:#000}
+
+/* VIEW TOGGLE */
+.view-toggle{display:flex;gap:2px}
+.vt-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:.5rem .7rem;cursor:pointer;font-size:.85rem;transition:all .15s;line-height:1}
+.vt-btn:first-child{border-radius:2px 0 0 2px}.vt-btn:last-child{border-radius:0 2px 2px 0}
+.vt-btn.active{background:var(--accent);border-color:var(--accent);color:#000}
+
+/* DISK GRID / LIST */
+.disk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.5rem}
+.disk-card{background:var(--bg2);border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all .2s;overflow:hidden}
+.disk-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 30px rgba(255,60,0,.15)}
+.disk-cover{width:100%;aspect-ratio:1;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.disk-cover img{width:100%;height:100%;object-fit:cover}
+.disk-cover-placeholder{width:80px;height:80px;border-radius:50%;background:conic-gradient(from 0deg,#1a1a1a 0%,#333 25%,#1a1a1a 50%,#333 75%,#1a1a1a 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 8px #111,0 0 0 12px #222,0 0 0 16px #111}
+.disk-cover-placeholder::after{content:'';width:16px;height:16px;border-radius:50%;background:var(--bg)}
+.disk-info{padding:.8rem}
+.disk-name{font-family:var(--display);font-size:1.1rem;letter-spacing:2px;line-height:1.2;margin-bottom:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.disk-label{font-family:var(--mono);font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:.4rem}
+.disk-meta{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
+.track-count{font-family:var(--mono);font-size:.65rem;color:var(--muted)}
+.disk-list{display:flex;flex-direction:column;gap:4px}
+.disk-list-row{display:flex;align-items:center;gap:1rem;background:var(--bg2);border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all .15s;padding:.5rem 1rem .5rem .5rem}
+.disk-list-row:hover{border-color:var(--accent);background:var(--bg3)}
+.disk-list-thumb{width:52px;height:52px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:1px}
+.disk-list-thumb img{width:100%;height:100%;object-fit:cover}
+.mini-vinyl{width:32px;height:32px;border-radius:50%;background:conic-gradient(from 0deg,#1a1a1a 0%,#333 25%,#1a1a1a 50%,#333 75%,#1a1a1a 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #111,0 0 0 5px #222}
+.mini-vinyl::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--bg)}
+.disk-list-name{font-family:var(--display);font-size:1.1rem;letter-spacing:2px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.disk-list-sello{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.disk-list-tracks{font-family:var(--mono);font-size:.65rem;color:var(--muted);flex-shrink:0;width:55px;text-align:right}
+
+/* TAGS */
+.tag{font-family:var(--mono);font-size:.6rem;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:2px;background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
+.tag.accent{border-color:var(--accent);color:var(--accent)}.tag.yellow{border-color:var(--accent2);color:var(--accent2)}
+.tag.green{border-color:var(--green);color:var(--green)}.tag.blue{border-color:var(--blue);color:var(--blue)}
+.tag.purple{border-color:var(--purple);color:var(--purple)}
+
+/* DETAIL */
+.back-btn{display:flex;align-items:center;gap:.5rem;font-family:var(--mono);font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:none;border:none;cursor:pointer;margin-bottom:2rem;transition:color .15s}
+.back-btn:hover{color:var(--accent)}
+.disk-detail-header{display:grid;grid-template-columns:220px 1fr;gap:2rem;margin-bottom:2.5rem;align-items:start}
+.disk-detail-cover{width:220px;height:220px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.disk-detail-cover img{width:100%;height:100%;object-fit:cover}
+.disk-name-big{font-family:var(--display);font-size:3rem;letter-spacing:3px;line-height:1;margin-bottom:.5rem}
+.meta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem}
+.disk-detail-actions{margin-top:1.2rem;display:flex;gap:.5rem;flex-wrap:wrap}
+
+/* TRACKS TABLE */
+.tracks-table{width:100%;border-collapse:collapse}
+.tracks-table th{font-family:var(--mono);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);text-align:left;padding:.6rem .8rem;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+.tracks-table th:hover{color:var(--text)}
+.tracks-table th.sort-asc::after{content:' ↑'}
+.tracks-table th.sort-desc::after{content:' ↓'}
+.tracks-table td{padding:.7rem .8rem;border-bottom:1px solid var(--border);font-size:.86rem;vertical-align:middle}
+.tracks-table tr:hover td{background:var(--bg2)}
+.tracks-table tr.row-selected td{background:rgba(56,189,248,.07)}
+.track-num{font-family:var(--mono);font-size:.65rem;color:var(--muted);width:30px}
+.track-artist{color:var(--muted);font-size:.78rem;margin-top:2px;font-family:var(--mono)}
+
+/* INTENSITY */
+.intensity{display:flex;gap:3px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+.dot.on{background:var(--accent);box-shadow:0 0 4px var(--accent)}
+.dot.on.high{background:var(--accent2);box-shadow:0 0 4px var(--accent2)}
+.dot.on.max{background:var(--green);box-shadow:0 0 4px var(--green)}
+
+.yt-link{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.65rem;color:#992222;text-decoration:none;border:1px solid #551111;padding:2px 6px;border-radius:2px;transition:all .15s;font-weight:700}
+.yt-link:hover{border-color:#ff3333;color:#ff3333;background:rgba(255,50,50,.08)}
+
+/* DESTAQUE TAGS */
+.destaque-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:10px;background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.4);color:var(--purple);white-space:nowrap}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:5rem 2rem;border:1px dashed var(--border);border-radius:2px}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.3}
+.empty-state p{font-family:var(--mono);font-size:.75rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+
+/* PLAYLISTS */
+.playlist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem}
+.playlist-card{background:var(--bg2);border:1px solid var(--border);border-radius:2px;padding:1.2rem 1.2rem 1.2rem 1.6rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.playlist-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 30px rgba(56,189,248,.12)}
+.playlist-stripe{position:absolute;top:0;left:0;width:4px;height:100%;background:var(--blue)}
+.playlist-card-title{font-family:var(--display);font-size:1.7rem;letter-spacing:3px;margin-bottom:.3rem}
+.playlist-card-desc{font-size:.82rem;color:var(--muted);margin-bottom:.8rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.playlist-card-meta{display:flex;align-items:center;justify-content:space-between}
+.pl-detail-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:2rem;flex-wrap:wrap}
+.pl-detail-title{font-family:var(--display);font-size:3rem;letter-spacing:3px;line-height:1}
+.pl-detail-desc{font-size:.9rem;color:var(--muted);margin-top:.4rem;max-width:600px;line-height:1.6}
+.pl-track-row{display:flex;align-items:center;gap:.8rem;padding:.65rem .8rem;border-bottom:1px solid var(--border);border-radius:2px;transition:background .15s}
+.pl-track-row:hover{background:var(--bg2)}
+.pl-track-row.drag-over{border-top:2px solid var(--blue)}
+.pl-drag-handle{color:var(--muted);cursor:grab;font-size:1.1rem;flex-shrink:0;user-select:none;opacity:.5;transition:opacity .15s}
+.pl-track-row:hover .pl-drag-handle{opacity:1}
+.pl-track-thumb{width:42px;height:42px;flex-shrink:0;background:var(--bg3);overflow:hidden;border-radius:1px;display:flex;align-items:center;justify-content:center}
+.pl-track-thumb img{width:100%;height:100%;object-fit:cover}
+.pl-track-info{flex:1;min-width:0}
+.pl-track-name{font-size:.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-track-sub{font-family:var(--mono);font-size:.63rem;color:var(--muted);margin-top:2px}
+.pl-track-disco{font-family:var(--mono);font-size:.63rem;color:var(--muted);flex-shrink:0;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* CHECKLIST FIELD */
+.checklist-field{position:relative}
+.checklist-display{min-height:38px;background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:.4rem .8rem;cursor:pointer;display:flex;flex-wrap:wrap;gap:4px;align-items:center;transition:border-color .15s}
+.checklist-display:hover,.checklist-display.open{border-color:var(--accent)}
+.checklist-placeholder{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.checklist-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--accent);border-radius:2px;z-index:300;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.checklist-dropdown.open{display:block}
+.checklist-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;cursor:pointer;transition:background .1s;font-size:.85rem}
+.checklist-item:hover{background:var(--bg3)}
+.checklist-item input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;flex-shrink:0}
+.checklist-add{display:flex;gap:.4rem;padding:.4rem .5rem;border-top:1px solid var(--border)}
+.checklist-add input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:.3rem .5rem;border-radius:2px;outline:none}
+.checklist-add input:focus{border-color:var(--accent)}
+.checklist-add button{background:var(--accent);border:none;color:#000;font-family:var(--mono);font-size:.68rem;padding:.3rem .5rem;border-radius:2px;cursor:pointer;font-weight:700}
+
+/* DESTAQUE checklist — blue accent */
+.checklist-field.destaque .checklist-display:hover,
+.checklist-field.destaque .checklist-display.open{border-color:var(--purple)}
+.checklist-field.destaque .checklist-dropdown{border-color:var(--purple)}
+.checklist-field.destaque .checklist-item input[type=checkbox]{accent-color:var(--purple)}
+.checklist-field.destaque .checklist-add button{background:var(--purple)}
+
+/* EXPORT DROPDOWN */
+.export-wrap{position:relative;display:inline-block}
+.export-menu{display:none;position:absolute;right:0;top:110%;background:var(--bg2);border:1px solid var(--border);border-radius:2px;min-width:220px;z-index:150;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.export-menu.open{display:block}
+.export-item{display:block;width:100%;padding:.6rem 1rem;font-family:var(--mono);font-size:.68rem;letter-spacing:1px;text-transform:uppercase;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;transition:background .1s;border-bottom:1px solid var(--border)}
+.export-item:last-child{border-bottom:none}
+.export-item:hover{background:var(--bg3);color:var(--accent2)}
+
+/* TRACK PICKER */
+.track-picker-list{max-height:380px;overflow-y:auto;border:1px solid var(--border);border-radius:2px}
+.tp-row{display:flex;align-items:center;gap:.8rem;padding:.6rem .8rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.tp-row:hover{background:var(--bg3)}.tp-row.selected{background:rgba(56,189,248,.08)}
+.tp-row input[type=checkbox]{accent-color:var(--blue);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.tp-thumb{width:36px;height:36px;flex-shrink:0;background:var(--bg3);overflow:hidden;border-radius:1px;display:flex;align-items:center;justify-content:center}
+.tp-thumb img{width:100%;height:100%;object-fit:cover}
+.tp-info{flex:1;min-width:0}
+.tp-name{font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-sub{font-family:var(--mono);font-size:.62rem;color:var(--muted)}
+
+/* IMPORT */
+.import-drop{border:2px dashed var(--border);border-radius:4px;padding:3rem;text-align:center;cursor:pointer;transition:all .2s}
+.import-drop:hover,.import-drop.dragover{border-color:var(--green);background:rgba(57,255,20,.04)}
+.import-drop-icon{font-size:2.5rem;margin-bottom:.8rem;opacity:.4}
+.import-drop p{font-family:var(--mono);font-size:.75rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.import-drop span{font-size:.65rem;color:var(--muted);margin-top:.4rem;display:block}
+.imp-row{display:flex;align-items:center;gap:.8rem;padding:.5rem .6rem;border-bottom:1px solid var(--border);transition:background .1s;border-radius:2px}
+.imp-row:hover{background:var(--bg3)}.imp-row.selected{background:rgba(57,255,20,.06)}
+.imp-row input[type=checkbox]{accent-color:var(--green);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.imp-thumb{width:44px;height:44px;flex-shrink:0;background:var(--bg3);overflow:hidden;border-radius:1px;display:flex;align-items:center;justify-content:center}
+.imp-thumb img{width:100%;height:100%;object-fit:cover}
+.imp-info{flex:1;min-width:0}
+.imp-name{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imp-artist{font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-top:2px}
+.imp-num{font-family:var(--mono);font-size:.65rem;color:var(--muted);width:32px;flex-shrink:0;text-align:right}
+.imp-list{max-height:420px;overflow-y:auto;border:1px solid var(--border);border-radius:2px;margin-top:.8rem}
+.imp-count{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.step-indicator{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.step{font-family:var(--mono);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;padding:.3rem .8rem;border-radius:20px;border:1px solid var(--border);color:var(--muted)}
+.step.active{background:var(--green);border-color:var(--green);color:#000;font-weight:700}
+.step.done{border-color:var(--muted);color:var(--muted)}
+.restore-info{background:rgba(56,189,248,.07);border:1px solid var(--blue);border-radius:2px;padding:1.2rem;margin-bottom:1.5rem;font-family:var(--mono);font-size:.75rem;color:var(--blue);line-height:1.8}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:2px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:2rem;position:relative}
+.modal-lg{max-width:720px}
+.modal-title{font-family:var(--display);font-size:2rem;letter-spacing:3px;margin-bottom:1.5rem}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;transition:color .15s}
+.modal-close:hover{color:var(--accent)}
+
+/* FORM */
+.form-group{margin-bottom:1.1rem}
+.form-label{font-family:var(--mono);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.4rem}
+.form-input,.form-textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:.9rem;padding:.6rem .8rem;border-radius:2px;outline:none;transition:border-color .15s}
+.form-input:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-textarea{resize:vertical;min-height:60px}
+.intensity-selector{display:flex;gap:.5rem}
+.int-btn{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:none;color:var(--muted);font-family:var(--mono);font-size:.8rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.int-btn.sel{border-color:var(--accent);color:var(--accent);background:rgba(255,60,0,.1)}
+.cover-upload{width:100%;aspect-ratio:1;max-width:120px;background:var(--bg);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--mono);font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;overflow:hidden;border-radius:2px;transition:border-color .15s;flex-direction:column;gap:.3rem}
+.cover-upload:hover{border-color:var(--accent);color:var(--accent)}
+.cover-upload img{width:100%;height:100%;object-fit:cover}
+
+/* DISCO SELECTION */
+.disk-card{position:relative}
+.disk-card .disco-chk{position:absolute;top:.5rem;left:.5rem;width:18px;height:18px;accent-color:var(--accent);cursor:pointer;z-index:2;display:none}
+.disk-card:hover .disco-chk,.disk-card.selected .disco-chk{display:block}
+.disk-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,60,0,.3)}
+.disk-list-row{position:relative}
+.disk-list-row .disco-chk{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+
+/* CHECKPOINT CARD */
+.chkpt-card{background:var(--bg2);border:1px solid var(--border);border-radius:2px;overflow:hidden;position:relative}
+.chkpt-card img,.chkpt-card .disk-cover-placeholder{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.chkpt-card-name{font-family:var(--mono);font-size:.62rem;padding:.3rem .5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.chkpt-card-del{position:absolute;top:.3rem;right:.3rem;background:rgba(0,0,0,.7);border:1px solid #ff4444;color:#ff4444;font-size:.6rem;padding:2px 5px;border-radius:2px;cursor:pointer;opacity:0;transition:opacity .15s}
+.chkpt-card:hover .chkpt-card-del{opacity:1}
+
+/* DISCOGS DISAMBIG */
+.disambig-row{display:flex;gap:.8rem;align-items:center;padding:.8rem;border:1px solid var(--border);border-radius:2px;margin-bottom:.5rem;cursor:pointer;transition:all .15s;background:var(--bg2)}
+.disambig-row:hover{border-color:var(--green);background:var(--bg3)}
+.disambig-thumb{width:60px;height:60px;flex-shrink:0;background:var(--bg3);border-radius:1px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.disambig-thumb img{width:100%;height:100%;object-fit:cover}
+
+/* DISCOGS */
+.dcg-result-row{display:flex;gap:1rem;align-items:center;padding:.8rem;border:1px solid var(--border);border-radius:2px;margin-bottom:.5rem;cursor:pointer;transition:all .15s;background:var(--bg2)}
+.dcg-result-row:hover{border-color:var(--accent);background:var(--bg3)}
+.dcg-result-thumb{width:64px;height:64px;flex-shrink:0;background:var(--bg3);border-radius:1px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.dcg-result-thumb img{width:100%;height:100%;object-fit:cover}
+.dcg-result-info{flex:1;min-width:0}
+.dcg-result-title{font-family:var(--display);font-size:1.2rem;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcg-result-sub{font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-top:3px}
+.dcg-preview-card{background:var(--bg2);border:1px solid var(--border);border-radius:2px;padding:1.5rem}
+.dcg-preview-header{display:grid;grid-template-columns:160px 1fr;gap:1.5rem;margin-bottom:1.5rem;align-items:start}
+.dcg-preview-cover{width:160px;height:160px;background:var(--bg3);border-radius:1px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.dcg-preview-cover img{width:100%;height:100%;object-fit:cover}
+.dcg-tracklist{border-top:1px solid var(--border);padding-top:1rem}
+.dcg-track-row{display:flex;gap:1rem;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.85rem;align-items:baseline}
+.dcg-track-pos{font-family:var(--mono);font-size:.65rem;color:var(--muted);width:28px;flex-shrink:0}
+.dcg-track-dur{font-family:var(--mono);font-size:.65rem;color:var(--muted);flex-shrink:0}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border)}
+
+@media(max-width:768px){
+  header{padding:1rem}.header-stats{display:none}
+  main{padding:1rem}.section-title{font-size:2.5rem}
+  .disk-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem}
+  .disk-detail-header{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .pl-track-disco{display:none}
+}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{position:fixed;inset:0;background:#0c0c0c;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.auth-box{width:100%;max-width:400px}
+.auth-logo{font-family:var(--display);font-size:3rem;letter-spacing:8px;margin-bottom:.2rem}
+.auth-logo span{color:var(--accent)}
+.auth-subtitle{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:2.5rem}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.auth-tab{flex:1;padding:.6rem;background:none;border:none;font-family:var(--mono);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.auth-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.auth-field{margin-bottom:1rem}
+.auth-label{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.4rem;display:block}
+.auth-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:2px;padding:.7rem 1rem;color:var(--text);font-family:var(--mono);font-size:.85rem;outline:none;transition:border .2s;box-sizing:border-box}
+.auth-input:focus{border-color:var(--accent)}
+.auth-btn{width:100%;padding:.85rem;background:var(--accent);border:none;border-radius:2px;color:#fff;font-family:var(--display);font-size:1.1rem;letter-spacing:3px;cursor:pointer;margin-top:.5rem;transition:opacity .2s}
+.auth-btn:hover{opacity:.85}
+.auth-btn:disabled{opacity:.4;cursor:not-allowed}
+.auth-msg{font-family:var(--mono);font-size:.7rem;margin-top:.8rem;padding:.6rem .8rem;border-radius:2px;display:none}
+.auth-msg.error{background:rgba(255,68,68,.1);border:1px solid #ff4444;color:#ff6666}
+.auth-msg.success{background:rgba(56,189,68,.1);border:1px solid var(--green);color:var(--green)}
+.auth-forgot{font-family:var(--mono);font-size:.62rem;color:var(--muted);text-align:right;margin-top:.4rem;cursor:pointer;text-decoration:underline}
+/* User badge in header */
+#user-badge{font-family:var(--mono);font-size:.62rem;color:var(--muted);display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+#user-badge .plan-tag{font-size:.55rem;padding:.15rem .4rem;border-radius:2px;border:1px solid var(--muted);text-transform:uppercase;letter-spacing:1px}
+#user-badge .plan-tag.active{border-color:var(--green);color:var(--green)}
+#user-badge .plan-tag.free{border-color:#ff9900;color:#ff9900}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:2px}
+.sync-dot.syncing{background:#ff9900;animation:pulse 1s infinite}
+.sync-dot.error{background:#ff4444}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">D<span>R</span>C</div>
+    <div class="auth-subtitle">// disc recording collection</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Ingresar</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Registrarse</button>
+    </div>
+    <!-- Login -->
+    <div id="auth-panel-login">
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input class="auth-input" id="auth-email" type="email" placeholder="tu@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Contraseña</label>
+        <input class="auth-input" id="auth-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="auth-forgot" onclick="authForgotPassword()">¿Olvidaste tu contraseña?</div>
+      <button class="auth-btn" onclick="authLogin()" id="auth-login-btn">INGRESAR</button>
+      <div class="auth-msg" id="auth-login-msg"></div>
+    </div>
+    <!-- Register -->
+    <div id="auth-panel-register" style="display:none">
+      <div class="auth-field">
+        <label class="auth-label">Nombre</label>
+        <input class="auth-input" id="auth-name" type="text" placeholder="Tu nombre" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input class="auth-input" id="auth-email-reg" type="email" placeholder="tu@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Contraseña</label>
+        <input class="auth-input" id="auth-pass-reg" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" onclick="authRegister()" id="auth-register-btn">CREAR CUENTA</button>
+      <div class="auth-msg" id="auth-register-msg"></div>
+    </div>
+  </div>
+</div>
+
+
+<header>
+  <div class="logo">D<span>R</span>C</div>
+  <div class="header-stats">
+    <div><strong id="stat-discos">0</strong>Discos</div>
+    <div><strong id="stat-tracks">0</strong>Tracks</div>
+    <div><strong id="stat-playlists">0</strong>Playlists</div>
+  </div>
+  <div id="user-badge" style="display:none">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="user-email-label"></span>
+    <span class="plan-tag free" id="user-plan-tag">free</span>
+    <button class="btn btn-sm" onclick="authLogout()" style="font-size:.6rem;padding:.2rem .5rem">Salir</button>
+  </div>
+</header>
+<div class="save-toast" id="save-toast">✓ Guardado</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showView('discos')">⬤ Discos</button>
+  <button class="nav-btn" onclick="showView('tracks')">⬤ Tracks</button>
+  <button class="nav-btn" onclick="showView('playlists')">⬤ Playlists</button>
+  <button class="nav-btn" onclick="showView('import')" style="color:var(--green)">⬤ Importar</button>
+  <div class="nav-backup">
+    <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">💾</button>
+    <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">📂</label>
+    <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreJSON(this)">
+  </div>
+</div>
+
+<main>
+
+<!-- DISCOS -->
+<div class="view active" id="view-discos">
+  <div class="section-header">
+    <div class="section-title"><small>// colección</small>DISCOS <span id="discos-count" style="font-family:var(--mono);font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:1px"></span></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+      <select class="filter-select" id="filter-genero" onchange="renderDiscos()"><option value="">Género 1: todos</option></select>
+      <select class="filter-select" id="filter-genero2" onchange="renderDiscos()"><option value="">Género 2: todos</option></select>
+      <select class="filter-select" id="filter-sello" onchange="renderDiscos()"><option value="">Sello: todos</option></select>
+      <input type="text" class="search-input" id="search-discos" placeholder="Buscar disco, código o artista..." oninput="renderDiscos()">
+      <div class="view-toggle">
+        <button class="vt-btn" id="vt-grid" onclick="setDiscosView('grid')" title="Grilla">⊞</button>
+        <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista">☰</button>
+      </div>
+      <div class="export-wrap">
+        <button class="btn" onclick="toggleExportMenu('exp-discos')">↓ Exportar</button>
+        <div class="export-menu" id="exp-discos">
+          <button class="export-item" onclick="exportCSV('discos');closeExportMenus()">CSV — Lista de Discos</button>
+          <button class="export-item" onclick="exportCSV('tracks');closeExportMenus()">CSV — Todos los Tracks</button>
+          <button class="export-item" onclick="exportCSV('todo');closeExportMenus()">CSV — Colección Completa</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="openModalDisco()">+ Nuevo Disco</button>
+    </div>
+  </div>
+  <!-- Batch delete bar -->
+  <div id="disco-batch-bar" style="display:none;background:var(--bg2);border:1px solid #ff4444;border-radius:2px;padding:.6rem 1rem;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+    <span id="disco-batch-count" style="font-family:var(--mono);font-size:.72rem;color:#ff4444"></span>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <button class="btn btn-sm" onclick="selectAllDiscos()">Seleccionar todos</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteSelectedDiscos()">✕ Eliminar seleccionados</button>
+      <button class="btn btn-sm" onclick="clearDiscoSelection()">Cancelar</button>
+    </div>
+  </div>
+  <div id="disk-container"></div>
+</div>
+
+<!-- DISCO DETAIL -->
+<div class="view" id="view-detail">
+  <button class="back-btn" onclick="showView('discos')">← Volver a Discos</button>
+  <div class="disk-detail-header">
+    <div class="disk-detail-cover" id="detail-cover"><div class="disk-cover-placeholder"></div></div>
+    <div>
+      <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:.3rem">// disco</div>
+      <div class="disk-name-big" id="detail-name">—</div>
+      <div class="meta-row" id="detail-meta"></div>
+      <div class="disk-detail-actions">
+        <button class="btn btn-primary btn-sm" onclick="openModalTrack()">+ Agregar Track</button>
+        <button class="btn btn-sm" onclick="editCurrentDisco()">✎ Editar Disco</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCurrentDisco()">✕ Eliminar</button>
+      </div>
+    </div>
+  </div>
+  <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// tracklist</div>
+  <div style="overflow-x:auto">
+    <table class="tracks-table">
+      <thead><tr>
+        <th style="width:30px"><input type="checkbox" id="detail-chk-all" onchange="detailSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
+        <th>#</th><th>YT</th><th>Nombre</th><th>Artista</th><th>Género</th><th>Destaque</th><th>Int.</th><th></th>
+      </tr></thead>
+      <tbody id="detail-tracks"></tbody>
+    </table>
+  </div>
+  <!-- Detail batch bar -->
+  <div id="detail-batch-bar" style="display:none;background:var(--bg2);border:1px solid var(--blue);border-radius:2px;padding:.6rem 1rem;margin-top:.8rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+    <span id="detail-batch-count" style="font-family:var(--mono);font-size:.72rem;color:var(--blue)"></span>
+    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+      <select class="filter-select" id="detail-batch-pl-sel"><option value="">Elegir playlist...</option></select>
+      <button class="btn btn-blue btn-sm" onclick="detailBatchAddToPlaylist()">+ Agregar</button>
+      <button class="btn btn-sm" style="border-color:var(--blue);color:var(--blue)" onclick="openModalNuevaPlaylistFromDetail()">+ Nueva playlist</button>
+      <button class="btn btn-sm" onclick="detailClearSelection()">✕ Limpiar</button>
+    </div>
+  </div>
+  <div id="detail-empty" style="display:none"><div class="empty-state"><div class="empty-icon">💿</div><p>Sin tracks — Agrega el primero</p></div></div>
+</div>
+
+<!-- ALL TRACKS -->
+<div class="view" id="view-tracks">
+  <div class="section-header">
+    <div class="section-title"><small>// biblioteca</small>TRACKS</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+      <select class="filter-select" id="ft-artista" onchange="renderAllTracks()"><option value="">Artista: todos</option></select>
+      <select class="filter-select" id="ft-genero" onchange="renderAllTracks()"><option value="">Género 1: todos</option></select>
+      <select class="filter-select" id="ft-genero2" onchange="renderAllTracks()"><option value="">Género 2: todos</option></select>
+      <select class="filter-select" id="ft-intensidad" onchange="renderAllTracks()">
+        <option value="">Int.: todas</option>
+        <option value="1">● 1</option><option value="2">● 2</option><option value="3">● 3</option><option value="4">● 4</option><option value="5">● 5</option>
+      </select>
+      <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="">Destaque: todos</option></select>
+      <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="">Sello: todos</option></select>
+      <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." oninput="renderAllTracks()">
+      <div class="export-wrap">
+        <button class="btn" onclick="toggleExportMenu('exp-tracks')">↓ CSV</button>
+        <div class="export-menu" id="exp-tracks">
+          <button class="export-item" onclick="exportCSVFiltered();closeExportMenus()">Vista actual (filtrada)</button>
+          <button class="export-item" onclick="exportCSV('tracks');closeExportMenus()">Todos los tracks</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Batch add to playlist bar -->
+  <div id="batch-bar" style="display:none;background:var(--bg2);border:1px solid var(--blue);border-radius:2px;padding:.6rem 1rem;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+    <span id="batch-count" style="font-family:var(--mono);font-size:.72rem;color:var(--blue)"></span>
+    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+      <select class="filter-select" id="batch-playlist-sel"><option value="">Elegir playlist...</option></select>
+      <button class="btn btn-blue btn-sm" onclick="batchAddToPlaylist()">+ Agregar</button>
+      <button class="btn btn-sm" style="border-color:var(--blue);color:var(--blue)" onclick="openModalNuevaPlaylistBatch()">+ Nueva playlist</button>
+      <button class="btn btn-sm" onclick="clearTrackSelection()">✕ Limpiar</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="tracks-table" id="all-tracks-table">
+      <thead>
+        <tr>
+          <th style="width:30px"><input type="checkbox" id="select-all-tracks" onchange="toggleSelectAllTracks(this)" style="accent-color:var(--blue);cursor:pointer"></th>
+          <th style="width:34px"></th>
+          <th style="width:40px">YT</th>
+          <th onclick="sortTracks('nombre')">Nombre</th>
+          <th onclick="sortTracks('artista')">Artista</th>
+          <th onclick="sortTracks('disco')">Disco</th>
+          <th onclick="sortTracks('sello')">Sello</th>
+          <th onclick="sortTracks('genero')">Género</th>
+          
+          <th onclick="sortTracks('destaque')">Destaque</th>
+          <th onclick="sortTracks('intensidad')">Int.</th>
+          <th></th>
+      </thead>
+      <tbody id="all-tracks-body"></tbody>
+    </table>
+  </div>
+  <div id="all-tracks-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🎶</div><p>No hay tracks que coincidan</p></div></div>
+</div>
+
+<!-- PLAYLISTS -->
+<div class="view" id="view-playlists">
+  <div class="section-header">
+    <div class="section-title"><small>// sets</small>PLAYLISTS</div>
+    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+      <div class="export-wrap">
+        <button class="btn" onclick="toggleExportMenu('exp-pl')">↓ CSV</button>
+        <div class="export-menu" id="exp-pl">
+          <button class="export-item" onclick="exportCSV('playlists');closeExportMenus()">Todas las playlists</button>
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="openModalPlaylist()">+ Nueva Playlist</button>
+    </div>
+  </div>
+  <div class="playlist-grid" id="playlist-grid"></div>
+  <div id="playlist-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🎛️</div><p>Crea tu primer set de DJ</p></div></div>
+</div>
+
+<!-- PLAYLIST DETAIL -->
+<div class="view" id="view-pl-detail">
+  <button class="back-btn" onclick="showView('playlists')">← Volver a Playlists</button>
+  <div class="pl-detail-header">
+    <div>
+      <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:.3rem">// playlist</div>
+      <div class="pl-detail-title" id="pl-detail-name">—</div>
+      <div class="pl-detail-desc" id="pl-detail-desc"></div>
+      <div style="margin-top:.8rem"><span class="tag blue" id="pl-detail-count"></span></div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-self:flex-start;margin-top:.5rem">
+      <button class="btn btn-blue btn-sm" onclick="openTrackPicker()">+ Agregar Tracks</button>
+      <button class="btn btn-sm" onclick="editCurrentPlaylist()">✎ Editar</button>
+      <button class="btn btn-sm" onclick="exportCSVPlaylist()">↓ CSV</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteCurrentPlaylist()">✕ Eliminar</button>
+    </div>
+  </div>
+  <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// tracklist · arrastrá para reordenar</div>
+  <!-- Playlist batch bar -->
+  <div id="pl-batch-bar" style="display:none;background:var(--bg2);border:1px solid var(--blue);border-radius:2px;padding:.6rem 1rem;margin-bottom:.8rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:.8rem">
+      <input type="checkbox" id="pl-chk-all" onchange="plSelectAll(this)" style="accent-color:var(--blue);cursor:pointer">
+      <span id="pl-batch-count" style="font-family:var(--mono);font-size:.72rem;color:var(--blue)"></span>
+    </div>
+    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+      <select class="filter-select" id="pl-batch-dest-sel"><option value="">Copiar a playlist...</option></select>
+      <button class="btn btn-blue btn-sm" onclick="plBatchCopyToPlaylist()">+ Copiar</button>
+      <button class="btn btn-sm" style="border-color:var(--blue);color:var(--blue)" onclick="openModalNuevaPlaylistFromPl()">+ Nueva playlist</button>
+      <button class="btn btn-sm btn-danger" onclick="plBatchDeleteSelected()">✕ Eliminar seleccionados</button>
+      <button class="btn btn-sm" onclick="plClearSelection()">Limpiar</button>
+    </div>
+  </div>
+  <div id="pl-tracks-list"></div>
+  <div id="pl-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🎚️</div><p>Agrega tracks a esta playlist</p></div></div>
+</div>
+
+<!-- IMPORT -->
+<div class="view" id="view-import">
+  <div class="section-header">
+    <div class="section-title"><small style="display:none">// desde youtube / discogs</small>IMPORTAR</div>
+    <div id="imp-session-badge" style="display:none"><span class="tag green" id="imp-pending-badge"></span></div>
+  </div>
+
+
+    <!-- Token setup -->
+    <!-- Token bar: collapsible -->
+    <div id="dcg-token-bar" style="margin-bottom:1.2rem">
+      <button onclick="toggleTokenBar()" style="background:none;border:1px solid var(--border);border-radius:2px;padding:.45rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;width:100%;text-align:left">
+        <span id="dcg-token-arrow" style="font-size:.7rem;transition:transform .2s">▶</span>
+        <span>Token Discogs</span>
+        <span id="dcg-token-badge" style="font-size:.6rem;color:var(--green);margin-left:.3rem"></span>
+      </button>
+      <div id="dcg-token-body" style="display:none;padding:.9rem 1rem;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 2px 2px">
+        <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-bottom:.7rem;line-height:1.7">
+          Necesitás un <strong style="color:var(--text)">Personal Access Token</strong> de Discogs para importar.<br>
+          <strong>Cómo obtenerlo:</strong> Entrá a <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:var(--accent)">discogs.com → Configuración → Desarrolladores</a> → <em>Generate new token</em> → copialo y pegalo acá.
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+          <input type="password" class="form-input" id="dcg-token-input" style="flex:1;min-width:180px;font-family:var(--mono);font-size:.75rem" placeholder="Pegá tu token acá..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <button class="btn btn-sm" onclick="toggleTokenVisibility()" id="dcg-token-eye" title="Mostrar/ocultar">👁</button>
+          <button class="btn btn-sm btn-green" onclick="saveDiscogsToken()">Guardar</button>
+          <button class="btn btn-sm btn-danger" onclick="clearDiscogsToken()" title="Borrar token">✕</button>
+        </div>
+        <div style="margin-top:.5rem">
+          <span id="dcg-token-status" style="font-family:var(--mono);font-size:.65rem;color:var(--muted)"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-tabs: individual vs bulk -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem">
+      <button class="nav-btn active" id="dcg-sub-single" onclick="switchDcgSub('single')" style="padding:.6rem 1.2rem">🔍 Por código</button>
+      <button class="nav-btn" id="dcg-sub-bulk" onclick="switchDcgSub('bulk')" style="padding:.6rem 1.2rem">📦 Colección completa (CSV)</button>
+    </div>
+
+    <!-- SINGLE search -->
+    <div id="dcg-panel-single">
+      <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem">Buscar por código de catálogo</p>
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
+        <input type="text" class="form-input" id="dcg-catno" style="width:200px;font-family:var(--mono)" placeholder="ej. ORG017, WARP100...">
+        <button class="btn btn-primary" onclick="searchDiscogs()" id="dcg-search-btn">🔍 Buscar en Discogs</button>
+        <span id="dcg-searching" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);display:none">Buscando...</span>
+      </div>
+      <div id="dcg-results" style="display:none">
+        <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem">Resultados — elegí el disco correcto</p>
+        <div id="dcg-results-list"></div>
+      </div>
+      <div id="dcg-preview" style="display:none">
+        <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem">Preview del disco</p>
+        <div id="dcg-preview-card"></div>
+        <div style="display:flex;gap:.5rem;margin-top:1.2rem">
+          <button class="btn btn-sm" onclick="dcgBackToResults()">← Otros resultados</button>
+          <button class="btn btn-green" onclick="importFromDiscogs()">✓ Importar este disco</button>
+        </div>
+      </div>
+      <!-- Persistent failed list -->
+      <div id="dcg-failed-persistent" style="display:none;margin-top:2rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
+          <p style="font-family:var(--mono);font-size:.65rem;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin:0">⚠ Discos no encontrados (<span id="dcg-failed-count">0</span>)</p>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-sm" onclick="exportPersistentFailed()">↓ Exportar CSV</button>
+            <button class="btn btn-sm btn-danger" onclick="clearPersistentFailed()">✕ Limpiar lista</button>
+          </div>
+        </div>
+        <div style="border:1px solid #ff4444;border-radius:2px;overflow:hidden;max-height:320px;overflow-y:auto">
+          <table class="tracks-table" style="font-size:.78rem">
+            <thead><tr><th>#</th><th>Código</th><th>Artista</th><th>Título</th><th>Sello</th><th>Motivo</th><th></th></tr></thead>
+            <tbody id="dcg-failed-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Verify section -->
+      <div id="dcg-verify-section" style="margin-top:2rem;padding:1.2rem;background:var(--bg2);border:1px solid var(--border);border-radius:2px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem">
+          <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase">🔍 Verificar colección vs CSV</span>
+          <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+            <label class="btn btn-sm" for="verify-csv-input" style="cursor:pointer">📂 Cargar CSV de Discogs</label>
+            <input type="file" id="verify-csv-input" accept=".csv" style="display:none" onchange="verifyCollectionVsCSV(this)">
+          </div>
+        </div>
+        <div id="verify-result" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- BULK import -->
+    <div id="dcg-panel-bulk" style="display:none">
+
+      <!-- Network check banner -->
+      <div id="bulk-network-warn" style="display:none;background:rgba(255,68,68,.1);border:1px solid #ff4444;border-radius:2px;padding:1rem 1.2rem;margin-bottom:1.2rem;font-family:var(--mono);font-size:.75rem;color:#ff6666;line-height:1.8">
+        ⚠ <strong>Sin acceso a Discogs API</strong><br>
+        Esta app no puede conectarse a Discogs desde dentro de claude.ai.<br>
+        <strong>Solución:</strong> Descargá el archivo HTML → abrilo directo en Chrome/Firefox como archivo local (<code>file://</code>) → ahí todo funciona.
+      </div>
+
+      <div style="margin-bottom:1.2rem">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.info-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(90deg)':''" style="background:none;border:1px solid var(--blue);border-radius:2px;padding:.4rem .9rem;cursor:pointer;font-family:var(--mono);font-size:.63rem;color:var(--blue);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:.5rem">
+          <span class="info-arrow" style="font-size:.6rem;transition:transform .2s">▶</span> ¿Cómo funciona?
+        </button>
+        <div style="display:none" class="restore-info restore-info-body" style="margin-top:0;border-top:none;border-radius:0 0 2px 2px">
+          <strong>Paso 1 — Obtener token de Discogs</strong><br>
+          1. Entrá a <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:#7dd3fc">discogs.com → Configuración → Desarrolladores</a><br>
+          2. Hacé clic en <em>"Generate new token"</em><br>
+          3. Copiá el token generado<br>
+          4. Pegalo arriba en <strong>▶ Token Discogs</strong> y guardá<br><br>
+          <strong>Paso 2 — Exportar tu colección</strong><br>
+          1. Entrá a <a href="https://www.discogs.com/user/me/collection" target="_blank" style="color:#7dd3fc">discogs.com → Mi colección</a><br>
+          2. Clic en <em>"Exportar"</em> (esquina superior derecha)<br>
+          3. Descargá el archivo CSV cuando esté listo<br><br>
+          <strong>Paso 3 — Importar</strong><br>
+          Subí el CSV acá abajo. Busca por <strong>Catalog#</strong> primero, si falla busca por <strong>Title</strong>. Si hay múltiples versiones te pregunta cuál elegir.<br>
+          Los fallidos quedan guardados en <strong>"Discos no encontrados"</strong> en la pestaña "Por código".<br>
+          ⏱ Se procesa de a uno para respetar el límite de la API (~3-4 seg por disco).
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div id="bulk-step-upload">
+        <label class="import-drop" id="bulk-drop" for="bulk-file-input">
+          <div class="import-drop-icon">📂</div>
+          <p>Subí tu CSV exportado de Discogs</p>
+          <span>Discogs: Mi colección → Exportar → descargar CSV tal cual</span>
+        </label>
+        <input type="file" id="bulk-file-input" accept=".csv" style="display:none" onchange="loadBulkCSV(this)">
+      </div>
+
+      <!-- Preview before start -->
+      <div id="bulk-step-preview" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:.5rem">
+          <div>
+            <span style="font-family:var(--display);font-size:1.5rem;letter-spacing:3px" id="bulk-total-count"></span>
+            <span style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-left:.5rem">discos para importar</span>
+          </div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-sm" onclick="resetBulkImport()">← Cambiar archivo</button>
+            <button class="btn btn-green" onclick="startBulkImport()" id="bulk-start-btn">▶ Iniciar importación</button>
+          </div>
+        </div>
+        <div id="bulk-mode-info" style="font-family:var(--mono);font-size:.68rem;color:var(--green);margin-bottom:.8rem"></div>
+        <!-- Preview table -->
+        <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:2px;margin-bottom:1rem">
+          <table class="tracks-table" style="font-size:.8rem">
+            <thead><tr><th>Código</th><th>Artista</th><th>Título</th><th>Sello</th><th>Año</th><th>Estado</th></tr></thead>
+            <tbody id="bulk-preview-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Progress while running -->
+      <div id="bulk-step-progress" style="display:none">
+        <div style="margin-bottom:1rem">
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:.5rem">
+            <span id="bulk-prog-label">Iniciando...</span>
+            <span id="bulk-prog-pct">0%</span>
+          </div>
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div id="bulk-prog-bar" style="height:100%;background:var(--green);border-radius:3px;transition:width .3s;width:0%"></div>
+          </div>
+        </div>
+        <div id="bulk-current-item" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:1rem;min-height:1.4rem"></div>
+        <div style="max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:2px" id="bulk-log-wrap">
+          <table class="tracks-table" style="font-size:.78rem">
+            <thead><tr><th>#</th><th>Código</th><th>Título</th><th>Resultado</th></tr></thead>
+            <tbody id="bulk-log"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:1rem">
+          <button class="btn btn-sm btn-danger" id="bulk-stop-btn" onclick="stopBulkImport()">⏹ Detener</button>
+        </div>
+      </div>
+
+      <!-- Done -->
+      <div id="bulk-step-done" style="display:none;padding:2rem 0">
+        <div style="text-align:center;padding:1.5rem;border:1px solid var(--green);border-radius:2px;margin-bottom:1.5rem">
+          <div style="font-size:2rem;margin-bottom:.4rem">✅</div>
+          <div style="font-family:var(--display);font-size:1.8rem;letter-spacing:4px;color:var(--green)">IMPORTACIÓN COMPLETA</div>
+          <p style="font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-top:.5rem" id="bulk-done-summary"></p>
+        </div>
+        <!-- Failed list -->
+        <div id="bulk-failed-section" style="display:none">
+          <p style="font-family:var(--mono);font-size:.65rem;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem">Discos que fallaron o no se encontraron</p>
+          <div style="border:1px solid #ff4444;border-radius:2px;overflow:hidden">
+            <table class="tracks-table" style="font-size:.8rem">
+              <thead><tr><th>#</th><th>Código</th><th>Artista</th><th>Título</th><th>Motivo</th></tr></thead>
+              <tbody id="bulk-failed-body"></tbody>
+            </table>
+          </div>
+          <button class="btn btn-sm" style="margin-top:.8rem" onclick="exportFailedCSV()">↓ Exportar fallidos como CSV</button>
+        </div>
+        <div style="display:flex;gap:.5rem;margin-top:1.5rem;justify-content:center">
+          <button class="btn btn-primary" onclick="showView('discos')">Ver colección</button>
+          <button class="btn" onclick="resetBulkImport()">Importar otro archivo</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+</main>
+
+<!-- MODAL: DISCO -->
+<div class="modal-overlay" id="modal-disco">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-disco')">✕</button>
+    <div class="modal-title" id="modal-disco-title">NUEVO DISCO</div>
+    <input type="hidden" id="disco-edit-id">
+    <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.2rem">
+      <label class="cover-upload" id="cover-label" for="cover-input"><span id="cover-ph">📷<br>Carátula</span></label>
+      <input type="file" id="cover-input" accept="image/*" style="display:none" onchange="previewCover(this)">
+      <div style="flex:1">
+        <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="disco-nombre" placeholder="ej. Selected Ambient Works"></div>
+        <div class="form-group"><label class="form-label">Sello Discográfico</label><input class="form-input" id="disco-sello" placeholder="ej. R&S Records"></div>
+        <div style="display:flex;gap:.8rem">
+          <div class="form-group" style="flex:1"><label class="form-label">Código de Disco</label><input class="form-input" id="disco-codigo" placeholder="ej. ORG017"></div>
+          <div class="form-group" style="width:100px"><label class="form-label">Año</label><input class="form-input" id="disco-released" placeholder="ej. 1993" maxlength="4"></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Género</label>
+        <div class="checklist-field" id="disco-genero-cl">
+          <div class="checklist-display" onclick="toggleChecklist('disco-genero-cl')"><span class="checklist-placeholder">Seleccionar género</span></div>
+          <div class="checklist-dropdown"><div class="checklist-add"><input type="text" placeholder="Agregar género..."><button onclick="addChecklistOption('disco-genero-cl','generos')">+</button></div></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn" onclick="closeModal('modal-disco')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDisco()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TRACK -->
+<div class="modal-overlay" id="modal-track">
+  <div class="modal modal-lg">
+    <button class="modal-close" onclick="closeModal('modal-track')">✕</button>
+    <div class="modal-title" id="modal-track-title">NUEVO TRACK</div>
+    <input type="hidden" id="track-edit-id">
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="track-nombre" placeholder="ej. Windowlicker"></div>
+      <div class="form-group"><label class="form-label">Artista *</label><input class="form-input" id="track-artista" placeholder="ej. Aphex Twin"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Género</label>
+        <div class="checklist-field" id="track-genero-cl">
+          <div class="checklist-display" onclick="toggleChecklist('track-genero-cl')"><span class="checklist-placeholder">Seleccionar género</span></div>
+          <div class="checklist-dropdown"><div class="checklist-add"><input type="text" placeholder="Agregar género..."><button onclick="addChecklistOption('track-genero-cl','generos')">+</button></div></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="form-group"><label class="form-label">Destaque (máx. 3)</label>
+      <div class="checklist-field destaque" id="track-destaque-cl">
+        <div class="checklist-display" onclick="toggleChecklist('track-destaque-cl')"><span class="checklist-placeholder">Seleccionar destaques</span></div>
+        <div class="checklist-dropdown"><div class="checklist-add"><input type="text" placeholder="Agregar destaque..."><button onclick="addChecklistOption('track-destaque-cl','destaques')">+</button></div></div>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Link YouTube</label><input class="form-input" id="track-youtube" placeholder="https://youtube.com/watch?v=..."></div>
+      <div class="form-group"><label class="form-label">Intensidad</label>
+        <div class="intensity-selector">
+          <button class="int-btn" onclick="setIntensidad(1)">1</button>
+          <button class="int-btn" onclick="setIntensidad(2)">2</button>
+          <button class="int-btn" onclick="setIntensidad(3)">3</button>
+          <button class="int-btn" onclick="setIntensidad(4)">4</button>
+          <button class="int-btn" onclick="setIntensidad(5)">5</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Comentario</label><textarea class="form-input form-textarea" id="track-comentario" placeholder="Notas, referencias, contexto..."></textarea></div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.2rem">
+      <button class="btn" onclick="closeModal('modal-track')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTrack()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PLAYLIST -->
+<div class="modal-overlay" id="modal-playlist">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-playlist')">✕</button>
+    <div class="modal-title" id="modal-pl-title">NUEVA PLAYLIST</div>
+    <input type="hidden" id="pl-edit-id">
+    <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="pl-nombre" placeholder="ej. Set Opening — After Hours"></div>
+    <div class="form-group"><label class="form-label">Descripción / Notas</label><textarea class="form-input form-textarea" id="pl-desc" placeholder="Contexto, venue, BPM range, mood..."></textarea></div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn" onclick="closeModal('modal-playlist')">Cancelar</button>
+      <button class="btn btn-blue" onclick="savePlaylist()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TRACK PICKER -->
+<div class="modal-overlay" id="modal-picker">
+  <div class="modal modal-lg">
+    <button class="modal-close" onclick="closeModal('modal-picker')">✕</button>
+    <div class="modal-title">AGREGAR TRACKS</div>
+    <input type="text" class="search-input" id="picker-search" style="width:100%" placeholder="Buscar por nombre, artista o disco..." oninput="renderPicker()">
+    <div class="track-picker-list" id="track-picker-list"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;flex-wrap:wrap;gap:.5rem">
+      <span id="picker-count" style="font-family:var(--mono);font-size:.7rem;color:var(--muted)"></span>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn" onclick="closeModal('modal-picker')">Cancelar</button>
+        <button class="btn btn-blue" onclick="addSelectedToPlaylist()">Agregar Seleccionados</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DISAMBIGUATE - multiple Discogs results -->
+<div class="modal-overlay" id="modal-disambig">
+  <div class="modal modal-lg" style="max-width:700px">
+    <div class="modal-title" style="font-size:1.4rem">ELEGIR VERSIÓN CORRECTA</div>
+    <div id="disambig-row-info" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:1rem;padding:.6rem .8rem;background:var(--bg3);border-radius:2px;border-left:3px solid var(--accent2)"></div>
+    <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem">Resultados encontrados — elegí el correcto o saltá este disco</p>
+    <div id="disambig-list" style="max-height:380px;overflow-y:auto"></div>
+    <div style="display:flex;gap:.5rem;margin-top:1.2rem;justify-content:flex-end">
+      <button class="btn btn-sm btn-danger" onclick="disambigSkip()">✕ Saltear este disco</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CHECKPOINT every 10 discos -->
+<div class="modal-overlay" id="modal-checkpoint">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-title" style="font-size:1.3rem;color:var(--green)">✓ CHECKPOINT</div>
+    <p style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:1.2rem" id="checkpoint-subtitle"></p>
+    <div id="checkpoint-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.8rem;max-height:340px;overflow-y:auto;margin-bottom:1.2rem"></div>
+    <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-bottom:1rem">Revisá que los discos importados sean correctos. Si alguno no corresponde podés eliminarlo acá.</p>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end">
+      <button class="btn btn-green" onclick="checkpointContinue()">Continuar importación →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD DISCO TRACKS TO PLAYLIST (from detail view) -->
+<div class="modal-overlay" id="modal-detail-pl">
+  <div class="modal modal-lg" style="max-width:560px">
+    <button class="modal-close" onclick="closeModal('modal-detail-pl')">✕</button>
+    <div class="modal-title">+ AGREGAR A PLAYLIST</div>
+    <div class="form-group" style="margin-bottom:1rem">
+      <label class="form-label">Playlist de destino</label>
+      <select class="form-input" id="detail-pl-sel"><option value="">— Elegir —</option></select>
+    </div>
+    <!-- Track list with checkboxes -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+      <p style="font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:0">Tracks a agregar</p>
+      <div style="display:flex;gap:.4rem">
+        <button class="btn btn-sm" style="font-size:.6rem;padding:2px 8px" onclick="detailPlSelectAll(true)">Todos</button>
+        <button class="btn btn-sm" style="font-size:.6rem;padding:2px 8px" onclick="detailPlSelectAll(false)">Ninguno</button>
+      </div>
+    </div>
+    <div id="detail-pl-tracklist" style="max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:2px;margin-bottom:1rem"></div>
+    <div style="display:flex;gap:.5rem;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <span id="detail-pl-track-count" style="font-family:var(--mono);font-size:.65rem;color:var(--muted)"></span>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn" onclick="closeModal('modal-detail-pl')">Cancelar</button>
+        <button class="btn btn-green" onclick="confirmAddDetailToPlaylist()">✓ Agregar seleccionados</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVA PLAYLIST DESDE BATCH -->
+<div class="modal-overlay" id="modal-batch-pl">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-batch-pl')">✕</button>
+    <div class="modal-title">NUEVA PLAYLIST</div>
+    <p style="font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-bottom:1.2rem" id="batch-pl-subtitle"></p>
+    <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="batch-pl-nombre" placeholder="ej. Set Opening — After Hours"></div>
+    <div class="form-group"><label class="form-label">Descripción / Notas</label><textarea class="form-input form-textarea" id="batch-pl-desc" placeholder="Contexto, venue, BPM range, mood..."></textarea></div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn" onclick="closeModal('modal-batch-pl')">Cancelar</button>
+      <button class="btn btn-blue" onclick="crearPlaylistDesdeBatch()">Crear y agregar tracks</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+// =================== STATE ===================
+let state = {
+  discos:[], playlists:[],
+  catalogo:{ generos:[], subgeneros:[], destaques:[] },
+  currentDiscoId:null, currentPlId:null,
+  selectedIntensidad:3, coverData:null,
+  discogsToken:''
+};
+let discosViewMode='list', pickerMap={}, filteredTracksCache=[], dragSrc=null;
+let trackSort={col:'',dir:1};
+let selectedTracks=new Set(); // for batch add to playlist
+
+// =================== PERSIST ===================
+function save(){
+  try{ localStorage.setItem('crate_v3',JSON.stringify({discos:state.discos,playlists:state.playlists,catalogo:state.catalogo,discogsToken:state.discogsToken||''})); }catch(e){}
+  showToast();
+}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('crate_v3')||'{}');
+    state.discos=d.discos||[];
+    state.playlists=d.playlists||[];
+    state.catalogo=d.catalogo||{generos:[],subgeneros:[],destaques:[]};
+    state.discogsToken=d.discogsToken||'';
+    // Sync token to standalone localStorage key for compatibility
+    if(state.discogsToken){ try{ localStorage.setItem('discogs_token',state.discogsToken); }catch(e){} }
+    if(!state.catalogo.generos) state.catalogo.generos=[];
+    if(!state.catalogo.subgeneros) state.catalogo.subgeneros=[];
+    if(!state.catalogo.destaques) state.catalogo.destaques=[];
+  }catch(e){ state.discos=[]; state.playlists=[]; state.catalogo={generos:[],subgeneros:[],destaques:[]}; }
+}
+function showToast(){
+  const t=document.getElementById('save-toast');
+  t.classList.add('show'); clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),2000);
+}
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+
+// =================== BACKUP ===================
+function backupJSON(){
+  const data={version:3,exportedAt:new Date().toISOString(),discos:state.discos,playlists:state.playlists,catalogo:state.catalogo};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download=`CRATE_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); showToast();
+}
+function restoreJSON(input){
+  const file=input.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.discos){alert('Archivo inválido');return;}
+      const td=d.discos.length,tt=d.discos.flatMap(x=>x.tracks).length;
+      if(!confirm(`¿Cargar backup?\n\n• ${td} discos\n• ${tt} tracks\n• ${d.playlists?.length||0} playlists\n\nExportado: ${d.exportedAt?.slice(0,10)||'?'}\n\nEsto reemplazará los datos actuales.`))return;
+      state.discos=d.discos; state.playlists=d.playlists||[];
+      state.catalogo=d.catalogo||{generos:[],subgeneros:[],destaques:[]};
+      if(!state.catalogo.destaques) state.catalogo.destaques=[];
+      if(d.discogsToken){ state.discogsToken=d.discogsToken; try{ localStorage.setItem('discogs_token',d.discogsToken); }catch(e){} }
+      save(); renderDiscos(); updateStats(); showView('discos'); input.value='';
+    }catch(err){alert('Error: '+err.message);}
+  };
+  r.readAsText(file,'UTF-8');
+}
+
+// =================== CHECKLIST SYSTEM ===================
+// catalogKey: 'generos' | 'subgeneros' | 'destaques'
+// fieldId: DOM id of the .checklist-field div
+// selected: array of currently selected values
+// maxSel: max selections (null = unlimited)
+
+function initChecklist(fieldId, catalogKey, selected=[], maxSel=null){
+  const field=document.getElementById(fieldId);
+  const display=field.querySelector('.checklist-display');
+  const dropdown=field.querySelector('.checklist-dropdown');
+  field._catalogKey=catalogKey;
+  field._selected=selected.slice();
+  field._maxSel=maxSel;
+  // Build items inside dropdown (before the add row)
+  rebuildChecklistItems(field);
+  updateChecklistDisplay(field);
+}
+
+function rebuildChecklistItems(field){
+  const catalogKey=field._catalogKey;
+  const dropdown=field.querySelector('.checklist-dropdown');
+  const addRow=dropdown.querySelector('.checklist-add');
+  dropdown.querySelectorAll('.checklist-item').forEach(el=>el.remove());
+  let opts=state.catalogo[catalogKey]||[];
+
+  // Sort by usage frequency (most used first) — only for generos
+  if(catalogKey==='generos'){
+    const freq={};
+    state.discos.forEach(d=>{
+      const dg=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
+      dg.forEach(g=>{freq[g]=(freq[g]||0)+1;});
+      d.tracks.forEach(t=>{
+        const tg=Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean);
+        const ts=Array.isArray(t.subgenero)?t.subgenero:[t.subgenero].filter(Boolean);
+        [...tg,...ts].forEach(g=>{freq[g]=(freq[g]||0)+1;});
+      });
+    });
+    opts=[...opts].sort((a,b)=>(freq[b]||0)-(freq[a]||0));
+  }
+
+  opts.forEach(opt=>{
+    const div=document.createElement('div');
+    div.className='checklist-item';
+    const chk=document.createElement('input');
+    chk.type='checkbox';
+    chk.checked=field._selected.includes(opt);
+    chk.onchange=()=>checklistToggle(field,opt,chk);
+    div.appendChild(chk);
+    const lbl=document.createElement('span');
+    lbl.textContent=opt;
+    div.appendChild(lbl);
+    div.onclick=e=>{if(e.target!==chk){chk.checked=!chk.checked;checklistToggle(field,opt,chk);}};
+    dropdown.insertBefore(div,addRow);
+  });
+}
+
+function checklistToggle(field,val,chk){
+  const max=field._maxSel;
+  if(chk.checked){
+    if(max && field._selected.length>=max){chk.checked=false;return;}
+    if(!field._selected.includes(val)) field._selected.push(val);
+  } else {
+    field._selected=field._selected.filter(v=>v!==val);
+  }
+  updateChecklistDisplay(field);
+}
+
+function updateChecklistDisplay(field){
+  const display=field.querySelector('.checklist-display');
+  if(field._selected.length===0){
+    display.innerHTML='<span class="checklist-placeholder">Seleccionar...</span>';
+  } else {
+    display.innerHTML=field._selected.map(v=>`<span class="tag${field._catalogKey==='destaques'?' purple':' accent'}" style="font-size:.58rem">${v}</span>`).join('');
+  }
+}
+
+function toggleChecklist(fieldId){
+  const field=document.getElementById(fieldId);
+  const dropdown=field.querySelector('.checklist-dropdown');
+  const display=field.querySelector('.checklist-display');
+  const isOpen=dropdown.classList.contains('open');
+  // close all others
+  document.querySelectorAll('.checklist-dropdown.open').forEach(d=>d.classList.remove('open'));
+  document.querySelectorAll('.checklist-display.open').forEach(d=>d.classList.remove('open'));
+  if(!isOpen){
+    rebuildChecklistItems(field); // re-sort by frequency on every open
+    dropdown.classList.add('open');
+    display.classList.add('open');
+  }
+}
+
+function addChecklistOption(fieldId, catalogKey){
+  const field=document.getElementById(fieldId);
+  const input=field.querySelector('.checklist-add input');
+  const val=input.value.trim();
+  if(!val) return;
+  if(!state.catalogo[catalogKey]) state.catalogo[catalogKey]=[];
+  if(!state.catalogo[catalogKey].includes(val)){
+    state.catalogo[catalogKey].push(val);
+    save();
+    // Refresh all open checklists of same type
+    document.querySelectorAll('.checklist-field').forEach(f=>{
+      if(f._catalogKey===catalogKey) rebuildChecklistItems(f);
+    });
+  }
+  // Auto-select it
+  if(!field._selected.includes(val)){
+    const max=field._maxSel;
+    if(!max||field._selected.length<max){
+      field._selected.push(val);
+      updateChecklistDisplay(field);
+      rebuildChecklistItems(field);
+    }
+  }
+  input.value='';
+}
+
+function getChecklistValue(fieldId){
+  const field=document.getElementById(fieldId);
+  return field?field._selected||[]:[]; 
+}
+
+// Close checklists on outside click
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.checklist-field')){
+    document.querySelectorAll('.checklist-dropdown.open').forEach(d=>d.classList.remove('open'));
+    document.querySelectorAll('.checklist-display.open').forEach(d=>d.classList.remove('open'));
+  }
+  if(!e.target.closest('.export-wrap')) closeExportMenus();
+});
+
+// =================== NAV ===================
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  const m={discos:0,tracks:1,playlists:2,import:3};
+  if(m[name]!==undefined) document.querySelectorAll('.nav-btn')[m[name]].classList.add('active');
+  if(name==='discos') renderDiscos();
+  if(name==='tracks'){updateAllTrackFilters();renderAllTracks();}
+  if(name==='playlists') renderPlaylists();
+  if(name==='import') initDiscogsTab();
+  updateStats(); closeExportMenus();
+}
+
+function updateStats(){
+  document.getElementById('stat-discos').textContent=state.discos.length;
+  document.getElementById('stat-tracks').textContent=state.discos.flatMap(d=>d.tracks).length;
+  document.getElementById('stat-playlists').textContent=state.playlists.length;
+}
+
+// =================== DISCOS ===================
+function setDiscosView(mode){
+  discosViewMode=mode;
+  document.getElementById('vt-grid').classList.toggle('active',mode==='grid');
+  document.getElementById('vt-list').classList.toggle('active',mode==='list');
+  renderDiscos();
+}
+let selectedDiscos = new Set();
+
+function renderDiscos(){
+  const gf=document.getElementById('filter-genero').value,gf2=document.getElementById('filter-genero2').value,sf=document.getElementById('filter-sello').value;
+  const s=document.getElementById('search-discos').value.toLowerCase();
+  const gens=[...new Set(state.discos.map(d=>d.genero).flat().filter(Boolean))].sort();
+  const sell=[...new Set(state.discos.map(d=>d.sello).filter(Boolean))].sort();
+  updateSelect('filter-genero',gens,'Género 1: todos',gf);
+  updateSelect('filter-genero2',gens,'Género 2: todos',gf2);
+  updateSelect('filter-sello',sell,'Sello: todos',sf);
+  let f=state.discos.filter(d=>{
+    const dgens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
+    if(gf&&!dgens.includes(gf))return false;
+    if(gf2&&!dgens.includes(gf2))return false;
+    if(sf&&d.sello!==sf)return false;
+    if(s&&!d.nombre.toLowerCase().includes(s)&&!d.sello?.toLowerCase().includes(s)&&!d.codigo?.toLowerCase().includes(s)&&!d.tracks.some(t=>t.artista?.toLowerCase().includes(s)))return false;
+    return true;
+  });
+  const c=document.getElementById('disk-container');
+  if(!f.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">🎛️</div><p>${state.discos.length===0?'Agrega tu primer disco':'Sin resultados'}</p></div>`;return;}
+  const genTag=d=>{const g=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);return g.map(x=>`<span class="tag accent">${x}</span>`).join('');};
+
+  if(discosViewMode==='list'){
+    c.innerHTML=`<div class="disk-list">${f.map(d=>`
+      <div class="disk-list-row${selectedDiscos.has(d.id)?' selected':''}" onclick="discoRowClick(event,'${d.id}')">
+        <input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)">
+        <div class="disk-list-thumb">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl"></div>'}</div>
+        <div class="disk-list-name">${d.nombre}</div>
+        <div class="disk-list-sello">${d.sello||'—'}</div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap">${genTag(d)}${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
+        <div class="disk-list-tracks">${d.tracks.length} tracks</div>
+      </div>`).join('')}</div>`;
+  } else {
+    c.innerHTML=`<div class="disk-grid">${f.map(d=>`
+      <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')">
+        <input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)">
+        <div class="disk-cover">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer" alt="${d.nombre}">`:'<div class="disk-cover-placeholder"></div>'}</div>
+        <div class="disk-info">
+          <div class="disk-name">${d.nombre}</div>
+          <div class="disk-label">${d.sello||'—'}${d.codigo?` · <span style="color:var(--accent2)">${d.codigo}</span>`:''}${d.released?` · <span style="color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
+          <div class="disk-meta" style="flex-wrap:wrap;gap:3px">${genTag(d)}<span class="track-count">${d.tracks.length} tr</span></div>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+  updateDiscoBatchBar();
+  const dc=document.getElementById('discos-count');if(dc)dc.textContent=`(${f.length}${f.length!==state.discos.length?' de '+state.discos.length:''})`;
+}
+
+function discoCardClick(e, id) {
+  // If any discos already selected, clicking toggles selection instead of opening
+  if(selectedDiscos.size > 0) { toggleDiscoSelect(id); return; }
+  openDisco(id);
+}
+function discoRowClick(e, id) {
+  if(selectedDiscos.size > 0) { toggleDiscoSelect(id); return; }
+  openDisco(id);
+}
+function toggleDiscoSelect(id, chk) {
+  if(selectedDiscos.has(id)) selectedDiscos.delete(id);
+  else selectedDiscos.add(id);
+  renderDiscos();
+}
+function selectAllDiscos() {
+  state.discos.forEach(d => selectedDiscos.add(d.id));
+  renderDiscos();
+}
+function clearDiscoSelection() {
+  selectedDiscos.clear();
+  renderDiscos();
+}
+function updateDiscoBatchBar() {
+  const bar = document.getElementById('disco-batch-bar');
+  const cnt = selectedDiscos.size;
+  bar.style.display = cnt > 0 ? 'flex' : 'none';
+  if(cnt > 0) document.getElementById('disco-batch-count').textContent =
+    `${cnt} disco${cnt!==1?'s':''} seleccionado${cnt!==1?'s':''}`;
+}
+function deleteSelectedDiscos() {
+  const cnt = selectedDiscos.size;
+  if(!cnt) return;
+  const tracks = [...selectedDiscos].reduce((sum,id) => sum + (state.discos.find(d=>d.id===id)?.tracks.length||0), 0);
+  if(!confirm(`¿Eliminar ${cnt} disco${cnt!==1?'s':''}?\nEsto borrará también ${tracks} track${tracks!==1?'s':''} y los quitará de todas las playlists.`)) return;
+  // Remove from playlists too
+  state.playlists.forEach(pl => {
+    pl.tracks = pl.tracks.filter(ref => !selectedDiscos.has(ref.discoId));
+  });
+  state.discos = state.discos.filter(d => !selectedDiscos.has(d.id));
+  selectedDiscos.clear();
+  save(); updateStats(); renderDiscos();
+}
+function updateSelect(id,opts,allLabel,current){
+  const s=document.getElementById(id);
+  s.innerHTML=`<option value="">${allLabel}</option>`+opts.map(o=>`<option value="${o}"${o===current?' selected':''}>${o}</option>`).join('');
+}
+function openDisco(id){
+  state.currentDiscoId=id;
+  detailSelectedTracks.clear(); // reset selection on new disco
+  const d=state.discos.find(x=>x.id===id);if(!d)return;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-detail').classList.add('active');
+  document.getElementById('detail-name').textContent=d.nombre;
+  document.getElementById('detail-cover').innerHTML=d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="disk-cover-placeholder"></div>';
+  const gens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
+  document.getElementById('detail-meta').innerHTML=[
+    d.sello?`<span class="tag yellow">${d.sello}</span>`:'',
+    d.codigo?`<span class="tag" style="border-color:var(--accent2);color:var(--accent2)">${d.codigo}</span>`:'',
+    d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:'',
+    ...gens.map(g=>`<span class="tag accent">${g}</span>`),
+    `<span class="tag">${d.tracks.length} tracks</span>`
+  ].filter(Boolean).join('');
+  renderDetailTracks(d);
+}
+let detailSelectedTracks = new Set(); // discoId_trackId keys for detail view
+
+function renderDetailTracks(d){
+  const tb=document.getElementById('detail-tracks'),em=document.getElementById('detail-empty');
+  if(!d.tracks.length){tb.innerHTML='';em.style.display='block';updateDetailBatchBar(d);return;}
+  em.style.display='none';
+  tb.innerHTML=d.tracks.map((t,i)=>{
+    const key=d.id+'_'+t.id;
+    const sel=detailSelectedTracks.has(key);
+    return `<tr class="${sel?'row-selected':''}">
+    <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="toggleDetailTrack('${d.id}','${t.id}',this)"></td>
+    <td class="track-num">${t.position||String(i+1).padStart(2,'0')}</td>
+    <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
+    <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:2px">💬 ${t.comentario}</div>`:''}</td>
+    <td><div class="track-artist">${t.artista}</div></td>
+    <td>${(Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean)).map(g=>`<span class="tag" style="color:#e03030;border-color:#e03030">${g}</span>`).join(' ')}</td>
+    <td>${(t.destaque||[]).map(x=>`<span class="destaque-tag">${x}</span>`).join(' ')}</td>
+    <td>${renderDots(t.intensidad)}</td>
+    <td style="display:flex;gap:4px">
+      <button class="btn btn-sm" onclick="editTrack('${d.id}','${t.id}')">✎</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTrack('${d.id}','${t.id}')">✕</button>
+    </td></tr>`;
+  }).join('');
+  // Sync header checkbox
+  const allChk=document.getElementById('detail-chk-all');
+  if(allChk) allChk.checked = d.tracks.length>0 && d.tracks.every(t=>detailSelectedTracks.has(d.id+'_'+t.id));
+  updateDetailBatchBar(d);
+}
+
+function toggleDetailTrack(discoId, trackId, chk){
+  const key=discoId+'_'+trackId;
+  if(chk.checked) detailSelectedTracks.add(key); else detailSelectedTracks.delete(key);
+  const d=state.discos.find(x=>x.id===discoId);
+  const allChk=document.getElementById('detail-chk-all');
+  if(allChk && d) allChk.checked = d.tracks.every(t=>detailSelectedTracks.has(discoId+'_'+t.id));
+  updateDetailBatchBar(d);
+}
+
+function detailSelectAll(masterChk){
+  const d=state.discos.find(x=>x.id===state.currentDiscoId);
+  if(!d) return;
+  d.tracks.forEach(t=>{
+    const key=d.id+'_'+t.id;
+    if(masterChk.checked) detailSelectedTracks.add(key); else detailSelectedTracks.delete(key);
+  });
+  renderDetailTracks(d);
+}
+
+function updateDetailBatchBar(d){
+  const bar=document.getElementById('detail-batch-bar');
+  if(!bar) return;
+  // Count selected tracks belonging to current disco
+  const cnt = d ? d.tracks.filter(t=>detailSelectedTracks.has(d.id+'_'+t.id)).length : 0;
+  bar.style.display = cnt>0 ? 'flex' : 'none';
+  if(cnt>0){
+    document.getElementById('detail-batch-count').textContent=`${cnt} track${cnt!==1?'s':''} seleccionado${cnt!==1?'s':''}`;
+    // Populate playlist selector
+    const sel=document.getElementById('detail-batch-pl-sel');
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Elegir playlist...</option>'+
+      state.playlists.map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${p.nombre}</option>`).join('');
+  }
+}
+
+function detailBatchAddToPlaylist(){
+  const plId=document.getElementById('detail-batch-pl-sel').value;
+  if(!plId){alert('Elegí una playlist');return;}
+  const d=state.discos.find(x=>x.id===state.currentDiscoId);
+  const pl=state.playlists.find(p=>p.id===plId);
+  if(!d||!pl) return;
+  let added=0;
+  d.tracks.forEach(t=>{
+    if(detailSelectedTracks.has(d.id+'_'+t.id)){
+      const already=pl.tracks.some(r=>r.discoId===d.id&&r.trackId===t.id);
+      if(!already){pl.tracks.push({discoId:d.id,trackId:t.id});added++;}
+    }
+  });
+  save();
+  const skipped=d.tracks.filter(t=>detailSelectedTracks.has(d.id+'_'+t.id)).length - added;
+  detailClearSelection();
+  alert(`✓ ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
+}
+
+function detailClearSelection(){
+  detailSelectedTracks.clear();
+  const d=state.discos.find(x=>x.id===state.currentDiscoId);
+  if(d) renderDetailTracks(d);
+}
+function renderDots(val){
+  val=val||0;
+  return '<div class="intensity">'+[1,2,3,4,5].map(i=>{
+    let c='dot';if(i<=val)c+=val>=5?' on max':val>=4?' on high':' on';
+    return `<div class="${c}"></div>`;
+  }).join('')+'</div>';
+}
+
+// =================== MODAL DISCO ===================
+function openModalDisco(id){
+  state.coverData=null;
+  document.getElementById('disco-edit-id').value=id||'';
+  document.getElementById('modal-disco-title').textContent=id?'EDITAR DISCO':'NUEVO DISCO';
+  let selGeneros=[];
+  if(id){
+    const d=state.discos.find(x=>x.id===id);
+    document.getElementById('disco-nombre').value=d.nombre;
+    document.getElementById('disco-sello').value=d.sello||'';
+    document.getElementById('disco-codigo').value=d.codigo||'';
+    document.getElementById('disco-released').value=d.released||'';
+    state.coverData=d.cover||null;
+    document.getElementById('cover-label').innerHTML=d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">`:'<span id="cover-ph">📷<br>Carátula</span>';
+    selGeneros=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
+  } else {
+    document.getElementById('disco-nombre').value='';
+    document.getElementById('disco-sello').value='';
+    document.getElementById('disco-codigo').value='';
+    document.getElementById('disco-released').value='';
+    document.getElementById('cover-label').innerHTML='<span id="cover-ph">📷<br>Carátula</span>';
+  }
+  initChecklist('disco-genero-cl','generos',selGeneros);
+  document.getElementById('modal-disco').classList.add('open');
+}
+function previewCover(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const size=Math.min(img.width,img.height,400);
+      canvas.width=size;canvas.height=size;
+      const ctx=canvas.getContext('2d');
+      const s=Math.min(img.width,img.height);
+      ctx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,size,size);
+      state.coverData=canvas.toDataURL('image/jpeg',.85);
+      document.getElementById('cover-label').innerHTML=`<img src="${state.coverData}" style="width:100%;height:100%;object-fit:cover">`;
+    };img.src=e.target.result;
+  };r.readAsDataURL(f);
+}
+function saveDisco(){
+  const nombre=document.getElementById('disco-nombre').value.trim();
+  if(!nombre){alert('El nombre es obligatorio');return;}
+  const sello=document.getElementById('disco-sello').value.trim();
+  const codigo=document.getElementById('disco-codigo').value.trim();
+  const released=document.getElementById('disco-released').value.trim();
+  const genero=getChecklistValue('disco-genero-cl');
+  const editId=document.getElementById('disco-edit-id').value;
+  if(codigo && codigoExiste(codigo, editId||null)){
+    const dup=state.discos.find(d=>d.id!==(editId||null)&&d.codigo&&d.codigo.trim().toLowerCase()===codigo.trim().toLowerCase());
+    if(!confirm(`⚠️ Ya existe un disco con el código "${codigo}":\n"${dup?.nombre}"\n\n¿Guardás de todas formas?`))return;
+  }
+  if(editId){
+    const d=state.discos.find(x=>x.id===editId);
+    d.nombre=nombre;d.sello=sello;d.genero=genero;d.codigo=codigo;d.released=released;
+    if(state.coverData)d.cover=state.coverData;
+  } else state.discos.push({id:genId(),nombre,sello,genero,codigo,released,cover:state.coverData,tracks:[]});
+  save();closeModal('modal-disco');renderDiscos();updateStats();
+}
+function editCurrentDisco(){openModalDisco(state.currentDiscoId);}
+function deleteCurrentDisco(){
+  if(!confirm('¿Eliminar este disco y todos sus tracks?'))return;
+  state.discos=state.discos.filter(d=>d.id!==state.currentDiscoId);
+  save();showView('discos');
+}
+
+function openAddDetailTracksToPlaylist(){
+  const d=state.discos.find(x=>x.id===state.currentDiscoId);
+  if(!d||!d.tracks.length){alert('Este disco no tiene tracks aún');return;}
+  if(!state.playlists.length){alert('Creá una playlist primero en la sección Playlists');return;}
+
+  // Populate playlist selector
+  const sel=document.getElementById('detail-pl-sel');
+  sel.innerHTML='<option value="">— Elegir playlist —</option>'+
+    state.playlists.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
+
+  // Render track checklist — all selected by default
+  const list=document.getElementById('detail-pl-tracklist');
+  list.innerHTML=d.tracks.map((t,i)=>`
+    <label style="display:flex;align-items:center;gap:.8rem;padding:.5rem .8rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+      <input type="checkbox" checked data-track-id="${t.id}" style="accent-color:var(--green);cursor:pointer;flex-shrink:0" onchange="updateDetailPlCount()">
+      <span style="font-family:var(--mono);font-size:.62rem;color:var(--muted);width:20px;flex-shrink:0">${String(i+1).padStart(2,'0')}</span>
+      <span style="flex:1;font-size:.85rem">${t.nombre}</span>
+      <span style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">${t.artista}</span>
+    </label>`).join('');
+
+  updateDetailPlCount();
+  document.getElementById('modal-detail-pl').classList.add('open');
+}
+
+function updateDetailPlCount(){
+  const checked=document.querySelectorAll('#detail-pl-tracklist input[type=checkbox]:checked').length;
+  const total=document.querySelectorAll('#detail-pl-tracklist input[type=checkbox]').length;
+  document.getElementById('detail-pl-track-count').textContent=`${checked} de ${total} tracks seleccionados`;
+}
+
+function detailPlSelectAll(val){
+  document.querySelectorAll('#detail-pl-tracklist input[type=checkbox]').forEach(c=>c.checked=val);
+  updateDetailPlCount();
+}
+
+function confirmAddDetailToPlaylist(){
+  const plId=document.getElementById('detail-pl-sel').value;
+  if(!plId){alert('Elegí una playlist');return;}
+  const d=state.discos.find(x=>x.id===state.currentDiscoId);
+  const pl=state.playlists.find(p=>p.id===plId);
+  if(!d||!pl)return;
+
+  const checked=[...document.querySelectorAll('#detail-pl-tracklist input[type=checkbox]:checked')]
+    .map(c=>c.dataset.trackId);
+  if(!checked.length){alert('Seleccioná al menos un track');return;}
+
+  let added=0;
+  checked.forEach(trackId=>{
+    const alreadyIn=pl.tracks.some(r=>r.discoId===d.id&&r.trackId===trackId);
+    if(!alreadyIn){pl.tracks.push({discoId:d.id,trackId});added++;}
+  });
+  save();
+  closeModal('modal-detail-pl');
+  const skipped=checked.length-added;
+  alert(`✓ ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
+}
+
+// =================== MODAL TRACK ===================
+function openModalTrack(discoId,trackId){
+  discoId=discoId||state.currentDiscoId;
+  setIntensidad(3);
+  document.getElementById('track-edit-id').value=trackId||'';
+  document.getElementById('modal-track-title').textContent=trackId?'EDITAR TRACK':'NUEVO TRACK';
+  let selGenero=[],selDest=[];
+  if(trackId){
+    const d=state.discos.find(x=>x.id===discoId);
+    const t=d.tracks.find(x=>x.id===trackId);
+    document.getElementById('track-nombre').value=t.nombre;
+    document.getElementById('track-artista').value=t.artista;
+    document.getElementById('track-youtube').value=t.youtube||'';
+    document.getElementById('track-comentario').value=t.comentario||'';
+    // merge genero + subgenero into genero for display (backward compat)
+    const g=Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean);
+    const s=Array.isArray(t.subgenero)?t.subgenero:[t.subgenero].filter(Boolean);
+    selGenero=[...new Set([...g,...s])];
+    selDest=t.destaque||[];
+    setIntensidad(t.intensidad||3);
+  } else {
+    ['track-nombre','track-artista','track-youtube','track-comentario'].forEach(id=>document.getElementById(id).value='');
+  }
+  initChecklist('track-genero-cl','generos',selGenero);
+  initChecklist('track-destaque-cl','destaques',selDest,3);
+  document.getElementById('modal-track').classList.add('open');
+}
+function setIntensidad(val){
+  state.selectedIntensidad=val;
+  document.querySelectorAll('.int-btn').forEach((b,i)=>b.classList.toggle('sel',i+1<=val));
+}
+function saveTrack(){
+  const nombre=document.getElementById('track-nombre').value.trim();
+  const artista=document.getElementById('track-artista').value.trim();
+  if(!nombre||!artista){alert('Nombre y artista son obligatorios');return;}
+  const d=state.discos.find(x=>x.id===state.currentDiscoId);
+  const editId=document.getElementById('track-edit-id').value;
+  const track={
+    id:editId||genId(),nombre,artista,
+    genero:getChecklistValue('track-genero-cl'),
+    subgenero:[],
+    destaque:getChecklistValue('track-destaque-cl'),
+    youtube:document.getElementById('track-youtube').value.trim(),
+    comentario:document.getElementById('track-comentario').value.trim(),
+    intensidad:state.selectedIntensidad
+  };
+  if(editId){const idx=d.tracks.findIndex(x=>x.id===editId);d.tracks[idx]=track;}
+  else d.tracks.push(track);
+  save();closeModal('modal-track');openDisco(state.currentDiscoId);updateStats();
+}
+function editTrack(discoId,trackId){state.currentDiscoId=discoId;openModalTrack(discoId,trackId);}
+function deleteTrack(discoId,trackId){
+  if(!confirm('¿Eliminar este track?'))return;
+  const d=state.discos.find(x=>x.id===discoId);
+  d.tracks=d.tracks.filter(t=>t.id!==trackId);
+  save();openDisco(discoId);updateStats();
+}
+
+// =================== ALL TRACKS ===================
+function getAllTracks(){return state.discos.flatMap(d=>d.tracks.map(t=>({...t,_disco:d})));}
+
+function updateAllTrackFilters(){
+  const all=getAllTracks();
+  const arts=[...new Set(all.map(t=>t.artista).filter(Boolean))].sort();
+  const gens=[...new Set(all.flatMap(t=>[
+    ...(Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean)),
+    ...(Array.isArray(t.subgenero)?t.subgenero:[t.subgenero].filter(Boolean))
+  ]).filter(Boolean))].sort();
+  const dests=[...new Set(all.flatMap(t=>t.destaque||[]).filter(Boolean))].sort();
+  const sell=[...new Set(all.map(t=>t._disco.sello).filter(Boolean))].sort();
+  updateSelect('ft-artista',arts,'Artista: todos',document.getElementById('ft-artista').value);
+  updateSelect('ft-genero',gens,'Género 1: todos',document.getElementById('ft-genero').value);
+  updateSelect('ft-genero2',gens,'Género 2: todos',document.getElementById('ft-genero2').value);
+  updateSelect('ft-destaque',dests,'Destaque: todos',document.getElementById('ft-destaque').value);
+  updateSelect('ft-sello',sell,'Sello: todos',document.getElementById('ft-sello').value);
+  // batch playlist options
+  const bps=document.getElementById('batch-playlist-sel');
+  const curBp=bps.value;
+  bps.innerHTML='<option value="">Elegir playlist...</option>'+state.playlists.map(p=>`<option value="${p.id}"${p.id===curBp?' selected':''}>${p.nombre}</option>`).join('');
+}
+
+function renderAllTracks(){
+  updateAllTrackFilters();
+  const af=document.getElementById('ft-artista').value;
+  const gf=document.getElementById('ft-genero').value;
+  const gf2=document.getElementById('ft-genero2').value;
+  const inf=document.getElementById('ft-intensidad').value;
+  const df=document.getElementById('ft-destaque').value;
+  const lf=document.getElementById('ft-sello').value;
+  const s=document.getElementById('search-tracks').value.toLowerCase();
+  let tracks=getAllTracks().filter(t=>{
+    const tgens=[
+      ...(Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean)),
+      ...(Array.isArray(t.subgenero)?t.subgenero:[t.subgenero].filter(Boolean))
+    ];
+    const tdests=t.destaque||[];
+    if(af&&t.artista!==af)return false;
+    if(gf&&!tgens.includes(gf))return false;
+    if(gf2&&!tgens.includes(gf2))return false;
+    if(inf&&t.intensidad!=inf)return false;
+    if(df&&!tdests.includes(df))return false;
+    if(lf&&t._disco.sello!==lf)return false;
+    if(s&&!t.nombre.toLowerCase().includes(s)&&!t.artista.toLowerCase().includes(s)&&!t._disco.nombre.toLowerCase().includes(s))return false;
+    return true;
+  });
+  // sort
+  if(trackSort.col){
+    tracks.sort((a,b)=>{
+      let av,bv;
+      if(trackSort.col==='disco') av=a._disco.nombre,bv=b._disco.nombre;
+      else if(trackSort.col==='sello') av=a._disco.sello||'',bv=b._disco.sello||'';
+      else if(trackSort.col==='intensidad') av=a.intensidad||0,bv=b.intensidad||0;
+      else if(trackSort.col==='genero'){
+        const ag=Array.isArray(a.genero)?a.genero:[a.genero].filter(Boolean);
+        const bg=Array.isArray(b.genero)?b.genero:[b.genero].filter(Boolean);
+        av=ag[0]||'',bv=bg[0]||'';
+      } else if(trackSort.col==='subgenero'){
+        const as=Array.isArray(a.subgenero)?a.subgenero:[a.subgenero].filter(Boolean);
+        const bs=Array.isArray(b.subgenero)?b.subgenero:[b.subgenero].filter(Boolean);
+        av=as[0]||'',bv=bs[0]||'';
+      } else if(trackSort.col==='destaque'){
+        av=(a.destaque||[])[0]||'',bv=(b.destaque||[])[0]||'';
+      } else av=a[trackSort.col]||'',bv=b[trackSort.col]||'';
+      if(typeof av==='number') return (av-bv)*trackSort.dir;
+      return av.toString().localeCompare(bv.toString())*trackSort.dir;
+    });
+  }
+  filteredTracksCache=tracks;
+  const tb=document.getElementById('all-tracks-body'),em=document.getElementById('all-tracks-empty');
+  if(!tracks.length){tb.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  tb.innerHTML=tracks.map(t=>{
+    const tgens=Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean);
+    const tsubs=Array.isArray(t.subgenero)?t.subgenero:[t.subgenero].filter(Boolean);
+    const sel=selectedTracks.has(t._disco.id+'_'+t.id);
+    return `<tr class="${sel?'row-selected':''}" onclick="toggleTrackRowSelect('${t._disco.id}','${t.id}',event)">
+      <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="toggleTrackRowSelect('${t._disco.id}','${t.id}',{target:this})"></td>
+      <td onclick="event.stopPropagation();openDisco('${t._disco.id}')" style="cursor:pointer;padding:3px">
+        <div style="width:30px;height:30px;border-radius:1px;overflow:hidden;background:var(--bg3)">
+          ${t._disco.cover?`<img src="${t._disco.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--border);font-size:8px">◼</div>`}
+        </div>
+      </td>
+      <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank" onclick="event.stopPropagation()">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
+      <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted)">💬 ${t.comentario}</div>`:''}</td>
+      <td><div class="track-artist">${t.artista}</div></td>
+      <td><div style="cursor:pointer;color:var(--accent);font-size:.82rem" onclick="event.stopPropagation();openDisco('${t._disco.id}')">${t._disco.nombre}</div></td>
+      <td><span style="font-family:var(--mono);font-size:.7rem;color:var(--muted)">${t._disco.sello||'—'}</span></td>
+      <td>${tgens.map(g=>`<span class="tag" style="color:#e03030;border-color:#e03030">${g}</span>`).join(' ')}</td>
+      <td>${(t.destaque||[]).map(d=>`<span class="destaque-tag">${d}</span>`).join(' ')}</td>
+      <td>${renderDots(t.intensidad)}</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="editTrack('${t._disco.id}','${t.id}')">✎</button></td>
+    </tr>`;
+  }).join('');
+  updateBatchBar();
+}
+
+function sortTracks(col){
+  const ths=document.querySelectorAll('#all-tracks-table th');
+  if(trackSort.col===col) trackSort.dir*=-1; else {trackSort.col=col;trackSort.dir=1;}
+  ths.forEach(th=>{th.classList.remove('sort-asc','sort-desc');});
+  const colMap={nombre:1,artista:2,disco:3,sello:4,genero:5,subgenero:6,destaque:7,intensidad:8};
+  const idx=colMap[col];
+  if(idx!==undefined){
+    const th=ths[idx];
+    th.classList.add(trackSort.dir===1?'sort-asc':'sort-desc');
+  }
+  renderAllTracks();
+}
+
+// Batch select
+function toggleTrackRowSelect(discoId,trackId,e){
+  // Don't trigger on link clicks or checkbox direct clicks handled separately
+  if(e.target&&e.target.tagName==='A')return;
+  const key=discoId+'_'+trackId;
+  if(e.target&&e.target.type==='checkbox'){
+    if(e.target.checked) selectedTracks.add(key); else selectedTracks.delete(key);
+  } else {
+    if(selectedTracks.has(key)) selectedTracks.delete(key); else selectedTracks.add(key);
+  }
+  renderAllTracks();
+}
+function toggleSelectAllTracks(chk){
+  if(chk.checked) filteredTracksCache.forEach(t=>selectedTracks.add(t._disco.id+'_'+t.id));
+  else selectedTracks.clear();
+  renderAllTracks();
+}
+function clearTrackSelection(){selectedTracks.clear();renderAllTracks();}
+function updateBatchBar(){
+  const bar=document.getElementById('batch-bar');
+  const cnt=selectedTracks.size;
+  bar.style.display=cnt>0?'flex':'none';
+  document.getElementById('batch-count').textContent=`${cnt} track${cnt!==1?'s':''} seleccionado${cnt!==1?'s':''}`;
+}
+function batchAddToPlaylist(){
+  const plId=document.getElementById('batch-playlist-sel').value;
+  if(!plId){alert('Elegí una playlist primero');return;}
+  const pl=state.playlists.find(x=>x.id===plId);
+  const existing=new Set(pl.tracks.map(r=>r.discoId+'_'+r.trackId));
+  let added=0;
+  selectedTracks.forEach(key=>{
+    if(!existing.has(key)){
+      const[discoId,trackId]=key.split('_');
+      pl.tracks.push({discoId,trackId});added++;
+    }
+  });
+  selectedTracks.clear();
+  save();renderAllTracks();
+  alert(`✓ ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"`);
+}
+
+function openModalNuevaPlaylistBatch(){
+  const cnt=selectedTracks.size;
+  document.getElementById('batch-pl-subtitle').textContent=`Se agregarán ${cnt} track${cnt!==1?'s':''} seleccionado${cnt!==1?'s':''} a la nueva playlist.`;
+  document.getElementById('batch-pl-nombre').value='';
+  document.getElementById('batch-pl-desc').value='';
+  document.getElementById('modal-batch-pl').classList.add('open');
+}
+
+function crearPlaylistDesdeBatch(){
+  const nombre=document.getElementById('batch-pl-nombre').value.trim();
+  if(!nombre){alert('El nombre es obligatorio');return;}
+  const desc=document.getElementById('batch-pl-desc').value.trim();
+  const pl={id:genId(),nombre,desc,tracks:[]};
+  const action=window._pendingPlAction||'fromTracks';
+  window._pendingPlAction=null;
+
+  if(action==='copyFromPl'){
+    // Copy selected tracks from current playlist to new one
+    const srcPl=state.playlists.find(p=>p.id===state.currentPlId);
+    if(srcPl){
+      [...plSelectedTracks].sort((a,b)=>a-b).forEach(i=>{
+        const ref=srcPl.tracks[i];
+        if(ref) pl.tracks.push({...ref});
+      });
+    }
+    state.playlists.push(pl);
+    save();updateStats();
+    closeModal('modal-batch-pl');
+    renderPlaylists();
+    plClearSelection();
+    if(confirm(`✓ Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
+      openPlaylist(pl.id);
+    }
+
+  } else if(action==='copyFromDetail'){
+    // Copy selected tracks from current disco detail to new playlist
+    const d=state.discos.find(x=>x.id===state.currentDiscoId);
+    if(d){
+      d.tracks.forEach(t=>{
+        if(detailSelectedTracks.has(d.id+'_'+t.id)) pl.tracks.push({discoId:d.id,trackId:t.id});
+      });
+    }
+    state.playlists.push(pl);
+    save();updateStats();
+    closeModal('modal-batch-pl');
+    renderPlaylists();
+    detailClearSelection();
+    if(confirm(`✓ Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
+      openPlaylist(pl.id);
+    }
+
+  } else {
+    // Default: from all-tracks batch selection
+    const existing=new Set();
+    selectedTracks.forEach(key=>{
+      if(!existing.has(key)){
+        const[discoId,trackId]=key.split('_');
+        pl.tracks.push({discoId,trackId});existing.add(key);
+      }
+    });
+    state.playlists.push(pl);
+    selectedTracks.clear();
+    save();updateStats();
+    closeModal('modal-batch-pl');
+    renderAllTracks();
+    if(confirm(`✓ Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
+      openPlaylist(pl.id);
+    }
+  }
+}
+
+// =================== PLAYLISTS ===================
+function renderPlaylists(){
+  const grid=document.getElementById('playlist-grid'),em=document.getElementById('playlist-empty');
+  if(!state.playlists.length){grid.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  grid.innerHTML=state.playlists.map(pl=>`
+    <div class="playlist-card" onclick="openPlaylist('${pl.id}')">
+      <div class="playlist-stripe"></div>
+      <div class="playlist-card-title">${pl.nombre}</div>
+      ${pl.desc?`<div class="playlist-card-desc">${pl.desc}</div>`:''}
+      <div class="playlist-card-meta">
+        <span class="tag blue">${pl.tracks.length} track${pl.tracks.length!==1?'s':''}</span>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm" onclick="event.stopPropagation();openModalPlaylist('${pl.id}')">✎</button>
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePlaylistById('${pl.id}')">✕</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+let plSelectedTracks = new Set(); // indices into pl.tracks
+
+function openPlaylist(id){
+  state.currentPlId=id;
+  plSelectedTracks.clear();
+  const pl=state.playlists.find(x=>x.id===id);if(!pl)return;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-pl-detail').classList.add('active');
+  document.getElementById('pl-detail-name').textContent=pl.nombre;
+  document.getElementById('pl-detail-desc').textContent=pl.desc||'';
+  renderPlDetail(pl);
+}
+
+function renderPlDetail(pl){
+  const list=document.getElementById('pl-tracks-list'),em=document.getElementById('pl-empty');
+  document.getElementById('pl-detail-count').textContent=`${pl.tracks.length} track${pl.tracks.length!==1?'s':''}`;
+  if(!pl.tracks.length){list.innerHTML='';em.style.display='block';updatePlBatchBar(pl);return;}
+  em.style.display='none';
+  list.innerHTML=pl.tracks.map((ref,i)=>{
+    const disco=state.discos.find(d=>d.id===ref.discoId);
+    const track=disco?.tracks.find(t=>t.id===ref.trackId);
+    if(!track||!disco)return '';
+    const dests=track.destaque||[];
+    const sel=plSelectedTracks.has(i);
+    return `<div class="pl-track-row${sel?' row-selected':''}" draggable="true" data-idx="${i}"
+        ondragstart="plDragStart(event,${i})" ondragover="plDragOver(event,${i})" ondrop="plDrop(event,${i})" ondragleave="plDragLeave(event)">
+      <input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer;flex-shrink:0" onchange="togglePlTrack(${i},this)" onclick="event.stopPropagation()">
+      <div class="pl-drag-handle">⠿</div>
+      <div class="pl-track-thumb">${disco.cover?`<img src="${disco.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl" style="width:20px;height:20px;box-shadow:0 0 0 2px #111,0 0 0 3px #222"></div>'}</div>
+      <div class="pl-track-info">
+        <div class="pl-track-name">${track.nombre}</div>
+        <div class="pl-track-sub">${track.artista}${(Array.isArray(track.genero)?track.genero:[track.genero].filter(Boolean)).length?' · '+(Array.isArray(track.genero)?track.genero:[track.genero].filter(Boolean)).join('/'):''}${dests.length?' · '+dests.map(d=>`<span class="destaque-tag">${d}</span>`).join(' '):''}</div>
+      </div>
+      <div class="pl-track-disco">${disco.nombre}</div>
+      ${renderDots(track.intensidad)}
+      ${track.youtube?`<a class="yt-link" href="${track.youtube}" target="_blank" onclick="event.stopPropagation()">▶</a>`:''}
+      <button class="btn btn-sm btn-danger" onclick="removeFromPlaylist(${i})">✕</button>
+    </div>`;
+  }).join('');
+  updatePlBatchBar(pl);
+}
+
+function togglePlTrack(idx, chk){
+  if(chk.checked) plSelectedTracks.add(idx); else plSelectedTracks.delete(idx);
+  const pl=state.playlists.find(x=>x.id===state.currentPlId);
+  updatePlBatchBar(pl);
+  // sync master checkbox
+  const master=document.getElementById('pl-chk-all');
+  if(master && pl) master.checked = pl.tracks.length>0 && [...Array(pl.tracks.length).keys()].every(i=>plSelectedTracks.has(i));
+}
+
+function plSelectAll(masterChk){
+  const pl=state.playlists.find(x=>x.id===state.currentPlId);
+  if(!pl) return;
+  if(masterChk.checked) pl.tracks.forEach((_,i)=>plSelectedTracks.add(i));
+  else plSelectedTracks.clear();
+  renderPlDetail(pl);
+}
+
+function updatePlBatchBar(pl){
+  const bar=document.getElementById('pl-batch-bar');
+  if(!bar) return;
+  const cnt=plSelectedTracks.size;
+  // Always show bar (with master checkbox), hide copy controls if nothing selected
+  bar.style.display='flex';
+  document.getElementById('pl-batch-count').textContent=
+    cnt>0 ? `${cnt} track${cnt!==1?'s':''} seleccionado${cnt!==1?'s':''}` : 'Seleccioná tracks para copiar';
+  document.getElementById('pl-batch-count').style.color = cnt>0 ? 'var(--blue)' : 'var(--muted)';
+  // Populate destination playlist selector (exclude current)
+  const sel=document.getElementById('pl-batch-dest-sel');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Copiar a playlist...</option>'+
+    state.playlists.filter(p=>p.id!==state.currentPlId)
+      .map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${p.nombre}</option>`).join('');
+  sel.style.display = cnt>0 ? '' : 'none';
+  document.querySelector('#pl-batch-bar .btn-blue').style.display = cnt>0 ? '' : 'none';
+  document.querySelector('#pl-batch-bar .btn-sm:last-child').style.display = cnt>0 ? '' : 'none';
+  // sync master checkbox
+  const master=document.getElementById('pl-chk-all');
+  if(master && pl) master.checked = pl.tracks.length>0 && pl.tracks.length===cnt;
+}
+
+function plBatchCopyToPlaylist(){
+  const destId=document.getElementById('pl-batch-dest-sel').value;
+  if(!destId){alert('Elegí una playlist de destino');return;}
+  const srcPl=state.playlists.find(p=>p.id===state.currentPlId);
+  const destPl=state.playlists.find(p=>p.id===destId);
+  if(!srcPl||!destPl) return;
+  let added=0;
+  [...plSelectedTracks].sort((a,b)=>a-b).forEach(i=>{
+    const ref=srcPl.tracks[i];
+    if(!ref) return;
+    const already=destPl.tracks.some(r=>r.discoId===ref.discoId&&r.trackId===ref.trackId);
+    if(!already){destPl.tracks.push({...ref});added++;}
+  });
+  save();
+  const skipped=plSelectedTracks.size-added;
+  plClearSelection();
+  alert(`✓ ${added} track${added!==1?'s':''} copiado${added!==1?'s':''} a "${destPl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
+}
+
+function plBatchDeleteSelected(){
+  const pl=state.playlists.find(p=>p.id===state.currentPlId);
+  if(!pl) return;
+  const cnt=plSelectedTracks.size;
+  if(!cnt) return;
+  if(!confirm(`¿Eliminar ${cnt} track${cnt!==1?'s':''} de esta playlist?`)) return;
+  // Remove in reverse order to preserve indices
+  const toRemove=[...plSelectedTracks].sort((a,b)=>b-a);
+  toRemove.forEach(i=>pl.tracks.splice(i,1));
+  save();
+  plSelectedTracks.clear();
+  renderPlDetail(pl);
+}
+
+function openModalNuevaPlaylistFromPl(){
+  // Store that we want to copy selected pl tracks after creation
+  window._pendingPlAction = 'copyFromPl';
+  document.getElementById('batch-pl-nombre').value='';
+  document.getElementById('batch-pl-desc').value='';
+  // Override the button action temporarily
+  document.getElementById('modal-batch-pl').classList.add('open');
+}
+
+function openModalNuevaPlaylistFromDetail(){
+  window._pendingPlAction = 'copyFromDetail';
+  document.getElementById('batch-pl-nombre').value='';
+  document.getElementById('batch-pl-desc').value='';
+  document.getElementById('modal-batch-pl').classList.add('open');
+}
+
+function plClearSelection(){
+  plSelectedTracks.clear();
+  const pl=state.playlists.find(x=>x.id===state.currentPlId);
+  if(pl) renderPlDetail(pl);
+}
+function plDragStart(e,idx){dragSrc=idx;e.currentTarget.classList.add('dragging');}
+function plDragOver(e,idx){e.preventDefault();if(idx!==dragSrc)e.currentTarget.classList.add('drag-over');}
+function plDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function plDrop(e,idx){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(dragSrc===null||dragSrc===idx)return;
+  const pl=state.playlists.find(x=>x.id===state.currentPlId);
+  const[moved]=pl.tracks.splice(dragSrc,1);pl.tracks.splice(idx,0,moved);
+  dragSrc=null;plSelectedTracks.clear();save();renderPlDetail(pl);
+}
+function removeFromPlaylist(idx){
+  const pl=state.playlists.find(x=>x.id===state.currentPlId);
+  pl.tracks.splice(idx,1);save();renderPlDetail(pl);
+}
+function openModalPlaylist(id){
+  document.getElementById('pl-edit-id').value=id||'';
+  document.getElementById('modal-pl-title').textContent=id?'EDITAR PLAYLIST':'NUEVA PLAYLIST';
+  if(id){const pl=state.playlists.find(x=>x.id===id);document.getElementById('pl-nombre').value=pl.nombre;document.getElementById('pl-desc').value=pl.desc||'';}
+  else{document.getElementById('pl-nombre').value='';document.getElementById('pl-desc').value='';}
+  document.getElementById('modal-playlist').classList.add('open');
+}
+function savePlaylist(){
+  const nombre=document.getElementById('pl-nombre').value.trim();
+  if(!nombre){alert('El nombre es obligatorio');return;}
+  const editId=document.getElementById('pl-edit-id').value;
+  const desc=document.getElementById('pl-desc').value.trim();
+  if(editId){const pl=state.playlists.find(x=>x.id===editId);pl.nombre=nombre;pl.desc=desc;}
+  else state.playlists.push({id:genId(),nombre,desc,tracks:[]});
+  save();closeModal('modal-playlist');renderPlaylists();updateStats();
+}
+function editCurrentPlaylist(){openModalPlaylist(state.currentPlId);}
+function deleteCurrentPlaylist(){
+  if(!confirm('¿Eliminar esta playlist?'))return;
+  state.playlists=state.playlists.filter(p=>p.id!==state.currentPlId);
+  save();showView('playlists');
+}
+function deletePlaylistById(id){
+  if(!confirm('¿Eliminar esta playlist?'))return;
+  state.playlists=state.playlists.filter(p=>p.id!==id);
+  save();renderPlaylists();updateStats();
+}
+
+// TRACK PICKER (modal)
+let pickerMapModal={};
+function openTrackPicker(){
+  pickerMapModal={};
+  document.getElementById('picker-search').value='';
+  renderPicker();
+  document.getElementById('modal-picker').classList.add('open');
+}
+function renderPicker(){
+  const s=document.getElementById('picker-search').value.toLowerCase();
+  const pl=state.playlists.find(x=>x.id===state.currentPlId);
+  const existing=new Set(pl.tracks.map(r=>r.discoId+'_'+r.trackId));
+  const all=getAllTracks().filter(t=>!s||t.nombre.toLowerCase().includes(s)||t.artista.toLowerCase().includes(s)||t._disco.nombre.toLowerCase().includes(s));
+  const list=document.getElementById('track-picker-list');
+  if(!all.length){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-family:var(--mono);font-size:.75rem">Sin resultados</div>';return;}
+  list.innerHTML=all.map(t=>{
+    const key=t._disco.id+'_'+t.id;
+    const already=existing.has(key),sel=!!pickerMapModal[key];
+    return `<div class="tp-row${sel?' selected':''}" onclick="${already?'':` togglePickerModal('${key}','${t._disco.id}','${t.id}')`}" style="${already?'opacity:.45;cursor:default':''}">
+      <input type="checkbox" ${sel?'checked':''} ${already?'disabled':''} onclick="event.stopPropagation();${already?'':` togglePickerModal('${key}','${t._disco.id}','${t.id}')`}">
+      <div class="tp-thumb">${t._disco.cover?`<img src="${t._disco.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl" style="width:20px;height:20px;box-shadow:0 0 0 2px #111,0 0 0 3px #222"></div>'}</div>
+      <div class="tp-info">
+        <div class="tp-name">${t.nombre}${already?' <span class="tag" style="font-size:.5rem">en playlist</span>':''}</div>
+        <div class="tp-sub">${t.artista} · ${t._disco.nombre}</div>
+      </div>
+      ${renderDots(t.intensidad)}
+    </div>`;
+  }).join('');
+  const cnt=Object.keys(pickerMapModal).length;
+  document.getElementById('picker-count').textContent=cnt>0?`${cnt} seleccionado${cnt!==1?'s':''}`:' ';
+}
+function togglePickerModal(key,discoId,trackId){
+  if(pickerMapModal[key])delete pickerMapModal[key]; else pickerMapModal[key]={discoId,trackId};
+  renderPicker();
+}
+function addSelectedToPlaylist(){
+  const pl=state.playlists.find(x=>x.id===state.currentPlId);
+  Object.values(pickerMapModal).forEach(({discoId,trackId})=>pl.tracks.push({discoId,trackId}));
+  pickerMapModal={};save();closeModal('modal-picker');renderPlDetail(pl);
+}
+
+// =================== EXPORT CSV ===================
+function csvEsc(v){v=String(v||'');if(v.includes(',')||v.includes('"')||v.includes('\n'))v='"'+v.replace(/"/g,'""')+'"';return v;}
+function dlCSV(name,rows){
+  const csv=rows.map(r=>r.map(csvEsc).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=name;a.click();
+}
+function flatArr(v){return Array.isArray(v)?v.join('|'):(v||'');}
+function exportCSV(type){
+  if(type==='discos'){
+    const rows=[['Codigo','Nombre','Sello','Genero','Tracks']];
+    state.discos.forEach(d=>rows.push([d.codigo||'',d.nombre,d.sello||'',flatArr(d.genero),d.tracks.length]));
+    dlCSV('CRATE_discos.csv',rows);
+  } else if(type==='tracks'){
+    const rows=[['Track','Artista','Genero','Subgenero','Destaque','Intensidad','Comentario','Disco','Sello','YouTube']];
+    getAllTracks().forEach(t=>rows.push([t.nombre,t.artista,flatArr(t.genero),flatArr(t.subgenero),flatArr(t.destaque),t.intensidad||'',t.comentario||'',t._disco.nombre,t._disco.sello||'',t.youtube||'']));
+    dlCSV('CRATE_tracks.csv',rows);
+  } else if(type==='todo'){
+    const rows=[['Disco','Sello','Genero_Disco','Codigo','Track','Artista','Genero','Subgenero','Destaque','Intensidad','Comentario','YouTube']];
+    getAllTracks().forEach(t=>rows.push([t._disco.nombre,t._disco.sello||'',flatArr(t._disco.genero),t._disco.codigo||'',t.nombre,t.artista,flatArr(t.genero),flatArr(t.subgenero),flatArr(t.destaque),t.intensidad||'',t.comentario||'',t.youtube||'']));
+    dlCSV('CRATE_coleccion_completa.csv',rows);
+  } else if(type==='playlists'){
+    const rows=[['Playlist','#','Track','Artista','Genero','Subgenero','Destaque','Intensidad','Comentario','Disco','Sello','YouTube']];
+    state.playlists.forEach(pl=>pl.tracks.forEach((ref,i)=>{
+      const disco=state.discos.find(d=>d.id===ref.discoId);
+      const track=disco?.tracks.find(t=>t.id===ref.trackId);
+      if(track)rows.push([pl.nombre,i+1,track.nombre,track.artista,flatArr(track.genero),flatArr(track.subgenero),flatArr(track.destaque),track.intensidad||'',track.comentario||'',disco.nombre,disco.sello||'',track.youtube||'']);
+    }));
+    dlCSV('CRATE_playlists.csv',rows);
+  }
+}
+function exportCSVFiltered(){
+  const rows=[['Track','Artista','Genero','Subgenero','Destaque','Intensidad','Comentario','Disco','Sello','YouTube']];
+  filteredTracksCache.forEach(t=>rows.push([t.nombre,t.artista,flatArr(t.genero),flatArr(t.subgenero),flatArr(t.destaque),t.intensidad||'',t.comentario||'',t._disco.nombre,t._disco.sello||'',t.youtube||'']));
+  dlCSV('CRATE_tracks_filtrado.csv',rows);
+}
+function exportCSVPlaylist(){
+  const pl=state.playlists.find(x=>x.id===state.currentPlId);
+  const rows=[['#','Track','Artista','Genero','Subgenero','Destaque','Intensidad','Comentario','Disco','Sello','YouTube']];
+  pl.tracks.forEach((ref,i)=>{
+    const disco=state.discos.find(d=>d.id===ref.discoId);
+    const track=disco?.tracks.find(t=>t.id===ref.trackId);
+    if(track)rows.push([i+1,track.nombre,track.artista,flatArr(track.genero),flatArr(track.subgenero),flatArr(track.destaque),track.intensidad||'',track.comentario||'',disco.nombre,disco.sello||'',track.youtube||'']);
+  });
+  dlCSV(`CRATE_${pl.nombre.replace(/[^a-z0-9]/gi,'_')}.csv`,rows);
+}
+
+// =================== EXPORT MENU ===================
+function toggleExportMenu(id){const m=document.getElementById(id);const was=m.classList.contains('open');closeExportMenus();if(!was)m.classList.add('open');}
+function closeExportMenus(){document.querySelectorAll('.export-menu').forEach(m=>m.classList.remove('open'));}
+
+// =================== MODALS ===================
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// =================== DISCOGS SUB-TABS ===================
+function switchDcgSub(tab) {
+  document.getElementById('dcg-sub-single').classList.toggle('active', tab==='single');
+  document.getElementById('dcg-sub-bulk').classList.toggle('active', tab==='bulk');
+  document.getElementById('dcg-panel-single').style.display = tab==='single' ? 'block' : 'none';
+  document.getElementById('dcg-panel-bulk').style.display = tab==='bulk' ? 'block' : 'none';
+  if (tab==='bulk') checkDiscogsNetwork();
+}
+
+async function checkDiscogsNetwork() {
+  const warn = document.getElementById('bulk-network-warn');
+  if (!warn) return;
+  try {
+    const res = await fetch('https://api.discogs.com/', { method:'HEAD', signal: AbortSignal.timeout(5000) });
+    warn.style.display = res.ok ? 'none' : 'block';
+  } catch(e) {
+    warn.style.display = 'block';
+  }
+}
+
+// =================== BULK DISCOGS IMPORT ===================
+let bulkRows = [];
+let bulkFailed = [];
+let bulkStop = false;
+let bulkImporting = false;
+
+// Proper CSV parser: handles quoted fields, commas inside quotes, escaped quotes
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i+1] === '"') { cur += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      result.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function loadBulkCSV(input) {
+  const file = input.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (!lines.length) { alert('El archivo está vacío'); return; }
+
+      // Parse header
+      const rawHeader = parseCSVLine(lines[0]);
+      const headerCols = rawHeader.map(h => h.toLowerCase().trim().replace(/[^a-z0-9_]/g,''));
+
+      const col = name => headerCols.indexOf(name);
+
+      // Discogs native export columns: Catalog#,Artist,Title,Label,Format,Rating,Released,release_id,CollectionFolder,Date Added,Collection Media Condition,Collection Sleeve Condition,Collection Notes
+      const iCatno     = col('catalog') >= 0 ? col('catalog') : col('catno') >= 0 ? col('catno') : 0;
+      const iArtist    = col('artist') >= 0 ? col('artist') : 1;
+      const iTitle     = col('title') >= 0 ? col('title') : 2;
+      const iLabel     = col('label') >= 0 ? col('label') : 3;
+      const iReleased  = col('released') >= 0 ? col('released') : col('year') >= 0 ? col('year') : -1;
+      const iReleaseId = col('release_id') >= 0 ? col('release_id') : -1;
+
+      bulkRows = lines.slice(1).map(line => {
+        const cols = parseCSVLine(line);
+        if (!cols.length || cols.every(c => !c.trim())) return null;
+        return {
+          catno:     (cols[iCatno]     || '').trim(),
+          artist:    (cols[iArtist]    || '').trim(),
+          title:     (cols[iTitle]     || '').trim(),
+          label:     (cols[iLabel]     || '').trim(),
+          released:  iReleased >= 0 ? (cols[iReleased] || '').trim() : '',
+          releaseId: iReleaseId >= 0 ? (cols[iReleaseId] || '').trim() : '',
+          status: 'pendiente', reason: ''
+        };
+      }).filter(r => r && (r.catno || r.title || r.releaseId));
+
+      if (!bulkRows.length) {
+        alert(`El CSV se leyó pero no se encontraron filas válidas.\n\nHeader detectado:\n${rawHeader.join(' | ')}\n\nColumnas mapeadas:\nCatálogo: col ${iCatno} (${rawHeader[iCatno]||'?'})\nTítulo: col ${iTitle} (${rawHeader[iTitle]||'?'})\nRelease ID: col ${iReleaseId}`);
+        return;
+      }
+
+      document.getElementById('bulk-step-upload').style.display = 'none';
+      document.getElementById('bulk-step-preview').style.display = 'block';
+      document.getElementById('bulk-total-count').textContent = bulkRows.length;
+
+      // Detect duplicates within the CSV itself
+      const seenCatnos = {};
+      const csvDupes = [];
+      bulkRows.forEach((r, idx) => {
+        const key = r.catno.toLowerCase();
+        if (!key) return;
+        if (seenCatnos[key] !== undefined) {
+          // Only add the first time we see the dupe
+          if (!csvDupes.find(d => d.catno.toLowerCase() === key)) {
+            csvDupes.push({ catno: r.catno, title: r.title, artist: r.artist,
+              count: bulkRows.filter(x => x.catno.toLowerCase() === key).length });
+          }
+        }
+        seenCatnos[key] = idx;
+      });
+
+      const withId = bulkRows.filter(r => r.releaseId).length;
+      const modeInfo = document.getElementById('bulk-mode-info');
+
+      let infoText = withId > 0
+        ? `✓ ${withId} discos con Release ID — importación directa y precisa`
+        : `Búsqueda por código de catálogo / título`;
+
+      if (csvDupes.length) {
+        infoText += `\n⚠ ${csvDupes.length} código${csvDupes.length > 1 ? 's' : ''} duplicado${csvDupes.length > 1 ? 's' : ''} en el CSV — solo se importará uno de cada uno:`;
+        csvDupes.forEach(d => { infoText += `\n  · ${d.catno} — ${d.artist} — ${d.title} (×${d.count})`; });
+        // Show as alert so it's unmissable
+        alert(`⚠ El CSV tiene ${csvDupes.length} disco${csvDupes.length>1?'s':''} repetido${csvDupes.length>1?'s':''}:\n\n` +
+          csvDupes.map(d => `· ${d.catno} — ${d.title} (aparece ${d.count} veces)`).join('\n') +
+          `\n\nDRC no importa duplicados, así que el conteo final será menor al del CSV.`);
+      }
+
+      if (modeInfo) modeInfo.style.whiteSpace = 'pre-line';
+      if (modeInfo) modeInfo.textContent = infoText;
+
+      renderBulkPreview();
+    } catch(err) {
+      alert('Error al leer el CSV: ' + err.message);
+    }
+  };
+  r.onerror = () => alert('No se pudo leer el archivo');
+  r.readAsText(file, 'UTF-8');
+}
+
+function renderBulkPreview() {
+  const tbody = document.getElementById('bulk-preview-body');
+  tbody.innerHTML = bulkRows.map(r => {
+    const exists = codigoExiste(r.catno);
+    const hasId = !!r.releaseId;
+    return `<tr>
+      <td><span class="tag" style="${hasId ? 'color:var(--green);border-color:var(--green)' : ''}">${r.catno || '—'}</span></td>
+      <td style="color:var(--muted);font-size:.78rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.artist || '—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.title || '—'}</td>
+      <td style="color:var(--muted);font-size:.78rem">${r.label || ''}</td>
+      <td style="color:var(--muted);font-size:.78rem">${r.released || ''}</td>
+      <td><span class="tag" style="${exists ? 'color:#ff9900;border-color:#ff9900' : ''}">${exists ? '⚠ ya existe' : hasId ? '🎯 ID directo' : '🔍 buscar'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function resetBulkImport() {
+  bulkRows = []; bulkFailed = []; bulkStop = false;
+  document.getElementById('bulk-file-input').value = '';
+  ['bulk-step-preview','bulk-step-progress','bulk-step-done'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('bulk-step-upload').style.display = 'block';
+}
+
+async function startBulkImport() {
+  const token = getDiscogsToken();
+  if (!token) { alert('Primero guardá tu token de Discogs'); return; }
+  if (!bulkRows.length) return;
+
+  bulkStop = false; bulkFailed = []; bulkImporting = true; _bulkLogIdx = 0;
+  document.getElementById('bulk-step-preview').style.display = 'none';
+  document.getElementById('bulk-step-progress').style.display = 'block';
+  document.getElementById('bulk-log').innerHTML = '';
+
+  const total = bulkRows.length;
+  let done = 0, ok = 0, skipped = 0, errors = 0;
+  let checkpointBatch = [];
+
+  for (let i = 0; i < bulkRows.length; i++) {
+    if (bulkStop) break;
+    const row = bulkRows[i];
+
+    const pct = Math.round((i / total) * 100);
+    document.getElementById('bulk-prog-bar').style.width = pct + '%';
+    document.getElementById('bulk-prog-pct').textContent = pct + '%';
+    document.getElementById('bulk-prog-label').textContent =
+      `${i} de ${total} · ✓ ${ok} · ↷ ${skipped} · ✕ ${errors}`;
+    document.getElementById('bulk-current-item').textContent =
+      `⟳ ${row.catno || row.releaseId || '?'} — ${row.title}`;
+
+    // Skip if catno already exists
+    if (row.catno && codigoExiste(row.catno)) {
+      skipped++;
+      addBulkLog(row, 'skip', '↷ Ya existe');
+      done++; continue;
+    }
+
+    try {
+      let rel = null;
+
+      // PATH A: release_id → fetch directly, no search needed
+      if (row.releaseId) {
+        const res = await fetchWithRetry(
+          `https://api.discogs.com/releases/${row.releaseId}?token=${token}`, token
+        );
+        rel = await res.json();
+
+      } else {
+        // PATH B: no release_id → search by catno
+        const catnUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(row.catno)}&type=release&per_page=8&token=${token}`;
+        const catnRes = await fetchWithRetry(catnUrl, token);
+        const catnData = await catnRes.json();
+        const results = catnData.results || [];
+
+        const exactCatno = results.filter(r =>
+          r.catno && r.catno.toLowerCase().trim() === row.catno.toLowerCase().trim()
+        );
+
+        let chosen = null;
+        if (exactCatno.length === 1) {
+          chosen = exactCatno[0];
+        } else if (results.length > 0) {
+          chosen = await showDisambig(row, exactCatno.length ? exactCatno : results, 'catno');
+        } else {
+          // PATH C: fallback to title search
+          await sleep(500);
+          document.getElementById('bulk-current-item').textContent =
+            `⟳ Sin catno, buscando por título: "${row.title}"`;
+          const titleUrl = `https://api.discogs.com/database/search?title=${encodeURIComponent(row.title)}&artist=${encodeURIComponent(row.artist)}&type=release&per_page=8&token=${token}`;
+          const titleRes = await fetchWithRetry(titleUrl, token);
+          const titleData = await titleRes.json();
+          const titleResults = titleData.results || [];
+          if (!titleResults.length) throw new Error('No encontrado por catno ni título');
+          chosen = await showDisambig(row, titleResults, 'title');
+        }
+
+        if (!chosen) throw new Error('Saltado manualmente');
+        await sleep(700);
+        const releaseRes = await fetchWithRetry(
+          `https://api.discogs.com/releases/${chosen.id}?token=${token}`, token
+        );
+        rel = await releaseRes.json();
+      }
+
+      if (!rel || rel.message) throw new Error(rel?.message || 'Release inválido');
+
+      const disco = await buildDiscoFromRelease(rel, token);
+      // Override released with CSV value if available and API didn't return one
+      if (!disco.released && row.released) disco.released = row.released;
+      state.discos.push(disco);
+      save(); updateStats();
+      checkpointBatch.push(disco);
+      ok++;
+      const ytCount = disco.tracks.filter(t => t.youtube).length;
+      addBulkLog(row, 'ok',
+        `✓ ${disco.tracks.length} tr${ytCount ? ` · ${ytCount}▶` : ''}${disco.cover ? ' · 🖼' : ''}`
+      );
+
+      if (checkpointBatch.length >= 10) {
+        await showCheckpoint(checkpointBatch, ok, total);
+        checkpointBatch = [];
+      }
+
+    } catch (err) {
+      errors++;
+      bulkFailed.push({ row, reason: err.message });
+      addBulkLog(row, 'error', '✕ ' + err.message);
+    }
+
+    done++;
+    await sleep(400);
+  }
+
+  if (checkpointBatch.length > 0 && !bulkStop) {
+    await showCheckpoint(checkpointBatch, ok, total);
+  }
+
+  bulkImporting = false;
+  document.getElementById('bulk-step-progress').style.display = 'none';
+  document.getElementById('bulk-step-done').style.display = 'block';
+
+  const stopped = bulkStop ? ' (detenido)' : '';
+  document.getElementById('bulk-done-summary').textContent =
+    `${ok} importados · ${skipped} ya existían · ${errors} fallidos · de ${done}${stopped}`;
+
+  if (bulkFailed.length) {
+    document.getElementById('bulk-failed-section').style.display = 'block';
+    document.getElementById('bulk-failed-body').innerHTML = bulkFailed.map(({row, reason}) => `
+      <tr>
+        <td><span class="tag">${row.catno||'—'}</span></td>
+        <td style="color:var(--muted);font-size:.78rem">${row.artist}</td>
+        <td>${row.title}</td>
+        <td style="color:#ff4444;font-family:var(--mono);font-size:.63rem">${reason}</td>
+      </tr>`).join('');
+    savePersistentFailed(bulkFailed);
+  } else {
+    document.getElementById('bulk-failed-section').style.display = 'none';
+  }
+}
+
+// Fetch helper
+
+// Fetch helper that handles 429 rate limit automatically
+async function fetchWithRetry(url, token, maxRetries=3) {
+  const headers = { 'User-Agent': 'DRCApp/1.0' };
+  if (token) headers['Authorization'] = `Discogs token=${token}`;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, { headers });
+      if (res.status === 429) {
+        const wait = 65000;
+        document.getElementById('bulk-current-item').textContent = '⏳ Límite de API — esperando 65 seg...';
+        await sleep(wait);
+        continue;
+      }
+      if (res.status === 401) throw new Error('Token inválido o sin permisos — verificá tu token de Discogs');
+      if (res.status === 403) throw new Error('Acceso denegado (403) — token sin permisos');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res;
+    } catch(e) {
+      if (e.message.includes('Token') || e.message.includes('denegado')) throw e;
+      if (attempt === maxRetries - 1) throw e;
+      await sleep(2000);
+    }
+  }
+  throw new Error('Demasiados reintentos');
+}
+
+// ---- Disambiguation modal ----
+let _disambigResolve = null;
+function showDisambig(row, results, searchMethod) {
+  return new Promise(resolve => {
+    _disambigResolve = resolve;
+    const methodLabel = searchMethod === 'title'
+      ? '🔤 Búsqueda por título (catno sin resultados)'
+      : '📋 Múltiples versiones — elegí la correcta';
+    document.getElementById('disambig-row-info').innerHTML =
+      `<strong>#${row.ref}</strong> &nbsp;·&nbsp; <span class="tag">${row.catno}</span> &nbsp;·&nbsp; ${row.artist} — ${row.title}<br>
+       <span style="color:var(--accent2);font-size:.6rem;font-family:var(--mono)">${methodLabel}</span>`;
+
+    document.getElementById('disambig-list').innerHTML = results.map(r => `
+      <div class="disambig-row" onclick="disambigChoose(${r.id})">
+        <div class="disambig-thumb">
+          ${r.thumb ? `<img src="${r.thumb}" onerror="this.style.display='none'">` : '<div class="mini-vinyl"></div>'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--display);font-size:1.1rem;letter-spacing:2px">${r.title}</div>
+          <div style="font-family:var(--mono);font-size:.63rem;color:var(--muted);margin-top:3px">
+            <span class="tag" style="margin-right:4px">${r.catno||'—'}</span>
+            ${r.label ? r.label.slice(0,2).join(', ') : ''}
+            ${r.year ? ` · ${r.year}` : ''}
+            ${r.country ? ` · ${r.country}` : ''}
+            ${r.format ? ` · ${r.format.slice(0,2).join(', ')}` : ''}
+          </div>
+        </div>
+        <span style="font-family:var(--mono);font-size:.6rem;color:var(--muted);flex-shrink:0">#${r.id}</span>
+      </div>`).join('');
+
+    document.getElementById('modal-disambig').classList.add('open');
+  });
+}
+function disambigChoose(releaseId) {
+  document.getElementById('modal-disambig').classList.remove('open');
+  if (_disambigResolve) { _disambigResolve({ id: releaseId }); _disambigResolve = null; }
+}
+function disambigSkip() {
+  document.getElementById('modal-disambig').classList.remove('open');
+  if (_disambigResolve) { _disambigResolve(null); _disambigResolve = null; }
+}
+
+// ---- Persistent failed list ----
+function savePersistentFailed(failedArr) {
+  try {
+    const existing = JSON.parse(localStorage.getItem('crate_dcg_failed') || '[]');
+    failedArr.forEach(({row, reason}) => {
+      const key = row.catno + '|' + row.title;
+      const idx = existing.findIndex(e => e.catno + '|' + e.title === key);
+      const entry = { ref: row.ref, catno: row.catno, artist: row.artist, title: row.title, label: row.label||'', reason };
+      if (idx >= 0) existing[idx] = entry; else existing.push(entry);
+    });
+    localStorage.setItem('crate_dcg_failed', JSON.stringify(existing));
+  } catch(e) {}
+  renderPersistentFailed();
+}
+function loadPersistentFailed() {
+  try { return JSON.parse(localStorage.getItem('crate_dcg_failed') || '[]'); } catch(e) { return []; }
+}
+function renderPersistentFailed() {
+  const list = loadPersistentFailed();
+  const section = document.getElementById('dcg-failed-persistent');
+  if (!section) return;
+  if (!list.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('dcg-failed-count').textContent = list.length;
+  document.getElementById('dcg-failed-tbody').innerHTML = list.map((e, idx) => `
+    <tr id="pfailed-row-${idx}">
+      <td style="color:var(--accent2);font-family:var(--mono);font-weight:700">${e.ref}</td>
+      <td><span class="tag" style="cursor:pointer;color:var(--blue)" onclick="prefillCatno('${e.catno}')" title="Clic para buscar">${e.catno} ↗</span></td>
+      <td style="color:var(--muted);font-size:.78rem">${e.artist}</td>
+      <td>${e.title}</td>
+      <td style="color:var(--muted);font-size:.78rem">${e.label}</td>
+      <td style="color:#ff4444;font-family:var(--mono);font-size:.63rem">${e.reason}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deletePersistentFailedItem(${idx})" title="Eliminar de la lista">✕</button></td>
+    </tr>`).join('');
+}
+
+function deletePersistentFailedItem(idx) {
+  const list = loadPersistentFailed();
+  const item = list[idx];
+  if (!confirm(`¿Eliminar "${item.title}" (${item.catno}) de la lista de pendientes?`)) return;
+  list.splice(idx, 1);
+  try { localStorage.setItem('crate_dcg_failed', JSON.stringify(list)); } catch(e) {}
+  renderPersistentFailed();
+}
+
+function verifyCollectionVsCSV(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) { alert('CSV vacío o inválido'); return; }
+
+      const rawHeader = parseCSVLine(lines[0]);
+      const headerCols = rawHeader.map(h => h.toLowerCase().trim().replace(/[^a-z0-9_]/g,''));
+      const iCatno     = headerCols.indexOf('catalog') >= 0 ? headerCols.indexOf('catalog') : headerCols.indexOf('catno') >= 0 ? headerCols.indexOf('catno') : 0;
+      const iTitle     = headerCols.indexOf('title') >= 0 ? headerCols.indexOf('title') : 2;
+      const iArtist    = headerCols.indexOf('artist') >= 0 ? headerCols.indexOf('artist') : 1;
+      const iReleaseId = headerCols.indexOf('release_id') >= 0 ? headerCols.indexOf('release_id') : -1;
+
+      const csvRows = lines.slice(1).map(line => {
+        const cols = parseCSVLine(line);
+        if (cols.every(c => !c.trim())) return null;
+        return {
+          catno:     (cols[iCatno]  || '').trim(),
+          title:     (cols[iTitle]  || '').trim(),
+          artist:    (cols[iArtist] || '').trim(),
+          releaseId: iReleaseId >= 0 ? (cols[iReleaseId] || '').trim() : ''
+        };
+      }).filter(r => r && (r.catno || r.title));
+
+      // Compare: for each CSV row, check if a disco with that catno exists
+      const missing = [];
+      const found = [];
+      csvRows.forEach(row => {
+        const catnoNorm = row.catno.toLowerCase();
+        const match = state.discos.find(d =>
+          d.codigo && d.codigo.trim().toLowerCase() === catnoNorm
+        );
+        if (match) found.push({ row, disco: match });
+        else missing.push(row);
+      });
+
+      const resultEl = document.getElementById('verify-result');
+      resultEl.style.display = 'block';
+
+      if (!missing.length) {
+        resultEl.innerHTML = `
+          <div style="padding:1rem;border:1px solid var(--green);border-radius:2px;text-align:center;color:var(--green);font-family:var(--mono)">
+            ✅ Colección completa — los ${found.length} discos del CSV están en DRC
+          </div>`;
+      } else {
+        resultEl.innerHTML = `
+          <div style="margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+            <span style="font-family:var(--mono);font-size:.72rem;color:#ff9900">
+              ✓ ${found.length} encontrados · <strong style="color:#ff4444">${missing.length} faltantes</strong> de ${csvRows.length} en CSV
+            </span>
+            <button class="btn btn-sm" onclick="verifyAddAllMissingToFailed()">+ Agregar faltantes a pendientes</button>
+          </div>
+          <div style="border:1px solid #ff4444;border-radius:2px;overflow:hidden;max-height:300px;overflow-y:auto">
+            <table class="tracks-table" style="font-size:.78rem">
+              <thead><tr><th>Código</th><th>Artista</th><th>Título</th><th></th></tr></thead>
+              <tbody>${missing.map((r,i) => `
+                <tr id="vmiss-${i}">
+                  <td><span class="tag" style="cursor:pointer;color:var(--blue)" onclick="prefillCatno('${r.catno.replace(/'/g,"\\'")}')">
+                    ${r.catno||'—'} ↗
+                  </span></td>
+                  <td style="color:var(--muted);font-size:.75rem">${r.artist}</td>
+                  <td>${r.title}</td>
+                  <td><button class="btn btn-sm btn-danger" onclick="verifyDismissRow(${i})" title="Ignorar">✕</button></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+        // Store missing for "add all to pending"
+        window._verifyMissing = missing;
+      }
+      input.value = '';
+    } catch(err) {
+      alert('Error al leer CSV: ' + err.message);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function verifyDismissRow(idx) {
+  document.getElementById('vmiss-' + idx)?.remove();
+}
+
+function verifyAddAllMissingToFailed() {
+  const missing = window._verifyMissing || [];
+  if (!missing.length) return;
+  const existing = loadPersistentFailed();
+  let added = 0;
+  missing.forEach(r => {
+    const alreadyIn = existing.some(e => e.catno && e.catno.toLowerCase() === r.catno.toLowerCase());
+    if (!alreadyIn) {
+      existing.push({ ref: '—', catno: r.catno, artist: r.artist, title: r.title, label: '', reason: 'Faltante en colección' });
+      added++;
+    }
+  });
+  try { localStorage.setItem('crate_dcg_failed', JSON.stringify(existing)); } catch(e) {}
+  renderPersistentFailed();
+  alert(`✓ ${added} discos agregados a la lista de pendientes`);
+}
+function prefillCatno(catno) {
+  // Switch to single tab and prefill the search
+  switchDcgSub('single');
+  document.getElementById('dcg-catno').value = catno;
+  document.getElementById('dcg-catno').focus();
+}
+function clearPersistentFailed() {
+  if (!confirm('¿Limpiar la lista de discos no encontrados?')) return;
+  localStorage.removeItem('crate_dcg_failed');
+  renderPersistentFailed();
+}
+function exportPersistentFailed() {
+  const list = loadPersistentFailed();
+  const rows = [['#','Catalog#','Artist','Title','Label','Motivo']];
+  list.forEach(e => rows.push([e.ref, e.catno, e.artist, e.title, e.label, e.reason]));
+  dlCSV('CRATE_discogs_no_encontrados.csv', rows);
+}
+
+// ---- Checkpoint modal ----
+let _checkpointResolve = null;
+let _checkpointDiscos = [];
+function showCheckpoint(discos, totalOk, totalAll) {
+  return new Promise(resolve => {
+    _checkpointResolve = resolve;
+    _checkpointDiscos = [...discos];
+    document.getElementById('checkpoint-subtitle').textContent =
+      `Últimos ${discos.length} discos importados · ${totalOk} de ${totalAll} completados`;
+
+    document.getElementById('checkpoint-grid').innerHTML = discos.map(d => `
+      <div class="chkpt-card" id="chkpt-${d.id}">
+        ${d.cover
+          ? `<img src="${d.cover}" referrerpolicy="no-referrer" alt="${d.nombre}">`
+          : `<div style="width:100%;aspect-ratio:1;background:var(--bg3);display:flex;align-items:center;justify-content:center"><div class="disk-cover-placeholder" style="width:50px;height:50px"></div></div>`}
+        <div class="chkpt-card-name" title="${d.nombre}">${d.nombre}</div>
+        <button class="chkpt-card-del" onclick="checkpointDeleteDisco('${d.id}')">✕ Borrar</button>
+      </div>`).join('');
+
+    document.getElementById('modal-checkpoint').classList.add('open');
+  });
+}
+function checkpointDeleteDisco(id) {
+  if (!confirm('¿Eliminar este disco de la colección?')) return;
+  state.discos = state.discos.filter(d => d.id !== id);
+  save(); updateStats();
+  document.getElementById('chkpt-' + id)?.remove();
+  _checkpointDiscos = _checkpointDiscos.filter(d => d.id !== id);
+}
+function checkpointContinue() {
+  document.getElementById('modal-checkpoint').classList.remove('open');
+  if (_checkpointResolve) { _checkpointResolve(); _checkpointResolve = null; }
+}
+
+function stopBulkImport() {
+  bulkStop = true;
+  document.getElementById('bulk-stop-btn').textContent = '⏳ Deteniendo...';
+}
+
+let _bulkLogIdx = 0;
+function addBulkLog(row, status, msg) {
+  const colors = { ok: 'var(--green)', skip: 'var(--muted)', error: '#ff4444' };
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="color:var(--accent2);font-family:var(--mono)">${++_bulkLogIdx}</td>
+    <td><span class="tag">${row.catno||'—'}</span></td>
+    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row.title||row.artist||'—'}</td>
+    <td style="font-family:var(--mono);font-size:.65rem;color:${colors[status]}">${msg||''}</td>`;
+  const log = document.getElementById('bulk-log');
+  log.appendChild(tr);
+  // Auto-scroll log
+  const wrap = document.getElementById('bulk-log-wrap');
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function buildDiscoFromRelease(r, token) {
+  const artists = (r.artists || []).map(a => a.name.replace(/\s*\(\d+\)$/,'')).join(', ');
+  const labels  = (r.labels || []).map(l => l.name).filter((v,i,a) => a.indexOf(v)===i).join(', ');
+  const catno   = (r.labels || [])[0]?.catno || '';
+  const styles  = r.styles  || [];
+  const allGenres = [...new Set(styles)];
+  const videos  = r.videos  || [];
+
+  allGenres.forEach(g => { if (!state.catalogo.generos.includes(g)) state.catalogo.generos.push(g); });
+
+  const rawTracks = (r.tracklist || []).filter(t => t.type_ !== 'heading' && t.title);
+  const ytMap = matchVideosToTracks(rawTracks, videos);
+
+  const tracks = rawTracks.map(t => ({
+    id:         genId(),
+    nombre:     t.title,
+    artista:    t.artists ? t.artists.map(a=>a.name.replace(/\s*\(\d+\)$/,'')).join(', ') : artists,
+    position:   t.position || '',
+    genero:     styles.slice(0, styles.length),
+    subgenero:  [],
+    destaque:   [],
+    youtube:    ytMap[t.title] || '',
+    comentario: '',
+    intensidad: 3
+  }));
+
+  const disco = { id: genId(), nombre: r.title, sello: labels, genero: allGenres, codigo: catno, released: r.year ? String(r.year) : '', cover: null, coverUrl: null, tracks };
+
+  // Cover strategy:
+  // 1. Store the raw Discogs URL as coverUrl (always works as <img src>)
+  // 2. Try to also convert to base64 for offline/backup use
+  // Images from i.discogs.com have CORS restrictions for canvas, but display fine as <img>
+  const imgUri = r.images?.[0]?.uri || '';
+  const imgUri150 = r.images?.[0]?.uri150 || '';
+  const displayUrl = imgUri || imgUri150;
+
+  if (displayUrl) {
+    // Store URL directly — works immediately for display
+    disco.coverUrl = displayUrl;
+    disco.cover = displayUrl; // Use URL as cover so it displays right away
+
+    // Also try to convert to base64 (for backup portability)
+    // Use uri150 (thumbnail) — it's more likely to allow CORS
+    const tryUrl = imgUri150 || imgUri;
+    await new Promise(resolve => {
+      const timer = setTimeout(() => {
+        // Timed out — URL-based cover is enough
+        resolve();
+      }, 5000);
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const size = Math.min(img.width, img.height, 300);
+          canvas.width = size; canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const s = Math.min(img.width, img.height);
+          ctx.drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, size, size);
+          disco.cover = canvas.toDataURL('image/jpeg', 0.82);
+          // Successfully converted to base64
+        } catch(corsErr) {
+          // Canvas tainted by CORS — keep URL version
+        }
+        clearTimeout(timer); resolve();
+      };
+      img.onerror = () => { clearTimeout(timer); resolve(); };
+      img.src = tryUrl + (tryUrl.includes('?') ? '&' : '?') + 'token=' + token;
+    });
+  }
+
+  return disco;
+}
+
+function exportFailedCSV() {
+  const rows = [[' #', 'Catalog#', 'Artist', 'Title', 'Label', 'Motivo']];
+  bulkFailed.forEach(({row, reason}) => rows.push([row.ref, row.catno, row.artist, row.title, row.label, reason]));
+  dlCSV('CRATE_discogs_fallidos.csv', rows);
+}
+
+// Drag and drop for bulk CSV
+const bulkDrop = document.getElementById('bulk-drop');
+if (bulkDrop) {
+  bulkDrop.addEventListener('dragover', e => { e.preventDefault(); bulkDrop.classList.add('dragover'); });
+  bulkDrop.addEventListener('dragleave', () => bulkDrop.classList.remove('dragover'));
+  bulkDrop.addEventListener('drop', e => {
+    e.preventDefault(); bulkDrop.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) { const inp = document.getElementById('bulk-file-input'); const dt = new DataTransfer(); dt.items.add(file); inp.files = dt.files; loadBulkCSV(inp); }
+  });
+}
+
+// =================== DISCOGS ===================
+let dcgSelectedRelease = null;
+
+function toggleTokenBar() {
+  const body = document.getElementById('dcg-token-body');
+  const arrow = document.getElementById('dcg-token-arrow');
+  const open = body.style.display === 'none' || body.style.display === '';
+  body.style.display = open ? 'block' : 'none';
+  arrow.style.transform = open ? 'rotate(90deg)' : '';
+}
+
+function updateTokenBadge() {
+  const token = getDiscogsToken();
+  const badge = document.getElementById('dcg-token-badge');
+  if (!badge) return;
+  badge.textContent = token ? '✓ configurado' : '⚠ sin token';
+  badge.style.color = token ? 'var(--green)' : '#ff9900';
+}
+
+function initDiscogsTab() {
+  const token = getDiscogsToken();
+  const input = document.getElementById('dcg-token-input');
+  const status = document.getElementById('dcg-token-status');
+  if (!input || !status) return;
+  if (token) {
+    input.value = token;
+    status.textContent = `✓ Token guardado (${token.length} chars)`;
+    status.style.color = 'var(--green)';
+    // Keep token bar collapsed if token already set
+    const body = document.getElementById('dcg-token-body');
+    if (body) body.style.display = 'none';
+  } else {
+    status.textContent = 'Sin token — pegalo acá y guardá';
+    status.style.color = 'var(--muted)';
+    // Auto-open if no token
+    const body = document.getElementById('dcg-token-body');
+    const arrow = document.getElementById('dcg-token-arrow');
+    if (body) body.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(90deg)';
+  }
+  updateTokenBadge();
+  renderPersistentFailed();
+}
+
+function toggleTokenVisibility() {
+  const input = document.getElementById('dcg-token-input');
+  const isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+  document.getElementById('dcg-token-eye').textContent = isPassword ? '🙈' : '👁';
+}
+
+function saveDiscogsToken() {
+  const raw = document.getElementById('dcg-token-input').value;
+  const val = raw.replace(/[\s\u200B\u00A0\uFEFF]/g, '');
+  const status = document.getElementById('dcg-token-status');
+
+  if (!val) {
+    status.textContent = '⚠ Campo vacío — pegá tu token';
+    status.style.color = '#ff9900';
+    return;
+  }
+  if (val.length < 10) {
+    status.textContent = `⚠ Token muy corto (${val.length} chars) — copialo completo`;
+    status.style.color = '#ff9900';
+    return;
+  }
+
+  // Save in state (persisted in crate_v3 JSON)
+  state.discogsToken = val;
+
+  // Also try localStorage as secondary
+  let lsOk = false;
+  try { localStorage.setItem('discogs_token', val); lsOk = true; } catch(e) {}
+
+  // Save full state
+  try { save(); } catch(e) {}
+
+  status.textContent = `✓ Token guardado (${val.length} chars)${lsOk ? '' : ' · solo en memoria'}`;
+  status.style.color = 'var(--green)';
+  updateTokenBadge();
+  // Collapse the token bar after saving
+  setTimeout(() => {
+    const body = document.getElementById('dcg-token-body');
+    const arrow = document.getElementById('dcg-token-arrow');
+    if (body) body.style.display = 'none';
+    if (arrow) arrow.style.transform = '';
+  }, 800);
+}
+
+function getDiscogsToken() {
+  // Primary: state (always available, persisted in crate_v3)
+  if (state.discogsToken) return state.discogsToken;
+  // Fallback: standalone localStorage key
+  try {
+    const ls = localStorage.getItem('discogs_token');
+    if (ls) { state.discogsToken = ls; return ls; }
+  } catch(e) {}
+  return '';
+}
+
+function clearDiscogsToken() {
+  if (!confirm('¿Borrar el token guardado?')) return;
+  try { localStorage.removeItem('discogs_token'); } catch(e) {}
+  state.discogsToken = '';
+  try { save(); } catch(e) {}
+  document.getElementById('dcg-token-input').value = '';
+  const status = document.getElementById('dcg-token-status');
+  status.textContent = 'Token borrado';
+  status.style.color = 'var(--muted)';
+}
+
+// ---- Código único ----
+function codigoExiste(codigo, excludeId = null) {
+  if (!codigo) return false;
+  const norm = codigo.trim().toLowerCase();
+  return state.discos.some(d => d.id !== excludeId && d.codigo && d.codigo.trim().toLowerCase() === norm);
+}
+
+async function searchDiscogs() {
+  const token = getDiscogsToken();
+  if (!token) { alert('Primero guardá tu token de Discogs arriba'); return; }
+  const catno = document.getElementById('dcg-catno').value.trim();
+  if (!catno) { alert('Ingresá un código de catálogo'); return; }
+
+  document.getElementById('dcg-searching').style.display = 'inline';
+  document.getElementById('dcg-search-btn').disabled = true;
+  document.getElementById('dcg-results').style.display = 'none';
+  document.getElementById('dcg-preview').style.display = 'none';
+
+  try {
+    const url = `https://api.discogs.com/database/search?catno=${encodeURIComponent(catno)}&type=release&per_page=10&token=${token}`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'DRCApp/1.0' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderDiscogsResults(data.results || [], catno);
+  } catch (e) {
+    alert('Error al buscar en Discogs: ' + e.message);
+  } finally {
+    document.getElementById('dcg-searching').style.display = 'none';
+    document.getElementById('dcg-search-btn').disabled = false;
+  }
+}
+
+function renderDiscogsResults(results, catno) {
+  const container = document.getElementById('dcg-results-list');
+  if (!results.length) {
+    container.innerHTML = '<div style="font-family:var(--mono);font-size:.75rem;color:var(--muted);padding:1rem">Sin resultados. Probá con otro código.</div>';
+    document.getElementById('dcg-results').style.display = 'block';
+    return;
+  }
+  container.innerHTML = results.map(r => {
+    const dupeWarning = codigoExiste(r.catno)
+      ? `<span class="tag" style="color:#ff4444;border-color:#ff4444;margin-left:4px">⚠ ya existe</span>` : '';
+    return `<div class="dcg-result-row" onclick="selectDiscogsRelease(${r.id}, '${(r.catno||'').replace(/'/g,"\\'")}')">
+      <div class="dcg-result-thumb">
+        ${r.thumb ? `<img src="${r.thumb}" onerror="this.style.display='none'">` : '<div class="mini-vinyl"></div>'}
+      </div>
+      <div class="dcg-result-info">
+        <div class="dcg-result-title">${r.title}</div>
+        <div class="dcg-result-sub">
+          ${r.catno ? `<span class="tag" style="margin-right:4px">${r.catno}</span>${dupeWarning}` : ''}
+          ${r.label ? r.label.join(', ') : ''}
+          ${r.year ? ` · ${r.year}` : ''}
+          ${r.format ? ` · ${r.format.join(', ')}` : ''}
+          ${r.genre ? ` · ${r.genre.join('/')}` : ''}
+        </div>
+      </div>
+      <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);flex-shrink:0"># ${r.id}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('dcg-results').style.display = 'block';
+}
+
+async function selectDiscogsRelease(id, catno) {
+  const token = getDiscogsToken();
+  document.getElementById('dcg-results').style.display = 'none';
+  document.getElementById('dcg-preview').style.display = 'none';
+
+  const preview = document.getElementById('dcg-preview');
+  preview.style.display = 'block';
+  document.getElementById('dcg-preview-card').innerHTML = '<div style="font-family:var(--mono);font-size:.75rem;color:var(--muted);padding:2rem;text-align:center">Cargando datos del disco...</div>';
+
+  try {
+    const res = await fetch(`https://api.discogs.com/releases/${id}?token=${token}`, {
+      headers: { 'User-Agent': 'DRCApp/1.0' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const r = await res.json();
+    dcgSelectedRelease = r;
+    renderDiscogsPreview(r);
+  } catch (e) {
+    document.getElementById('dcg-preview-card').innerHTML = `<div style="color:#ff4444;font-family:var(--mono);font-size:.75rem">Error: ${e.message}</div>`;
+  }
+}
+
+// Match video URLs to tracks by title similarity
+function matchVideosToTracks(tracklist, videos) {
+  if (!videos || !videos.length) return {};
+  const map = {};
+  tracklist.forEach(track => {
+    const tName = track.title.toLowerCase().replace(/[^a-z0-9]/g,' ').trim();
+    let bestScore = 0, bestUri = null;
+    videos.forEach(v => {
+      const vTitle = (v.title || v.description || '').toLowerCase().replace(/[^a-z0-9]/g,' ');
+      // Score: count matching words
+      const tWords = tName.split(/\s+/).filter(w => w.length > 2);
+      const matches = tWords.filter(w => vTitle.includes(w)).length;
+      const score = tWords.length > 0 ? matches / tWords.length : 0;
+      if (score > bestScore && score >= 0.5) { bestScore = score; bestUri = v.uri; }
+    });
+    if (bestUri) map[track.title] = bestUri;
+  });
+  return map;
+}
+
+function renderDiscogsPreview(r) {
+  const artists = (r.artists || []).map(a => a.name.replace(/\s*\(\d+\)$/,'')).join(', ');
+  const labels = (r.labels || []).map(l => l.name).filter((v,i,a) => a.indexOf(v) === i).join(', ');
+  const catno = (r.labels || [])[0]?.catno || '';
+  const styles_sg = r.styles || [];
+  const imgUrl = r.images?.[0]?.uri || '';
+  const tracks = (r.tracklist || []).filter(t => t.type_ !== 'heading' && t.title);
+  const videos = r.videos || [];
+  const ytMap = matchVideosToTracks(tracks, videos);
+  const matchedCount = Object.keys(ytMap).length;
+
+  const dupeWarning = codigoExiste(catno)
+    ? `<div style="background:rgba(255,68,68,.1);border:1px solid #ff4444;border-radius:2px;padding:.6rem 1rem;margin-top:.8rem;font-family:var(--mono);font-size:.72rem;color:#ff4444">
+        ⚠ Ya existe un disco con el código <strong>${catno}</strong> en tu colección. Si importás este, se creará igualmente pero revisá si es un duplicado.
+       </div>` : '';
+
+  document.getElementById('dcg-preview-card').innerHTML = `
+    <div class="dcg-preview-header">
+      <div class="dcg-preview-cover">
+        ${imgUrl ? `<img src="${imgUrl}" onerror="this.parentNode.innerHTML='<div class=\\'disk-cover-placeholder\\'></div>'">` : '<div class="disk-cover-placeholder"></div>'}
+      </div>
+      <div>
+        <div style="font-family:var(--display);font-size:2rem;letter-spacing:3px;line-height:1.1;margin-bottom:.5rem">${r.title}</div>
+        <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:.3rem">${artists}</div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem">
+          ${labels ? `<span class="tag yellow">${labels}</span>` : ''}
+          ${catno ? `<span class="tag" style="color:var(--accent2)">${catno}</span>` : ''}
+          ${r.year ? `<span class="tag">${r.year}</span>` : ''}
+          ${r.country ? `<span class="tag">${r.country}</span>` : ''}
+          ${genres.map(g => `<span class="tag accent">${g}</span>`).join('')}
+        </div>
+        <div style="margin-top:.8rem;font-family:var(--mono);font-size:.65rem;color:var(--muted)">
+          ${tracks.length} tracks · ${matchedCount > 0 ? `<span style="color:var(--green)">✓ ${matchedCount} links de YouTube encontrados</span>` : `<span style="color:var(--muted)">${videos.length} videos en Discogs (sin match por track)</span>`}
+        </div>
+        ${dupeWarning}
+      </div>
+    </div>
+    <div class="dcg-tracklist">
+      <div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.6rem">Tracklist</div>
+      ${tracks.map(t => {
+        const yt = ytMap[t.title];
+        return `<div class="dcg-track-row">
+          <div class="dcg-track-pos">${t.position}</div>
+          <div style="flex:1">${t.title}${t.extraartists ? ` <span style="color:var(--muted);font-size:.78rem">(${t.extraartists.map(a=>a.name).join(', ')})</span>` : ''}</div>
+          ${yt ? `<a class="yt-link" href="${yt}" target="_blank">▶ YT</a>` : ''}
+          <div class="dcg-track-dur">${t.duration || ''}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function dcgBackToResults() {
+  document.getElementById('dcg-preview').style.display = 'none';
+  document.getElementById('dcg-results').style.display = 'block';
+}
+
+async function importFromDiscogs() {
+  const r = dcgSelectedRelease;
+  if (!r) return;
+
+  const artists = (r.artists || []).map(a => a.name.replace(/\s*\(\d+\)$/,'')).join(', ');
+  const labels = (r.labels || []).map(l => l.name).filter((v,i,a) => a.indexOf(v) === i).join(', ');
+  const catno = (r.labels || [])[0]?.catno || '';
+  const styles = r.styles || [];
+  const allGenres = [...new Set(styles)];
+  const videos = r.videos || [];
+
+  // Warn about duplicate codigo
+  if (codigoExiste(catno)) {
+    const existing = state.discos.find(d => d.codigo && d.codigo.trim().toLowerCase() === catno.trim().toLowerCase());
+    if (!confirm(`⚠ Ya existe un disco con el código "${catno}":\n"${existing.nombre}"\n\n¿Importar de todas formas?`)) return;
+  }
+
+  // Add genres to catalog
+  allGenres.forEach(g => { if (!state.catalogo.generos.includes(g)) state.catalogo.generos.push(g); });
+
+  // Build tracks with YouTube matching
+  const tracks = (r.tracklist || [])
+    .filter(t => t.type_ !== 'heading' && t.title);
+  const ytMap = matchVideosToTracks(tracks, videos);
+
+  const builtTracks = tracks.map(t => {
+    const trackArtists = t.artists
+      ? t.artists.map(a => a.name.replace(/\s*\(\d+\)$/,'')).join(', ')
+      : artists;
+    return {
+      id: genId(),
+      nombre: t.title,
+      artista: trackArtists,
+      position: t.position || '',
+      genero: styles.slice(0, styles.length),
+      subgenero: [],
+      destaque: [],
+      youtube: ytMap[t.title] || '',
+      comentario: '',
+      intensidad: 3
+    };
+  });
+
+  const ytMatched = builtTracks.filter(t => t.youtube).length;
+  const imgUrl = r.images?.[0]?.uri150 || r.images?.[0]?.uri || '';
+
+  const disco = {
+    id: genId(),
+    nombre: r.title,
+    sello: labels,
+    genero: allGenres,
+    codigo: catno,
+    released: r.year ? String(r.year) : '',
+    cover: imgUrl || null,   // URL as immediate fallback
+    coverUrl: imgUrl || null,
+    tracks: builtTracks
+  };
+
+  // Get cover — try to convert to base64 (better portability), keep URL on failure
+  if (imgUrl) {
+    await new Promise(resolve => {
+      const timer = setTimeout(resolve, 6000);
+      fetch(imgUrl, { headers: { 'Authorization': `Discogs token=${getDiscogsToken()}` } })
+        .then(res => res.blob())
+        .then(blob => {
+          const reader = new FileReader();
+          reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+              try {
+                const canvas = document.createElement('canvas');
+                const size = Math.min(img.width, img.height, 400);
+                canvas.width = size; canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                const s = Math.min(img.width, img.height);
+                ctx.drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, size, size);
+                disco.cover = canvas.toDataURL('image/jpeg', 0.85);
+              } catch(e) { /* keep URL */ }
+              clearTimeout(timer); resolve();
+            };
+            img.onerror = () => { clearTimeout(timer); resolve(); };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(blob);
+        })
+        .catch(() => { clearTimeout(timer); resolve(); });
+    });
+  }
+
+  state.discos.push(disco);
+  save(); updateStats();
+
+  dcgSelectedRelease = null;
+  document.getElementById('dcg-results').style.display = 'none';
+  document.getElementById('dcg-preview').style.display = 'none';
+  document.getElementById('dcg-catno').value = '';
+
+  openDisco(disco.id);
+  const ytMsg = ytMatched > 0 ? `\n🎵 ${ytMatched} tracks con YouTube vinculado` : '';
+  alert(`✓ "${disco.nombre}" importado con ${builtTracks.length} tracks${ytMsg}`);
+}
+
+
+// =================== SUPABASE AUTH + SYNC ===================
+const SUPA_URL = 'https://oynfhenvaeeharfzwscr.supabase.co';
+const SUPA_KEY = 'sb_publishable__lj6jvZG3omxTbcjsqUvxw_afFyIrnY';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let currentUser = null;
+let syncTimeout = null;
+
+// ── Auth UI ───────────────────────────────────────────────────────────────
+function switchAuthTab(tab) {
+  document.getElementById('auth-panel-login').style.display    = tab==='login'    ? 'block' : 'none';
+  document.getElementById('auth-panel-register').style.display = tab==='register' ? 'block' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+}
+
+function showAuthMsg(panelId, msg, type='error') {
+  const el = document.getElementById(panelId);
+  el.textContent = msg;
+  el.className = 'auth-msg ' + type;
+  el.style.display = 'block';
+}
+
+async function authLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  if (!email || !pass) { showAuthMsg('auth-login-msg','Completá email y contraseña'); return; }
+  const btn = document.getElementById('auth-login-btn');
+  btn.disabled = true; btn.textContent = 'Ingresando...';
+  const { error } = await supa.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.textContent = 'INGRESAR';
+  if (error) { showAuthMsg('auth-login-msg', tradError(error.message)); return; }
+  // onAuthStateChange handles the rest
+}
+
+async function authRegister() {
+  const name  = document.getElementById('auth-name').value.trim();
+  const email = document.getElementById('auth-email-reg').value.trim();
+  const pass  = document.getElementById('auth-pass-reg').value;
+  if (!name || !email || !pass) { showAuthMsg('auth-register-msg','Completá todos los campos'); return; }
+  if (pass.length < 6) { showAuthMsg('auth-register-msg','La contraseña debe tener al menos 6 caracteres'); return; }
+  const btn = document.getElementById('auth-register-btn');
+  btn.disabled = true; btn.textContent = 'Creando cuenta...';
+  const { error } = await supa.auth.signUp({
+    email, password: pass,
+    options: { data: { display_name: name } }
+  });
+  btn.disabled = false; btn.textContent = 'CREAR CUENTA';
+  if (error) { showAuthMsg('auth-register-msg', tradError(error.message)); return; }
+  showAuthMsg('auth-register-msg', '✓ Cuenta creada — revisá tu email para confirmar', 'success');
+}
+
+async function authForgotPassword() {
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) { showAuthMsg('auth-login-msg','Ingresá tu email primero'); return; }
+  const { error } = await supa.auth.resetPasswordForEmail(email);
+  if (error) { showAuthMsg('auth-login-msg', tradError(error.message)); return; }
+  showAuthMsg('auth-login-msg','✓ Te enviamos un email para resetear la contraseña','success');
+}
+
+async function authLogout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  await syncToCloud(); // save before logout
+  await supa.auth.signOut();
+  currentUser = null;
+  state.discos=[]; state.playlists=[]; state.catalogo={generos:[],subgeneros:[],destaques:[]};
+  renderDiscos(); updateStats();
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('user-badge').style.display = 'none';
+}
+
+function tradError(msg) {
+  if (msg.includes('Invalid login')) return 'Email o contraseña incorrectos';
+  if (msg.includes('Email not confirmed')) return 'Confirmá tu email antes de ingresar';
+  if (msg.includes('User already registered')) return 'Ya existe una cuenta con ese email';
+  if (msg.includes('Password should be')) return 'La contraseña debe tener al menos 6 caracteres';
+  if (msg.includes('rate limit')) return 'Demasiados intentos, esperá unos minutos';
+  return msg;
+}
+
+// ── Session handler ────────────────────────────────────────────────────────
+supa.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    await onUserLoggedIn();
+  } else {
+    currentUser = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+});
+
+async function onUserLoggedIn() {
+  document.getElementById('auth-screen').style.display = 'none';
+
+  // Load profile
+  const { data: profile } = await supa.from('profiles').select('*').eq('id', currentUser.id).single();
+
+  // Update header badge
+  const badge = document.getElementById('user-badge');
+  badge.style.display = 'flex';
+  const name = profile?.display_name || currentUser.email.split('@')[0];
+  document.getElementById('user-email-label').textContent = name;
+  const planTag = document.getElementById('user-plan-tag');
+  const plan = profile?.plan || 'free';
+  planTag.textContent = plan;
+  planTag.className = 'plan-tag ' + (plan==='active' ? 'active' : 'free');
+
+  // Load collection from cloud
+  await loadFromCloud();
+
+  // If local data exists and cloud is empty → offer migration
+  const localRaw = localStorage.getItem('crate_v3');
+  if (localRaw) {
+    try {
+      const local = JSON.parse(localRaw);
+      if (local.discos?.length > 0 && state.discos.length === 0) {
+        if (confirm(`Tenés ${local.discos.length} discos guardados localmente. ¿Migramos a la nube?`)) {
+          state.discos = local.discos;
+          state.playlists = local.playlists || [];
+          state.catalogo = local.catalogo || {generos:[],subgeneros:[],destaques:[]};
+          if (local.discogsToken) state.discogsToken = local.discogsToken;
+          await syncToCloud(true);
+          localStorage.removeItem('crate_v3');
+          alert('✓ Colección migrada a la nube correctamente');
+        }
+      }
+    } catch(e) {}
+  }
+
+  renderDiscos(); updateStats(); renderPersistentFailed();
+}
+
+// ── Cloud sync ─────────────────────────────────────────────────────────────
+function setSyncState(s) {
+  const dot = document.getElementById('sync-dot');
+  if (!dot) return;
+  dot.className = 'sync-dot' + (s==='syncing' ? ' syncing' : s==='error' ? ' error' : '');
+}
+
+async function loadFromCloud() {
+  if (!currentUser) return;
+  setSyncState('syncing');
+  const { data, error } = await supa.from('colecciones').select('*').eq('user_id', currentUser.id).single();
+  if (error || !data) { setSyncState(''); return; }
+  state.discos    = data.discos    || [];
+  state.playlists = data.playlists || [];
+  state.catalogo  = data.catalogo  || {generos:[],subgeneros:[],destaques:[]};
+  if (!state.catalogo.generos)   state.catalogo.generos   = [];
+  if (!state.catalogo.subgeneros) state.catalogo.subgeneros = [];
+  if (!state.catalogo.destaques) state.catalogo.destaques = [];
+
+  // Load discogs token from profile
+  const { data: prof } = await supa.from('profiles').select('discogs_token').eq('id', currentUser.id).single();
+  if (prof?.discogs_token) state.discogsToken = prof.discogs_token;
+
+  setSyncState('ok');
+}
+
+async function syncToCloud(immediate=false) {
+  if (!currentUser) return;
+  clearTimeout(syncTimeout);
+  if (immediate) {
+    await doSync();
+  } else {
+    syncTimeout = setTimeout(doSync, 1500); // debounce 1.5s
+  }
+}
+
+async function doSync() {
+  if (!currentUser) return;
+  setSyncState('syncing');
+  const { error } = await supa.from('colecciones').upsert({
+    user_id:   currentUser.id,
+    discos:    state.discos,
+    playlists: state.playlists,
+    catalogo:  state.catalogo,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+
+  // Also save discogs token to profile if present
+  if (state.discogsToken) {
+    await supa.from('profiles').update({ discogs_token: state.discogsToken }).eq('id', currentUser.id);
+  }
+
+  setSyncState(error ? 'error' : 'ok');
+}
+
+// ── Override save() to also sync to cloud ─────────────────────────────────
+const _originalSave = save;
+save = function() {
+  // Keep localStorage as offline fallback
+  try {
+    localStorage.setItem('crate_v3', JSON.stringify({
+      discos: state.discos, playlists: state.playlists,
+      catalogo: state.catalogo, discogsToken: state.discogsToken||''
+    }));
+  } catch(e) {}
+  showToast();
+  if (currentUser) syncToCloud();
+};
+
+// =================== INIT ===================
+// App starts hidden behind auth screen.
+// onAuthStateChange handles load after login.
+// Check for existing session on page load:
+(async () => {
+  const { data: { session } } = await supa.auth.getSession();
+  if (!session) {
+    // No session: show auth, load local data for offline preview
+    load(); renderDiscos(); updateStats();
+  }
+  // If session exists, onAuthStateChange fires automatically
+})();
+// Set CSS var for sticky nav offset
+function setHeaderHeight(){
+  const h=document.querySelector('header');
+  if(h) document.documentElement.style.setProperty('--header-h', h.offsetHeight+'px');
+}
+setHeaderHeight();
+window.addEventListener('resize', setHeaderHeight);
+</script>
+</body>
+</html>
