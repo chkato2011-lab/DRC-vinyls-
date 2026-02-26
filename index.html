@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
-<title>VRC — Vinyl Record Collection</title>
+<title>Disc Record Collection</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -335,8 +335,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- AUTH SCREEN -->
 <div id="auth-screen">
   <div class="auth-box">
-    <div class="auth-logo">V<span>R</span>C</div>
-    <div class="auth-subtitle">// vinyl record collection</div>
+    <div class="auth-logo">DIS<span>C</span></div>
+    <div class="auth-subtitle">// disc record collection</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">Ingresar</button>
       <button class="auth-tab" onclick="switchAuthTab('register')">Registrarse</button>
@@ -377,7 +377,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 
 <header>
-  <div class="logo">V<span>R</span>C</div>
+  <div class="logo">DIS<span>C</span></div>
   <div class="header-stats">
     <div><strong id="stat-discos">0</strong>Discos</div>
     <div><strong id="stat-tracks">0</strong>Tracks</div>
@@ -2232,7 +2232,7 @@ function loadBulkCSV(input) {
         // Show as alert so it's unmissable
         alert(`⚠ El CSV tiene ${csvDupes.length} disco${csvDupes.length>1?'s':''} repetido${csvDupes.length>1?'s':''}:\n\n` +
           csvDupes.map(d => `· ${d.catno} — ${d.title} (aparece ${d.count} veces)`).join('\n') +
-          `\n\nVRC no importa duplicados, así que el conteo final será menor al del CSV.`);
+          `\n\nDisc Record Collection no importa duplicados, así que el conteo final será menor al del CSV.`);
       }
 
       if (modeInfo) modeInfo.style.whiteSpace = 'pre-line';
@@ -2410,7 +2410,7 @@ async function startBulkImport() {
 
 // Fetch helper that handles 429 rate limit automatically
 async function fetchWithRetry(url, token, maxRetries=3) {
-  const headers = { 'User-Agent': 'VRCApp/1.0' };
+  const headers = { 'User-Agent': 'DISCApp/1.0' };
   if (token) headers['Authorization'] = `Discogs token=${token}`;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -2565,7 +2565,7 @@ function verifyCollectionVsCSV(input) {
       if (!missing.length) {
         resultEl.innerHTML = `
           <div style="padding:1rem;border:1px solid var(--green);border-radius:2px;text-align:center;color:var(--green);font-family:var(--mono)">
-            ✅ Colección completa — los ${found.length} discos del CSV están en VRC
+            ✅ Colección completa — los ${found.length} discos del CSV están en tu colección
           </div>`;
       } else {
         resultEl.innerHTML = `
@@ -2920,7 +2920,7 @@ async function searchDiscogs() {
 
   try {
     const url = `https://api.discogs.com/database/search?catno=${encodeURIComponent(catno)}&type=release&per_page=10&token=${token}`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'VRCApp/1.0' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'DISCApp/1.0' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     renderDiscogsResults(data.results || [], catno);
@@ -2973,7 +2973,7 @@ async function selectDiscogsRelease(id, catno) {
 
   try {
     const res = await fetch(`https://api.discogs.com/releases/${id}?token=${token}`, {
-      headers: { 'User-Agent': 'VRCApp/1.0' }
+      headers: { 'User-Agent': 'DISCApp/1.0' }
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const r = await res.json();
