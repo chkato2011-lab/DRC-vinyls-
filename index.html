@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DISC">
+<meta name="theme-color" content="#0c0c0c">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Disc Record Collection</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -389,7 +396,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <span class="plan-tag free" id="user-plan-tag">free</span>
     <button class="btn btn-sm" onclick="authLogout()" style="font-size:.6rem;padding:.2rem .5rem">Salir</button>
   </div>
-  <button id="login-btn" onclick="document.getElementById('auth-screen').style.display='flex'" style="display:none;font-family:var(--mono);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;padding:.35rem .8rem;background:var(--accent);border:none;border-radius:2px;color:#fff;cursor:pointer;flex-shrink:0">Ingresar</button>
+  <button id="login-btn" onclick="document.getElementById('auth-screen').style.display='flex'" style="display:block;font-family:var(--mono);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;padding:.35rem .8rem;background:var(--accent);border:none;border-radius:2px;color:#fff;cursor:pointer;flex-shrink:0">Ingresar</button>
 </header>
 <div class="save-toast" id="save-toast">✓ Guardado</div>
 
@@ -3388,6 +3395,15 @@ function setHeaderHeight(){
 }
 setHeaderHeight();
 window.addEventListener('resize', setHeaderHeight);
+
+// ── PWA Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.log('SW error:', e));
+  });
+}
 </script>
 </body>
 </html>
