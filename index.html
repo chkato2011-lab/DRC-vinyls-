@@ -1209,7 +1209,7 @@ function showView(name){
   document.getElementById('view-'+name).classList.add('active');
   const m={discos:0,tracks:1,playlists:2,import:3};
   if(m[name]!==undefined) document.querySelectorAll('.nav-btn')[m[name]].classList.add('active');
-  if(name==='discos'){ renderDiscos(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ window.scrollTo({top: state._discosScrollY||0, behavior:'instant'}); })); }
+  if(name==='discos'){ renderDiscos(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(state.currentDiscoId){ const row=document.querySelector(`tr[onclick*="'${state.currentDiscoId}'"]`); if(row) row.scrollIntoView({block:'center',behavior:'instant'}); } })); }
   if(name==='tracks'){updateAllTrackFilters();renderAllTracks();}
   if(name==='playlists') renderPlaylists();
   if(name==='import') initDiscogsTab();
