@@ -16,6 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
+  --emoji-font: "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;
   --bg:#0c0c0c;--bg2:#141414;--bg3:#1c1c1c;
   --border:#2a2a2a;--text:#e8e8e0;--muted:#666;
   --accent:#ff3c00;--accent2:#ffcc00;--green:#39ff14;--blue:#38bdf8;--purple:#c084fc;
@@ -422,8 +423,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   <button class="nav-btn" onclick="showView('playlists')">Playlists</button>
   <button class="nav-btn" onclick="showView('import')" style="color:var(--green)">Importar</button>
   <div class="nav-backup">
-    <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">??</button>
-    <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">??</label>
+    <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">BAK</button>
+    <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">REST</label>
     <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreJSON(this)">
   </div>
 </div>
@@ -441,7 +442,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <input type="text" class="search-input" id="search-discos" placeholder="Buscar disco, código o artista..." oninput="renderDiscos()">
       <div class="view-toggle">
         <button class="vt-btn" id="vt-grid" onclick="setDiscosView('grid')" title="Grilla" style="font-size:.9rem">?</button>
-        <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista" style="font-size:.9rem">=</button>
+        <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista" style="font-size:.9rem">?</button>
       </div>
       <div class="export-wrap">
         <button class="btn" onclick="toggleExportMenu('exp-discos')">? Exportar</button>
@@ -628,7 +629,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <!-- Token bar: collapsible -->
     <div id="dcg-token-bar" style="margin-bottom:1.2rem">
       <button onclick="toggleTokenBar()" style="background:none;border:1px solid var(--border);border-radius:2px;padding:.45rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;width:100%;text-align:left">
-        <span id="dcg-token-arrow" style="font-size:.7rem;transition:transform .2s">?</span>
+        <span id="dcg-token-arrow" style="font-size:.7rem;transition:transform .2s">+</span>
         <span>Token Discogs</span>
         <span id="dcg-token-badge" style="font-size:.6rem;color:var(--green);margin-left:.3rem"></span>
       </button>
@@ -639,7 +640,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         </div>
         <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
           <input type="password" class="form-input" id="dcg-token-input" style="flex:1;min-width:180px;font-family:var(--mono);font-size:.75rem" placeholder="Pegá tu token acá..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-          <button class="btn btn-sm" onclick="toggleTokenVisibility()" id="dcg-token-eye" title="Mostrar/ocultar">??</button>
+          <button class="btn btn-sm" onclick="toggleTokenVisibility()" id="dcg-token-eye" title="Mostrar/ocultar">VER</button>
           <button class="btn btn-sm btn-green" onclick="saveDiscogsToken()">Guardar</button>
           <button class="btn btn-sm btn-danger" onclick="clearDiscogsToken()" title="Borrar token">?</button>
         </div>
@@ -651,8 +652,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
     <!-- Sub-tabs: individual vs bulk -->
     <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem">
-      <button class="nav-btn active" id="dcg-sub-single" onclick="switchDcgSub('single')" style="padding:.6rem 1.2rem">?? Por código</button>
-      <button class="nav-btn" id="dcg-sub-bulk" onclick="switchDcgSub('bulk')" style="padding:.6rem 1.2rem">?? Colección completa (CSV)</button>
+      <button class="nav-btn active" id="dcg-sub-single" onclick="switchDcgSub('single')" style="padding:.6rem 1.2rem">BUSCAR</button>
+      <button class="nav-btn" id="dcg-sub-bulk" onclick="switchDcgSub('bulk')" style="padding:.6rem 1.2rem">CSV</button>
     </div>
 
     <!-- SINGLE search -->
@@ -660,7 +661,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem">Buscar por código de catálogo</p>
       <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
         <input type="text" class="form-input" id="dcg-catno" style="width:200px;font-family:var(--mono)" placeholder="ej. ORG017, WARP100...">
-        <button class="btn btn-primary" onclick="searchDiscogs()" id="dcg-search-btn">?? Buscar en Discogs</button>
+        <button class="btn btn-primary" onclick="searchDiscogs()" id="dcg-search-btn">BUSCAR EN DISCOGS</button>
         <span id="dcg-searching" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);display:none">Buscando...</span>
       </div>
       <div id="dcg-results" style="display:none">
@@ -695,9 +696,9 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <!-- Verify section -->
       <div id="dcg-verify-section" style="margin-top:2rem;padding:1.2rem;background:var(--bg2);border:1px solid var(--border);border-radius:2px">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem">
-          <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase">?? Verificar colección vs CSV</span>
+          <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase">VERIFICAR COLECCION VS CSV</span>
           <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-            <label class="btn btn-sm" for="verify-csv-input" style="cursor:pointer">?? Cargar CSV de Discogs</label>
+            <label class="btn btn-sm" for="verify-csv-input" style="cursor:pointer">CARGAR CSV</label>
             <input type="file" id="verify-csv-input" accept=".csv" style="display:none" onchange="verifyCollectionVsCSV(this)">
           </div>
         </div>
@@ -717,14 +718,14 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
       <div style="margin-bottom:1.2rem">
         <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.info-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(90deg)':''" style="background:none;border:1px solid var(--blue);border-radius:2px;padding:.4rem .9rem;cursor:pointer;font-family:var(--mono);font-size:.63rem;color:var(--blue);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:.5rem">
-          <span class="info-arrow" style="font-size:.6rem;transition:transform .2s">?</span> ¿Cómo funciona?
+          <span class="info-arrow" style="font-size:.6rem;transition:transform .2s">+</span> ¿Cómo funciona?
         </button>
         <div style="display:none" class="restore-info restore-info-body" style="margin-top:0;border-top:none;border-radius:0 0 2px 2px">
           <strong>Paso 1 — Obtener token de Discogs</strong><br>
           1. Entrá a <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:#7dd3fc">discogs.com ? Configuración ? Desarrolladores</a><br>
           2. Hacé clic en <em>"Generate new token"</em><br>
           3. Copiá el token generado<br>
-          4. Pegalo arriba en <strong>? Token Discogs</strong> y guardá<br><br>
+          4. Pegalo arriba en <strong>Token Discogs</strong> y guardá<br><br>
           <strong>Paso 2 — Exportar tu colección</strong><br>
           1. Entrá a <a href="https://www.discogs.com/user/me/collection" target="_blank" style="color:#7dd3fc">discogs.com ? Mi colección</a><br>
           2. Clic en <em>"Exportar"</em> (esquina superior derecha)<br>
@@ -739,7 +740,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <!-- Upload -->
       <div id="bulk-step-upload">
         <label class="import-drop" id="bulk-drop" for="bulk-file-input">
-          <div class="import-drop-icon">??</div>
+          <div class="import-drop-icon" style="font-size:2rem">?</div>
           <p>Subí tu CSV exportado de Discogs</p>
           <span>Discogs: Mi colección ? Exportar ? descargar CSV tal cual</span>
         </label>
@@ -755,7 +756,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
           </div>
           <div style="display:flex;gap:.5rem">
             <button class="btn btn-sm" onclick="resetBulkImport()">? Cambiar archivo</button>
-            <button class="btn btn-green" onclick="startBulkImport()" id="bulk-start-btn">? Iniciar importación</button>
+            <button class="btn btn-green" onclick="startBulkImport()" id="bulk-start-btn">INICIAR IMPORTACION</button>
           </div>
         </div>
         <div id="bulk-mode-info" style="font-family:var(--mono);font-size:.68rem;color:var(--green);margin-bottom:.8rem"></div>
@@ -1254,8 +1255,7 @@ function renderDiscos(){
         <div class="disk-list-name">${d.nombre}</div>
         <div class="disk-list-sello">${d.sello||'—'}</div>
         <div class="disk-list-artists">${[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))].map(a=>`<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a}</span>`).join('')||'<span>—</span>'}</div>
-        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;width:130px">${(Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean)).map(g=>`<span class="tag accent" style="white-space:nowrap">${g}</span>`).join('')}</div>
-        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap;flex-shrink:0">${(Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean)).map(g=>`<span class="tag accent">${g}</span>`).join('')}${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
         <div class="disk-list-tracks">${d.tracks.length} tracks</div>
       </div>`).join('')}</div>`;
   } else {
