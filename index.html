@@ -22,7 +22,7 @@
   --accent:#ff3c00;--accent2:#ffcc00;--green:#39ff14;--blue:#38bdf8;--purple:#c084fc;
   --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
 }
-*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+*{margin:0;padding:0;box-sizing:border-box}html,body{overflow-x:hidden;scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.5;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")}
@@ -1252,7 +1252,7 @@ function renderDiscos(){
   const genTag=d=>{const g=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);return g.map(x=>`<span class="tag accent">${x}</span>`).join('');};
 
   if(discosViewMode==='list'){
-    c.innerHTML=`<table class="disk-list-table"><tbody>${f.map(d=>{
+    c.innerHTML=`<div style="overflow-x:auto;width:100%"><table class="disk-list-table"><tbody>${f.map(d=>{
       const artists=[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))];
       const gens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
       return `<tr class="${selectedDiscos.has(d.id)?'selected':''}" onclick="discoRowClick(event,'${d.id}')">
@@ -1264,7 +1264,7 @@ function renderDiscos(){
         <td style="width:1px"><div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div></td>
         <td class="disk-list-tracks" style="white-space:nowrap">${d.tracks.length}<br><span style="font-size:.55rem">tracks</span></td>
       </tr>`;
-    }).join('')}</tbody></table>`;
+    }).join('')}</tbody></table></div>`;
   } else {
     c.innerHTML=`<div class="disk-grid">${f.map(d=>`
       <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')">
