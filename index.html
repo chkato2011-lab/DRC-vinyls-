@@ -440,8 +440,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <select class="filter-select" id="filter-sello" onchange="renderDiscos()"><option value="">Sello: todos</option></select>
       <input type="text" class="search-input" id="search-discos" placeholder="Buscar disco, código o artista..." oninput="renderDiscos()">
       <div class="view-toggle">
-        <button class="vt-btn" id="vt-grid" onclick="setDiscosView('grid')" title="Grilla">?</button>
-        <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista">?</button>
+        <button class="vt-btn" id="vt-grid" onclick="setDiscosView('grid')" title="Grilla" style="font-size:.9rem">?</button>
+        <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista" style="font-size:.9rem">=</button>
       </div>
       <div class="export-wrap">
         <button class="btn" onclick="toggleExportMenu('exp-discos')">? Exportar</button>
@@ -1254,7 +1254,8 @@ function renderDiscos(){
         <div class="disk-list-name">${d.nombre}</div>
         <div class="disk-list-sello">${d.sello||'—'}</div>
         <div class="disk-list-artists">${[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))].map(a=>`<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a}</span>`).join('')||'<span>—</span>'}</div>
-        <div style="display:flex;gap:3px;flex-wrap:wrap;flex-shrink:0">${genTag(d)}${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;width:130px">${(Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean)).map(g=>`<span class="tag accent" style="white-space:nowrap">${g}</span>`).join('')}</div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
         <div class="disk-list-tracks">${d.tracks.length} tracks</div>
       </div>`).join('')}</div>`;
   } else {
