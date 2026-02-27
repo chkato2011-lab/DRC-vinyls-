@@ -656,8 +656,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
     <!-- Sub-tabs: individual vs bulk -->
     <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem">
-      <button class="nav-btn active" id="dcg-sub-single" onclick="switchDcgSub('single')" style="padding:.6rem 1.2rem">BUSCAR</button>
-      <button class="nav-btn" id="dcg-sub-bulk" onclick="switchDcgSub('bulk')" style="padding:.6rem 1.2rem">CSV</button>
+      <button class="nav-btn active" id="dcg-sub-single" onclick="switchDcgSub('single')" style="padding:.6rem 1.2rem;border-bottom:2px solid var(--accent);color:var(--accent)">BUSCAR</button>
+      <button class="nav-btn" id="dcg-sub-bulk" onclick="switchDcgSub('bulk')" style="padding:.6rem 1.2rem;border-bottom:2px solid transparent">CSV</button>
     </div>
 
     <!-- SINGLE search -->
@@ -1262,7 +1262,7 @@ function renderDiscos(){
         <td><div class="disk-list-artists">${artists.map(a=>`<span>${a}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</div></td>
         <td><div style="display:flex;flex-direction:column;gap:2px">${gens.map(g=>`<span class="tag accent">${g}</span>`).join('')}</div></td>
         <td style="width:1px"><div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div></td>
-        <td class="disk-list-tracks">${d.tracks.length} tr</td>
+        <td class="disk-list-tracks" style="white-space:nowrap">${d.tracks.length}<br><span style="font-size:.55rem">tracks</span></td>
       </tr>`;
     }).join('')}</tbody></table>`;
   } else {
