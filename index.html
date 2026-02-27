@@ -97,7 +97,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 .mini-vinyl{width:32px;height:32px;border-radius:50%;background:conic-gradient(from 0deg,#1a1a1a 0%,#333 25%,#1a1a1a 50%,#333 75%,#1a1a1a 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #111,0 0 0 5px #222}
 .mini-vinyl::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--bg)}
-.disk-list-name{font-family:var(--display);font-size:1.1rem;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.disk-list-name{font-family:var(--display);font-size:1.1rem;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .disk-list-sello{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
 .disk-list-tracks{font-family:var(--mono);font-size:.65rem;color:var(--muted);flex-shrink:0;width:55px;text-align:right}
 .disk-list-artists{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:2px}
@@ -423,8 +423,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   <button class="nav-btn" onclick="showView('playlists')">Playlists</button>
   <button class="nav-btn" onclick="showView('import')" style="color:var(--green)">Importar</button>
   <div class="nav-backup">
-    <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">BAK</button>
-    <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">REST</label>
+    <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">💾</button>
+    <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">📂</label>
     <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreJSON(this)">
   </div>
 </div>
@@ -1255,7 +1255,7 @@ function renderDiscos(){
         <div class="disk-list-name">${d.nombre}</div>
         <div class="disk-list-sello">${d.sello||'—'}</div>
         <div class="disk-list-artists">${[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))].map(a=>`<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a}</span>`).join('')||'<span>—</span>'}</div>
-        <div style="display:flex;gap:3px;flex-wrap:wrap;flex-shrink:0">${(Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean)).map(g=>`<span class="tag accent">${g}</span>`).join('')}${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;min-width:90px">${(Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean)).map(g=>`<span class="tag accent">${g}</span>`).join('') || ''}</div><div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
         <div class="disk-list-tracks">${d.tracks.length} tracks</div>
       </div>`).join('')}</div>`;
   } else {
