@@ -122,8 +122,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .tracks-table{width:100%;border-collapse:collapse}
 .tracks-table th{font-family:var(--mono);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);text-align:left;padding:.6rem .8rem;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
 .tracks-table th:hover{color:var(--text)}
-.tracks-table th.sort-asc::after{content:' ↑'}
-.tracks-table th.sort-desc::after{content:' ↓'}
+.tracks-table th.sort-asc::after{content:' ?'}
+.tracks-table th.sort-desc::after{content:' ?'}
 .tracks-table td{padding:.7rem .8rem;border-bottom:1px solid var(--border);font-size:.86rem;vertical-align:middle}
 .tracks-table tr:hover td{background:var(--bg2)}
 .tracks-table tr.row-selected td{background:rgba(56,189,248,.07)}
@@ -309,7 +309,15 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   .pl-track-disco{display:none}
 }
 
-/* ── AUTH SCREEN ── */
+
+#loading-screen{position:fixed;inset:0;background:#0c0c0c;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+.loading-logo{font-family:var(--display);font-size:3rem;letter-spacing:8px}
+.loading-logo span{color:var(--accent)}
+.loading-spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
+
+/* -- AUTH SCREEN -- */
 #auth-screen{position:fixed;inset:0;background:#0c0c0c;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem}
 .auth-box{width:100%;max-width:400px}
 .auth-logo{font-family:var(--display);font-size:3rem;letter-spacing:8px;margin-bottom:.2rem}
@@ -343,6 +351,12 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <body>
 
 <!-- AUTH SCREEN -->
+<div id="loading-screen">
+  <div class="loading-logo">DIS<span>C</span></div>
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Cargando...</div>
+</div>
+
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">DIS<span>C</span></div>
@@ -401,16 +415,16 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   </div>
   <button id="login-btn" onclick="document.getElementById('auth-screen').style.display='flex'" style="display:block;font-family:var(--mono);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;padding:.35rem .8rem;background:var(--accent);border:none;border-radius:2px;color:#fff;cursor:pointer;flex-shrink:0">Ingresar</button>
 </header>
-<div class="save-toast" id="save-toast">✓ Guardado</div>
+<div class="save-toast" id="save-toast">? Guardado</div>
 
 <div class="nav">
-  <button class="nav-btn active" onclick="showView('discos')">⬤ Discos</button>
-  <button class="nav-btn" onclick="showView('tracks')">⬤ Tracks</button>
-  <button class="nav-btn" onclick="showView('playlists')">⬤ Playlists</button>
-  <button class="nav-btn" onclick="showView('import')" style="color:var(--green)">⬤ Importar</button>
+  <button class="nav-btn active" onclick="showView('discos')">? Discos</button>
+  <button class="nav-btn" onclick="showView('tracks')">? Tracks</button>
+  <button class="nav-btn" onclick="showView('playlists')">? Playlists</button>
+  <button class="nav-btn" onclick="showView('import')" style="color:var(--green)">? Importar</button>
   <div class="nav-backup">
-    <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">💾</button>
-    <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">📂</label>
+    <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">??</button>
+    <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">??</label>
     <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreJSON(this)">
   </div>
 </div>
@@ -427,11 +441,11 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <select class="filter-select" id="filter-sello" onchange="renderDiscos()"><option value="">Sello: todos</option></select>
       <input type="text" class="search-input" id="search-discos" placeholder="Buscar disco, código o artista..." oninput="renderDiscos()">
       <div class="view-toggle">
-        <button class="vt-btn" id="vt-grid" onclick="setDiscosView('grid')" title="Grilla">⊞</button>
-        <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista">☰</button>
+        <button class="vt-btn" id="vt-grid" onclick="setDiscosView('grid')" title="Grilla">?</button>
+        <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista">?</button>
       </div>
       <div class="export-wrap">
-        <button class="btn" onclick="toggleExportMenu('exp-discos')">↓ Exportar</button>
+        <button class="btn" onclick="toggleExportMenu('exp-discos')">? Exportar</button>
         <div class="export-menu" id="exp-discos">
           <button class="export-item" onclick="exportCSV('discos');closeExportMenus()">CSV — Lista de Discos</button>
           <button class="export-item" onclick="exportCSV('tracks');closeExportMenus()">CSV — Todos los Tracks</button>
@@ -446,7 +460,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <span id="disco-batch-count" style="font-family:var(--mono);font-size:.72rem;color:#ff4444"></span>
     <div style="display:flex;gap:.5rem;align-items:center">
       <button class="btn btn-sm" onclick="selectAllDiscos()">Seleccionar todos</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteSelectedDiscos()">✕ Eliminar seleccionados</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteSelectedDiscos()">? Eliminar seleccionados</button>
       <button class="btn btn-sm" onclick="clearDiscoSelection()">Cancelar</button>
     </div>
   </div>
@@ -455,7 +469,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- DISCO DETAIL -->
 <div class="view" id="view-detail">
-  <button class="back-btn" onclick="showView('discos')">← Volver a Discos</button>
+  <button class="back-btn" onclick="showView('discos')">? Volver a Discos</button>
   <div class="disk-detail-header">
     <div class="disk-detail-cover" id="detail-cover"><div class="disk-cover-placeholder"></div></div>
     <div>
@@ -464,8 +478,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <div class="meta-row" id="detail-meta"></div>
       <div class="disk-detail-actions">
         <button class="btn btn-primary btn-sm" onclick="openModalTrack()">+ Agregar Track</button>
-        <button class="btn btn-sm" onclick="editCurrentDisco()">✎ Editar Disco</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteCurrentDisco()">✕ Eliminar</button>
+        <button class="btn btn-sm" onclick="editCurrentDisco()">? Editar Disco</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCurrentDisco()">? Eliminar</button>
       </div>
     </div>
   </div>
@@ -486,10 +500,10 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <select class="filter-select" id="detail-batch-pl-sel"><option value="">Elegir playlist...</option></select>
       <button class="btn btn-blue btn-sm" onclick="detailBatchAddToPlaylist()">+ Agregar</button>
       <button class="btn btn-sm" style="border-color:var(--blue);color:var(--blue)" onclick="openModalNuevaPlaylistFromDetail()">+ Nueva playlist</button>
-      <button class="btn btn-sm" onclick="detailClearSelection()">✕ Limpiar</button>
+      <button class="btn btn-sm" onclick="detailClearSelection()">? Limpiar</button>
     </div>
   </div>
-  <div id="detail-empty" style="display:none"><div class="empty-state"><div class="empty-icon">💿</div><p>Sin tracks — Agrega el primero</p></div></div>
+  <div id="detail-empty" style="display:none"><div class="empty-state"><div class="empty-icon">??</div><p>Sin tracks — Agrega el primero</p></div></div>
 </div>
 
 <!-- ALL TRACKS -->
@@ -502,13 +516,13 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <select class="filter-select" id="ft-genero2" onchange="renderAllTracks()"><option value="">Género 2: todos</option></select>
       <select class="filter-select" id="ft-intensidad" onchange="renderAllTracks()">
         <option value="">Int.: todas</option>
-        <option value="1">● 1</option><option value="2">● 2</option><option value="3">● 3</option><option value="4">● 4</option><option value="5">● 5</option>
+        <option value="1">? 1</option><option value="2">? 2</option><option value="3">? 3</option><option value="4">? 4</option><option value="5">? 5</option>
       </select>
       <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="">Destaque: todos</option></select>
       <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="">Sello: todos</option></select>
       <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." oninput="renderAllTracks()">
       <div class="export-wrap">
-        <button class="btn" onclick="toggleExportMenu('exp-tracks')">↓ CSV</button>
+        <button class="btn" onclick="toggleExportMenu('exp-tracks')">? CSV</button>
         <div class="export-menu" id="exp-tracks">
           <button class="export-item" onclick="exportCSVFiltered();closeExportMenus()">Vista actual (filtrada)</button>
           <button class="export-item" onclick="exportCSV('tracks');closeExportMenus()">Todos los tracks</button>
@@ -523,7 +537,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <select class="filter-select" id="batch-playlist-sel"><option value="">Elegir playlist...</option></select>
       <button class="btn btn-blue btn-sm" onclick="batchAddToPlaylist()">+ Agregar</button>
       <button class="btn btn-sm" style="border-color:var(--blue);color:var(--blue)" onclick="openModalNuevaPlaylistBatch()">+ Nueva playlist</button>
-      <button class="btn btn-sm" onclick="clearTrackSelection()">✕ Limpiar</button>
+      <button class="btn btn-sm" onclick="clearTrackSelection()">? Limpiar</button>
     </div>
   </div>
   <div style="overflow-x:auto">
@@ -546,7 +560,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <tbody id="all-tracks-body"></tbody>
     </table>
   </div>
-  <div id="all-tracks-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🎶</div><p>No hay tracks que coincidan</p></div></div>
+  <div id="all-tracks-empty" style="display:none"><div class="empty-state"><div class="empty-icon">??</div><p>No hay tracks que coincidan</p></div></div>
 </div>
 
 <!-- PLAYLISTS -->
@@ -555,7 +569,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <div class="section-title"><small>// sets</small>PLAYLISTS</div>
     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
       <div class="export-wrap">
-        <button class="btn" onclick="toggleExportMenu('exp-pl')">↓ CSV</button>
+        <button class="btn" onclick="toggleExportMenu('exp-pl')">? CSV</button>
         <div class="export-menu" id="exp-pl">
           <button class="export-item" onclick="exportCSV('playlists');closeExportMenus()">Todas las playlists</button>
         </div>
@@ -564,12 +578,12 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     </div>
   </div>
   <div class="playlist-grid" id="playlist-grid"></div>
-  <div id="playlist-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🎛️</div><p>Crea tu primer set de DJ</p></div></div>
+  <div id="playlist-empty" style="display:none"><div class="empty-state"><div class="empty-icon">???</div><p>Crea tu primer set de DJ</p></div></div>
 </div>
 
 <!-- PLAYLIST DETAIL -->
 <div class="view" id="view-pl-detail">
-  <button class="back-btn" onclick="showView('playlists')">← Volver a Playlists</button>
+  <button class="back-btn" onclick="showView('playlists')">? Volver a Playlists</button>
   <div class="pl-detail-header">
     <div>
       <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:.3rem">// playlist</div>
@@ -579,9 +593,9 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-self:flex-start;margin-top:.5rem">
       <button class="btn btn-blue btn-sm" onclick="openTrackPicker()">+ Agregar Tracks</button>
-      <button class="btn btn-sm" onclick="editCurrentPlaylist()">✎ Editar</button>
-      <button class="btn btn-sm" onclick="exportCSVPlaylist()">↓ CSV</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteCurrentPlaylist()">✕ Eliminar</button>
+      <button class="btn btn-sm" onclick="editCurrentPlaylist()">? Editar</button>
+      <button class="btn btn-sm" onclick="exportCSVPlaylist()">? CSV</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteCurrentPlaylist()">? Eliminar</button>
     </div>
   </div>
   <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// tracklist · arrastrá para reordenar</div>
@@ -595,12 +609,12 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <select class="filter-select" id="pl-batch-dest-sel"><option value="">Copiar a playlist...</option></select>
       <button class="btn btn-blue btn-sm" onclick="plBatchCopyToPlaylist()">+ Copiar</button>
       <button class="btn btn-sm" style="border-color:var(--blue);color:var(--blue)" onclick="openModalNuevaPlaylistFromPl()">+ Nueva playlist</button>
-      <button class="btn btn-sm btn-danger" onclick="plBatchDeleteSelected()">✕ Eliminar seleccionados</button>
+      <button class="btn btn-sm btn-danger" onclick="plBatchDeleteSelected()">? Eliminar seleccionados</button>
       <button class="btn btn-sm" onclick="plClearSelection()">Limpiar</button>
     </div>
   </div>
   <div id="pl-tracks-list"></div>
-  <div id="pl-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🎚️</div><p>Agrega tracks a esta playlist</p></div></div>
+  <div id="pl-empty" style="display:none"><div class="empty-state"><div class="empty-icon">???</div><p>Agrega tracks a esta playlist</p></div></div>
 </div>
 
 <!-- IMPORT -->
@@ -615,20 +629,20 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <!-- Token bar: collapsible -->
     <div id="dcg-token-bar" style="margin-bottom:1.2rem">
       <button onclick="toggleTokenBar()" style="background:none;border:1px solid var(--border);border-radius:2px;padding:.45rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;width:100%;text-align:left">
-        <span id="dcg-token-arrow" style="font-size:.7rem;transition:transform .2s">▶</span>
+        <span id="dcg-token-arrow" style="font-size:.7rem;transition:transform .2s">?</span>
         <span>Token Discogs</span>
         <span id="dcg-token-badge" style="font-size:.6rem;color:var(--green);margin-left:.3rem"></span>
       </button>
       <div id="dcg-token-body" style="display:none;padding:.9rem 1rem;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 2px 2px">
         <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-bottom:.7rem;line-height:1.7">
           Necesitás un <strong style="color:var(--text)">Personal Access Token</strong> de Discogs para importar.<br>
-          <strong>Cómo obtenerlo:</strong> Entrá a <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:var(--accent)">discogs.com → Configuración → Desarrolladores</a> → <em>Generate new token</em> → copialo y pegalo acá.
+          <strong>Cómo obtenerlo:</strong> Entrá a <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:var(--accent)">discogs.com ? Configuración ? Desarrolladores</a> ? <em>Generate new token</em> ? copialo y pegalo acá.
         </div>
         <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
           <input type="password" class="form-input" id="dcg-token-input" style="flex:1;min-width:180px;font-family:var(--mono);font-size:.75rem" placeholder="Pegá tu token acá..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-          <button class="btn btn-sm" onclick="toggleTokenVisibility()" id="dcg-token-eye" title="Mostrar/ocultar">👁</button>
+          <button class="btn btn-sm" onclick="toggleTokenVisibility()" id="dcg-token-eye" title="Mostrar/ocultar">??</button>
           <button class="btn btn-sm btn-green" onclick="saveDiscogsToken()">Guardar</button>
-          <button class="btn btn-sm btn-danger" onclick="clearDiscogsToken()" title="Borrar token">✕</button>
+          <button class="btn btn-sm btn-danger" onclick="clearDiscogsToken()" title="Borrar token">?</button>
         </div>
         <div style="margin-top:.5rem">
           <span id="dcg-token-status" style="font-family:var(--mono);font-size:.65rem;color:var(--muted)"></span>
@@ -638,8 +652,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
     <!-- Sub-tabs: individual vs bulk -->
     <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem">
-      <button class="nav-btn active" id="dcg-sub-single" onclick="switchDcgSub('single')" style="padding:.6rem 1.2rem">🔍 Por código</button>
-      <button class="nav-btn" id="dcg-sub-bulk" onclick="switchDcgSub('bulk')" style="padding:.6rem 1.2rem">📦 Colección completa (CSV)</button>
+      <button class="nav-btn active" id="dcg-sub-single" onclick="switchDcgSub('single')" style="padding:.6rem 1.2rem">?? Por código</button>
+      <button class="nav-btn" id="dcg-sub-bulk" onclick="switchDcgSub('bulk')" style="padding:.6rem 1.2rem">?? Colección completa (CSV)</button>
     </div>
 
     <!-- SINGLE search -->
@@ -647,7 +661,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem">Buscar por código de catálogo</p>
       <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
         <input type="text" class="form-input" id="dcg-catno" style="width:200px;font-family:var(--mono)" placeholder="ej. ORG017, WARP100...">
-        <button class="btn btn-primary" onclick="searchDiscogs()" id="dcg-search-btn">🔍 Buscar en Discogs</button>
+        <button class="btn btn-primary" onclick="searchDiscogs()" id="dcg-search-btn">?? Buscar en Discogs</button>
         <span id="dcg-searching" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);display:none">Buscando...</span>
       </div>
       <div id="dcg-results" style="display:none">
@@ -658,17 +672,17 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem">Preview del disco</p>
         <div id="dcg-preview-card"></div>
         <div style="display:flex;gap:.5rem;margin-top:1.2rem">
-          <button class="btn btn-sm" onclick="dcgBackToResults()">← Otros resultados</button>
-          <button class="btn btn-green" onclick="importFromDiscogs()">✓ Importar este disco</button>
+          <button class="btn btn-sm" onclick="dcgBackToResults()">? Otros resultados</button>
+          <button class="btn btn-green" onclick="importFromDiscogs()">? Importar este disco</button>
         </div>
       </div>
       <!-- Persistent failed list -->
       <div id="dcg-failed-persistent" style="display:none;margin-top:2rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
-          <p style="font-family:var(--mono);font-size:.65rem;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin:0">⚠ Discos no encontrados (<span id="dcg-failed-count">0</span>)</p>
+          <p style="font-family:var(--mono);font-size:.65rem;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin:0">? Discos no encontrados (<span id="dcg-failed-count">0</span>)</p>
           <div style="display:flex;gap:.5rem">
-            <button class="btn btn-sm" onclick="exportPersistentFailed()">↓ Exportar CSV</button>
-            <button class="btn btn-sm btn-danger" onclick="clearPersistentFailed()">✕ Limpiar lista</button>
+            <button class="btn btn-sm" onclick="exportPersistentFailed()">? Exportar CSV</button>
+            <button class="btn btn-sm btn-danger" onclick="clearPersistentFailed()">? Limpiar lista</button>
           </div>
         </div>
         <div style="border:1px solid #ff4444;border-radius:2px;overflow:hidden;max-height:320px;overflow-y:auto">
@@ -682,9 +696,9 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <!-- Verify section -->
       <div id="dcg-verify-section" style="margin-top:2rem;padding:1.2rem;background:var(--bg2);border:1px solid var(--border);border-radius:2px">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem">
-          <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase">🔍 Verificar colección vs CSV</span>
+          <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase">?? Verificar colección vs CSV</span>
           <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-            <label class="btn btn-sm" for="verify-csv-input" style="cursor:pointer">📂 Cargar CSV de Discogs</label>
+            <label class="btn btn-sm" for="verify-csv-input" style="cursor:pointer">?? Cargar CSV de Discogs</label>
             <input type="file" id="verify-csv-input" accept=".csv" style="display:none" onchange="verifyCollectionVsCSV(this)">
           </div>
         </div>
@@ -697,38 +711,38 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
       <!-- Network check banner -->
       <div id="bulk-network-warn" style="display:none;background:rgba(255,68,68,.1);border:1px solid #ff4444;border-radius:2px;padding:1rem 1.2rem;margin-bottom:1.2rem;font-family:var(--mono);font-size:.75rem;color:#ff6666;line-height:1.8">
-        ⚠ <strong>Sin acceso a Discogs API</strong><br>
+        ? <strong>Sin acceso a Discogs API</strong><br>
         Esta app no puede conectarse a Discogs desde dentro de claude.ai.<br>
-        <strong>Solución:</strong> Descargá el archivo HTML → abrilo directo en Chrome/Firefox como archivo local (<code>file://</code>) → ahí todo funciona.
+        <strong>Solución:</strong> Descargá el archivo HTML ? abrilo directo en Chrome/Firefox como archivo local (<code>file://</code>) ? ahí todo funciona.
       </div>
 
       <div style="margin-bottom:1.2rem">
         <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.info-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(90deg)':''" style="background:none;border:1px solid var(--blue);border-radius:2px;padding:.4rem .9rem;cursor:pointer;font-family:var(--mono);font-size:.63rem;color:var(--blue);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:.5rem">
-          <span class="info-arrow" style="font-size:.6rem;transition:transform .2s">▶</span> ¿Cómo funciona?
+          <span class="info-arrow" style="font-size:.6rem;transition:transform .2s">?</span> ¿Cómo funciona?
         </button>
         <div style="display:none" class="restore-info restore-info-body" style="margin-top:0;border-top:none;border-radius:0 0 2px 2px">
           <strong>Paso 1 — Obtener token de Discogs</strong><br>
-          1. Entrá a <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:#7dd3fc">discogs.com → Configuración → Desarrolladores</a><br>
+          1. Entrá a <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:#7dd3fc">discogs.com ? Configuración ? Desarrolladores</a><br>
           2. Hacé clic en <em>"Generate new token"</em><br>
           3. Copiá el token generado<br>
-          4. Pegalo arriba en <strong>▶ Token Discogs</strong> y guardá<br><br>
+          4. Pegalo arriba en <strong>? Token Discogs</strong> y guardá<br><br>
           <strong>Paso 2 — Exportar tu colección</strong><br>
-          1. Entrá a <a href="https://www.discogs.com/user/me/collection" target="_blank" style="color:#7dd3fc">discogs.com → Mi colección</a><br>
+          1. Entrá a <a href="https://www.discogs.com/user/me/collection" target="_blank" style="color:#7dd3fc">discogs.com ? Mi colección</a><br>
           2. Clic en <em>"Exportar"</em> (esquina superior derecha)<br>
           3. Descargá el archivo CSV cuando esté listo<br><br>
           <strong>Paso 3 — Importar</strong><br>
           Subí el CSV acá abajo. Busca por <strong>Catalog#</strong> primero, si falla busca por <strong>Title</strong>. Si hay múltiples versiones te pregunta cuál elegir.<br>
           Los fallidos quedan guardados en <strong>"Discos no encontrados"</strong> en la pestaña "Por código".<br>
-          ⏱ Se procesa de a uno para respetar el límite de la API (~3-4 seg por disco).
+          ? Se procesa de a uno para respetar el límite de la API (~3-4 seg por disco).
         </div>
       </div>
 
       <!-- Upload -->
       <div id="bulk-step-upload">
         <label class="import-drop" id="bulk-drop" for="bulk-file-input">
-          <div class="import-drop-icon">📂</div>
+          <div class="import-drop-icon">??</div>
           <p>Subí tu CSV exportado de Discogs</p>
-          <span>Discogs: Mi colección → Exportar → descargar CSV tal cual</span>
+          <span>Discogs: Mi colección ? Exportar ? descargar CSV tal cual</span>
         </label>
         <input type="file" id="bulk-file-input" accept=".csv" style="display:none" onchange="loadBulkCSV(this)">
       </div>
@@ -741,8 +755,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
             <span style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-left:.5rem">discos para importar</span>
           </div>
           <div style="display:flex;gap:.5rem">
-            <button class="btn btn-sm" onclick="resetBulkImport()">← Cambiar archivo</button>
-            <button class="btn btn-green" onclick="startBulkImport()" id="bulk-start-btn">▶ Iniciar importación</button>
+            <button class="btn btn-sm" onclick="resetBulkImport()">? Cambiar archivo</button>
+            <button class="btn btn-green" onclick="startBulkImport()" id="bulk-start-btn">? Iniciar importación</button>
           </div>
         </div>
         <div id="bulk-mode-info" style="font-family:var(--mono);font-size:.68rem;color:var(--green);margin-bottom:.8rem"></div>
@@ -774,14 +788,14 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
           </table>
         </div>
         <div style="margin-top:1rem">
-          <button class="btn btn-sm btn-danger" id="bulk-stop-btn" onclick="stopBulkImport()">⏹ Detener</button>
+          <button class="btn btn-sm btn-danger" id="bulk-stop-btn" onclick="stopBulkImport()">? Detener</button>
         </div>
       </div>
 
       <!-- Done -->
       <div id="bulk-step-done" style="display:none;padding:2rem 0">
         <div style="text-align:center;padding:1.5rem;border:1px solid var(--green);border-radius:2px;margin-bottom:1.5rem">
-          <div style="font-size:2rem;margin-bottom:.4rem">✅</div>
+          <div style="font-size:2rem;margin-bottom:.4rem">?</div>
           <div style="font-family:var(--display);font-size:1.8rem;letter-spacing:4px;color:var(--green)">IMPORTACIÓN COMPLETA</div>
           <p style="font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-top:.5rem" id="bulk-done-summary"></p>
         </div>
@@ -794,7 +808,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
               <tbody id="bulk-failed-body"></tbody>
             </table>
           </div>
-          <button class="btn btn-sm" style="margin-top:.8rem" onclick="exportFailedCSV()">↓ Exportar fallidos como CSV</button>
+          <button class="btn btn-sm" style="margin-top:.8rem" onclick="exportFailedCSV()">? Exportar fallidos como CSV</button>
         </div>
         <div style="display:flex;gap:.5rem;margin-top:1.5rem;justify-content:center">
           <button class="btn btn-primary" onclick="showView('discos')">Ver colección</button>
@@ -809,11 +823,11 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- MODAL: DISCO -->
 <div class="modal-overlay" id="modal-disco">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('modal-disco')">✕</button>
+    <button class="modal-close" onclick="closeModal('modal-disco')">?</button>
     <div class="modal-title" id="modal-disco-title">NUEVO DISCO</div>
     <input type="hidden" id="disco-edit-id">
     <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.2rem">
-      <label class="cover-upload" id="cover-label" for="cover-input"><span id="cover-ph">📷<br>Carátula</span></label>
+      <label class="cover-upload" id="cover-label" for="cover-input"><span id="cover-ph">??<br>Carátula</span></label>
       <input type="file" id="cover-input" accept="image/*" style="display:none" onchange="previewCover(this)">
       <div style="flex:1">
         <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="disco-nombre" placeholder="ej. Selected Ambient Works"></div>
@@ -842,7 +856,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- MODAL: TRACK -->
 <div class="modal-overlay" id="modal-track">
   <div class="modal modal-lg">
-    <button class="modal-close" onclick="closeModal('modal-track')">✕</button>
+    <button class="modal-close" onclick="closeModal('modal-track')">?</button>
     <div class="modal-title" id="modal-track-title">NUEVO TRACK</div>
     <input type="hidden" id="track-edit-id">
     <div class="form-grid">
@@ -887,7 +901,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- MODAL: PLAYLIST -->
 <div class="modal-overlay" id="modal-playlist">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('modal-playlist')">✕</button>
+    <button class="modal-close" onclick="closeModal('modal-playlist')">?</button>
     <div class="modal-title" id="modal-pl-title">NUEVA PLAYLIST</div>
     <input type="hidden" id="pl-edit-id">
     <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="pl-nombre" placeholder="ej. Set Opening — After Hours"></div>
@@ -902,7 +916,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- MODAL: TRACK PICKER -->
 <div class="modal-overlay" id="modal-picker">
   <div class="modal modal-lg">
-    <button class="modal-close" onclick="closeModal('modal-picker')">✕</button>
+    <button class="modal-close" onclick="closeModal('modal-picker')">?</button>
     <div class="modal-title">AGREGAR TRACKS</div>
     <input type="text" class="search-input" id="picker-search" style="width:100%" placeholder="Buscar por nombre, artista o disco..." oninput="renderPicker()">
     <div class="track-picker-list" id="track-picker-list"></div>
@@ -924,7 +938,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem">Resultados encontrados — elegí el correcto o saltá este disco</p>
     <div id="disambig-list" style="max-height:380px;overflow-y:auto"></div>
     <div style="display:flex;gap:.5rem;margin-top:1.2rem;justify-content:flex-end">
-      <button class="btn btn-sm btn-danger" onclick="disambigSkip()">✕ Saltear este disco</button>
+      <button class="btn btn-sm btn-danger" onclick="disambigSkip()">? Saltear este disco</button>
     </div>
   </div>
 </div>
@@ -932,12 +946,12 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- MODAL: CHECKPOINT every 10 discos -->
 <div class="modal-overlay" id="modal-checkpoint">
   <div class="modal" style="max-width:680px">
-    <div class="modal-title" style="font-size:1.3rem;color:var(--green)">✓ CHECKPOINT</div>
+    <div class="modal-title" style="font-size:1.3rem;color:var(--green)">? CHECKPOINT</div>
     <p style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:1.2rem" id="checkpoint-subtitle"></p>
     <div id="checkpoint-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.8rem;max-height:340px;overflow-y:auto;margin-bottom:1.2rem"></div>
     <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-bottom:1rem">Revisá que los discos importados sean correctos. Si alguno no corresponde podés eliminarlo acá.</p>
     <div style="display:flex;gap:.5rem;justify-content:flex-end">
-      <button class="btn btn-green" onclick="checkpointContinue()">Continuar importación →</button>
+      <button class="btn btn-green" onclick="checkpointContinue()">Continuar importación ?</button>
     </div>
   </div>
 </div>
@@ -945,7 +959,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- MODAL: ADD DISCO TRACKS TO PLAYLIST (from detail view) -->
 <div class="modal-overlay" id="modal-detail-pl">
   <div class="modal modal-lg" style="max-width:560px">
-    <button class="modal-close" onclick="closeModal('modal-detail-pl')">✕</button>
+    <button class="modal-close" onclick="closeModal('modal-detail-pl')">?</button>
     <div class="modal-title">+ AGREGAR A PLAYLIST</div>
     <div class="form-group" style="margin-bottom:1rem">
       <label class="form-label">Playlist de destino</label>
@@ -964,7 +978,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <span id="detail-pl-track-count" style="font-family:var(--mono);font-size:.65rem;color:var(--muted)"></span>
       <div style="display:flex;gap:.5rem">
         <button class="btn" onclick="closeModal('modal-detail-pl')">Cancelar</button>
-        <button class="btn btn-green" onclick="confirmAddDetailToPlaylist()">✓ Agregar seleccionados</button>
+        <button class="btn btn-green" onclick="confirmAddDetailToPlaylist()">? Agregar seleccionados</button>
       </div>
     </div>
   </div>
@@ -973,7 +987,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- MODAL: NUEVA PLAYLIST DESDE BATCH -->
 <div class="modal-overlay" id="modal-batch-pl">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('modal-batch-pl')">✕</button>
+    <button class="modal-close" onclick="closeModal('modal-batch-pl')">?</button>
     <div class="modal-title">NUEVA PLAYLIST</div>
     <p style="font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-bottom:1.2rem" id="batch-pl-subtitle"></p>
     <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="batch-pl-nombre" placeholder="ej. Set Opening — After Hours"></div>
@@ -1230,7 +1244,7 @@ function renderDiscos(){
     return true;
   });
   const c=document.getElementById('disk-container');
-  if(!f.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">🎛️</div><p>${state.discos.length===0?'Agrega tu primer disco':'Sin resultados'}</p></div>`;return;}
+  if(!f.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">???</div><p>${state.discos.length===0?'Agrega tu primer disco':'Sin resultados'}</p></div>`;return;}
   const genTag=d=>{const g=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);return g.map(x=>`<span class="tag accent">${x}</span>`).join('');};
 
   if(discosViewMode==='list'){
@@ -1337,15 +1351,15 @@ function renderDetailTracks(d){
     return `<tr class="${sel?'row-selected':''}">
     <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="toggleDetailTrack('${d.id}','${t.id}',this)"></td>
     <td class="track-num">${t.position||String(i+1).padStart(2,'0')}</td>
-    <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
-    <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:2px">💬 ${t.comentario}</div>`:''}</td>
+    <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank">?</a>`:'<span style="color:var(--border)">—</span>'}</td>
+    <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:2px">?? ${t.comentario}</div>`:''}</td>
     <td><div class="track-artist">${t.artista}</div></td>
     <td>${(Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean)).map(g=>`<span class="tag" style="color:#e03030;border-color:#e03030">${g}</span>`).join(' ')}</td>
     <td>${(t.destaque||[]).map(x=>`<span class="destaque-tag">${x}</span>`).join(' ')}</td>
     <td>${renderDots(t.intensidad)}</td>
     <td style="display:flex;gap:4px">
-      <button class="btn btn-sm" onclick="editTrack('${d.id}','${t.id}')">✎</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteTrack('${d.id}','${t.id}')">✕</button>
+      <button class="btn btn-sm" onclick="editTrack('${d.id}','${t.id}')">?</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTrack('${d.id}','${t.id}')">?</button>
     </td></tr>`;
   }).join('');
   // Sync header checkbox
@@ -1405,7 +1419,7 @@ function detailBatchAddToPlaylist(){
   save();
   const skipped=d.tracks.filter(t=>detailSelectedTracks.has(d.id+'_'+t.id)).length - added;
   detailClearSelection();
-  alert(`✓ ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
+  alert(`? ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
 }
 
 function detailClearSelection(){
@@ -1434,14 +1448,14 @@ function openModalDisco(id){
     document.getElementById('disco-codigo').value=d.codigo||'';
     document.getElementById('disco-released').value=d.released||'';
     state.coverData=d.cover||null;
-    document.getElementById('cover-label').innerHTML=d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">`:'<span id="cover-ph">📷<br>Carátula</span>';
+    document.getElementById('cover-label').innerHTML=d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">`:'<span id="cover-ph">??<br>Carátula</span>';
     selGeneros=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
   } else {
     document.getElementById('disco-nombre').value='';
     document.getElementById('disco-sello').value='';
     document.getElementById('disco-codigo').value='';
     document.getElementById('disco-released').value='';
-    document.getElementById('cover-label').innerHTML='<span id="cover-ph">📷<br>Carátula</span>';
+    document.getElementById('cover-label').innerHTML='<span id="cover-ph">??<br>Carátula</span>';
   }
   initChecklist('disco-genero-cl','generos',selGeneros);
   document.getElementById('modal-disco').classList.add('open');
@@ -1473,7 +1487,7 @@ function saveDisco(){
   const editId=document.getElementById('disco-edit-id').value;
   if(codigo && codigoExiste(codigo, editId||null)){
     const dup=state.discos.find(d=>d.id!==(editId||null)&&d.codigo&&d.codigo.trim().toLowerCase()===codigo.trim().toLowerCase());
-    if(!confirm(`⚠️ Ya existe un disco con el código "${codigo}":\n"${dup?.nombre}"\n\n¿Guardás de todas formas?`))return;
+    if(!confirm(`?? Ya existe un disco con el código "${codigo}":\n"${dup?.nombre}"\n\n¿Guardás de todas formas?`))return;
   }
   if(editId){
     const d=state.discos.find(x=>x.id===editId);
@@ -1543,7 +1557,7 @@ function confirmAddDetailToPlaylist(){
   save();
   closeModal('modal-detail-pl');
   const skipped=checked.length-added;
-  alert(`✓ ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
+  alert(`? ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
 }
 
 // =================== MODAL TRACK ===================
@@ -1685,18 +1699,18 @@ function renderAllTracks(){
       <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="toggleTrackRowSelect('${t._disco.id}','${t.id}',{target:this})"></td>
       <td onclick="event.stopPropagation();openDisco('${t._disco.id}')" style="cursor:pointer;padding:3px">
         <div style="width:30px;height:30px;border-radius:1px;overflow:hidden;background:var(--bg3)">
-          ${t._disco.cover?`<img src="${t._disco.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--border);font-size:8px">◼</div>`}
+          ${t._disco.cover?`<img src="${t._disco.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--border);font-size:8px">?</div>`}
         </div>
       </td>
-      <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank" onclick="event.stopPropagation()">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
-      <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted)">💬 ${t.comentario}</div>`:''}</td>
+      <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank" onclick="event.stopPropagation()">?</a>`:'<span style="color:var(--border)">—</span>'}</td>
+      <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted)">?? ${t.comentario}</div>`:''}</td>
       <td><div class="track-artist">${t.artista}</div></td>
       <td><div style="cursor:pointer;color:var(--accent);font-size:.82rem" onclick="event.stopPropagation();openDisco('${t._disco.id}')">${t._disco.nombre}</div></td>
       <td><span style="font-family:var(--mono);font-size:.7rem;color:var(--muted)">${t._disco.sello||'—'}</span></td>
       <td>${tgens.map(g=>`<span class="tag" style="color:#e03030;border-color:#e03030">${g}</span>`).join(' ')}</td>
       <td>${(t.destaque||[]).map(d=>`<span class="destaque-tag">${d}</span>`).join(' ')}</td>
       <td>${renderDots(t.intensidad)}</td>
-      <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="editTrack('${t._disco.id}','${t.id}')">✎</button></td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="editTrack('${t._disco.id}','${t.id}')">?</button></td>
     </tr>`;
   }).join('');
   updateBatchBar();
@@ -1753,7 +1767,7 @@ function batchAddToPlaylist(){
   });
   selectedTracks.clear();
   save();renderAllTracks();
-  alert(`✓ ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"`);
+  alert(`? ${added} track${added!==1?'s':''} agregado${added!==1?'s':''} a "${pl.nombre}"`);
 }
 
 function openModalNuevaPlaylistBatch(){
@@ -1786,7 +1800,7 @@ function crearPlaylistDesdeBatch(){
     closeModal('modal-batch-pl');
     renderPlaylists();
     plClearSelection();
-    if(confirm(`✓ Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
+    if(confirm(`? Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
       openPlaylist(pl.id);
     }
 
@@ -1803,7 +1817,7 @@ function crearPlaylistDesdeBatch(){
     closeModal('modal-batch-pl');
     renderPlaylists();
     detailClearSelection();
-    if(confirm(`✓ Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
+    if(confirm(`? Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
       openPlaylist(pl.id);
     }
 
@@ -1821,7 +1835,7 @@ function crearPlaylistDesdeBatch(){
     save();updateStats();
     closeModal('modal-batch-pl');
     renderAllTracks();
-    if(confirm(`✓ Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
+    if(confirm(`? Playlist "${nombre}" creada con ${pl.tracks.length} tracks.\n\n¿Ir a la playlist?`)){
       openPlaylist(pl.id);
     }
   }
@@ -1840,8 +1854,8 @@ function renderPlaylists(){
       <div class="playlist-card-meta">
         <span class="tag blue">${pl.tracks.length} track${pl.tracks.length!==1?'s':''}</span>
         <div style="display:flex;gap:4px">
-          <button class="btn btn-sm" onclick="event.stopPropagation();openModalPlaylist('${pl.id}')">✎</button>
-          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePlaylistById('${pl.id}')">✕</button>
+          <button class="btn btn-sm" onclick="event.stopPropagation();openModalPlaylist('${pl.id}')">?</button>
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePlaylistById('${pl.id}')">?</button>
         </div>
       </div>
     </div>`).join('');
@@ -1874,7 +1888,7 @@ function renderPlDetail(pl){
     return `<div class="pl-track-row${sel?' row-selected':''}" draggable="true" data-idx="${i}"
         ondragstart="plDragStart(event,${i})" ondragover="plDragOver(event,${i})" ondrop="plDrop(event,${i})" ondragleave="plDragLeave(event)">
       <input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer;flex-shrink:0" onchange="togglePlTrack(${i},this)" onclick="event.stopPropagation()">
-      <div class="pl-drag-handle">⠿</div>
+      <div class="pl-drag-handle">?</div>
       <div class="pl-track-thumb">${disco.cover?`<img src="${disco.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl" style="width:20px;height:20px;box-shadow:0 0 0 2px #111,0 0 0 3px #222"></div>'}</div>
       <div class="pl-track-info">
         <div class="pl-track-name">${track.nombre}</div>
@@ -1882,8 +1896,8 @@ function renderPlDetail(pl){
       </div>
       <div class="pl-track-disco">${disco.nombre}</div>
       ${renderDots(track.intensidad)}
-      ${track.youtube?`<a class="yt-link" href="${track.youtube}" target="_blank" onclick="event.stopPropagation()">▶</a>`:''}
-      <button class="btn btn-sm btn-danger" onclick="removeFromPlaylist(${i})">✕</button>
+      ${track.youtube?`<a class="yt-link" href="${track.youtube}" target="_blank" onclick="event.stopPropagation()">?</a>`:''}
+      <button class="btn btn-sm btn-danger" onclick="removeFromPlaylist(${i})">?</button>
     </div>`;
   }).join('');
   updatePlBatchBar(pl);
@@ -1945,7 +1959,7 @@ function plBatchCopyToPlaylist(){
   save();
   const skipped=plSelectedTracks.size-added;
   plClearSelection();
-  alert(`✓ ${added} track${added!==1?'s':''} copiado${added!==1?'s':''} a "${destPl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
+  alert(`? ${added} track${added!==1?'s':''} copiado${added!==1?'s':''} a "${destPl.nombre}"${skipped?` · ${skipped} ya estaban`:''}`);
 }
 
 function plBatchDeleteSelected(){
@@ -2234,14 +2248,14 @@ function loadBulkCSV(input) {
       const modeInfo = document.getElementById('bulk-mode-info');
 
       let infoText = withId > 0
-        ? `✓ ${withId} discos con Release ID — importación directa y precisa`
+        ? `? ${withId} discos con Release ID — importación directa y precisa`
         : `Búsqueda por código de catálogo / título`;
 
       if (csvDupes.length) {
-        infoText += `\n⚠ ${csvDupes.length} código${csvDupes.length > 1 ? 's' : ''} duplicado${csvDupes.length > 1 ? 's' : ''} en el CSV — solo se importará uno de cada uno:`;
+        infoText += `\n? ${csvDupes.length} código${csvDupes.length > 1 ? 's' : ''} duplicado${csvDupes.length > 1 ? 's' : ''} en el CSV — solo se importará uno de cada uno:`;
         csvDupes.forEach(d => { infoText += `\n  · ${d.catno} — ${d.artist} — ${d.title} (×${d.count})`; });
         // Show as alert so it's unmissable
-        alert(`⚠ El CSV tiene ${csvDupes.length} disco${csvDupes.length>1?'s':''} repetido${csvDupes.length>1?'s':''}:\n\n` +
+        alert(`? El CSV tiene ${csvDupes.length} disco${csvDupes.length>1?'s':''} repetido${csvDupes.length>1?'s':''}:\n\n` +
           csvDupes.map(d => `· ${d.catno} — ${d.title} (aparece ${d.count} veces)`).join('\n') +
           `\n\nDisc Record Collection no importa duplicados, así que el conteo final será menor al del CSV.`);
       }
@@ -2269,7 +2283,7 @@ function renderBulkPreview() {
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.title || '—'}</td>
       <td style="color:var(--muted);font-size:.78rem">${r.label || ''}</td>
       <td style="color:var(--muted);font-size:.78rem">${r.released || ''}</td>
-      <td><span class="tag" style="${exists ? 'color:#ff9900;border-color:#ff9900' : ''}">${exists ? '⚠ ya existe' : hasId ? '🎯 ID directo' : '🔍 buscar'}</span></td>
+      <td><span class="tag" style="${exists ? 'color:#ff9900;border-color:#ff9900' : ''}">${exists ? '? ya existe' : hasId ? '?? ID directo' : '?? buscar'}</span></td>
     </tr>`;
   }).join('');
 }
@@ -2303,21 +2317,21 @@ async function startBulkImport() {
     document.getElementById('bulk-prog-bar').style.width = pct + '%';
     document.getElementById('bulk-prog-pct').textContent = pct + '%';
     document.getElementById('bulk-prog-label').textContent =
-      `${i} de ${total} · ✓ ${ok} · ↷ ${skipped} · ✕ ${errors}`;
+      `${i} de ${total} · ? ${ok} · ? ${skipped} · ? ${errors}`;
     document.getElementById('bulk-current-item').textContent =
-      `⟳ ${row.catno || row.releaseId || '?'} — ${row.title}`;
+      `? ${row.catno || row.releaseId || '?'} — ${row.title}`;
 
     // Skip if catno already exists
     if (row.catno && codigoExiste(row.catno)) {
       skipped++;
-      addBulkLog(row, 'skip', '↷ Ya existe');
+      addBulkLog(row, 'skip', '? Ya existe');
       done++; continue;
     }
 
     try {
       let rel = null;
 
-      // PATH A: release_id → fetch directly, no search needed
+      // PATH A: release_id ? fetch directly, no search needed
       if (row.releaseId) {
         const res = await fetchWithRetry(
           `https://api.discogs.com/releases/${row.releaseId}?token=${token}`, token
@@ -2325,7 +2339,7 @@ async function startBulkImport() {
         rel = await res.json();
 
       } else {
-        // PATH B: no release_id → search by catno
+        // PATH B: no release_id ? search by catno
         const catnUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(row.catno)}&type=release&per_page=8&token=${token}`;
         const catnRes = await fetchWithRetry(catnUrl, token);
         const catnData = await catnRes.json();
@@ -2344,7 +2358,7 @@ async function startBulkImport() {
           // PATH C: fallback to title search
           await sleep(500);
           document.getElementById('bulk-current-item').textContent =
-            `⟳ Sin catno, buscando por título: "${row.title}"`;
+            `? Sin catno, buscando por título: "${row.title}"`;
           const titleUrl = `https://api.discogs.com/database/search?title=${encodeURIComponent(row.title)}&artist=${encodeURIComponent(row.artist)}&type=release&per_page=8&token=${token}`;
           const titleRes = await fetchWithRetry(titleUrl, token);
           const titleData = await titleRes.json();
@@ -2372,7 +2386,7 @@ async function startBulkImport() {
       ok++;
       const ytCount = disco.tracks.filter(t => t.youtube).length;
       addBulkLog(row, 'ok',
-        `✓ ${disco.tracks.length} tr${ytCount ? ` · ${ytCount}▶` : ''}${disco.cover ? ' · 🖼' : ''}`
+        `? ${disco.tracks.length} tr${ytCount ? ` · ${ytCount}?` : ''}${disco.cover ? ' · ??' : ''}`
       );
 
       if (checkpointBatch.length >= 10) {
@@ -2383,7 +2397,7 @@ async function startBulkImport() {
     } catch (err) {
       errors++;
       bulkFailed.push({ row, reason: err.message });
-      addBulkLog(row, 'error', '✕ ' + err.message);
+      addBulkLog(row, 'error', '? ' + err.message);
     }
 
     done++;
@@ -2428,7 +2442,7 @@ async function fetchWithRetry(url, token, maxRetries=3) {
       const res = await fetch(url, { headers });
       if (res.status === 429) {
         const wait = 65000;
-        document.getElementById('bulk-current-item').textContent = '⏳ Límite de API — esperando 65 seg...';
+        document.getElementById('bulk-current-item').textContent = '? Límite de API — esperando 65 seg...';
         await sleep(wait);
         continue;
       }
@@ -2451,8 +2465,8 @@ function showDisambig(row, results, searchMethod) {
   return new Promise(resolve => {
     _disambigResolve = resolve;
     const methodLabel = searchMethod === 'title'
-      ? '🔤 Búsqueda por título (catno sin resultados)'
-      : '📋 Múltiples versiones — elegí la correcta';
+      ? '?? Búsqueda por título (catno sin resultados)'
+      : '?? Múltiples versiones — elegí la correcta';
     document.getElementById('disambig-row-info').innerHTML =
       `<strong>#${row.ref}</strong> &nbsp;·&nbsp; <span class="tag">${row.catno}</span> &nbsp;·&nbsp; ${row.artist} — ${row.title}<br>
        <span style="color:var(--accent2);font-size:.6rem;font-family:var(--mono)">${methodLabel}</span>`;
@@ -2514,12 +2528,12 @@ function renderPersistentFailed() {
   document.getElementById('dcg-failed-tbody').innerHTML = list.map((e, idx) => `
     <tr id="pfailed-row-${idx}">
       <td style="color:var(--accent2);font-family:var(--mono);font-weight:700">${e.ref}</td>
-      <td><span class="tag" style="cursor:pointer;color:var(--blue)" onclick="prefillCatno('${e.catno}')" title="Clic para buscar">${e.catno} ↗</span></td>
+      <td><span class="tag" style="cursor:pointer;color:var(--blue)" onclick="prefillCatno('${e.catno}')" title="Clic para buscar">${e.catno} ?</span></td>
       <td style="color:var(--muted);font-size:.78rem">${e.artist}</td>
       <td>${e.title}</td>
       <td style="color:var(--muted);font-size:.78rem">${e.label}</td>
       <td style="color:#ff4444;font-family:var(--mono);font-size:.63rem">${e.reason}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deletePersistentFailedItem(${idx})" title="Eliminar de la lista">✕</button></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deletePersistentFailedItem(${idx})" title="Eliminar de la lista">?</button></td>
     </tr>`).join('');
 }
 
@@ -2576,13 +2590,13 @@ function verifyCollectionVsCSV(input) {
       if (!missing.length) {
         resultEl.innerHTML = `
           <div style="padding:1rem;border:1px solid var(--green);border-radius:2px;text-align:center;color:var(--green);font-family:var(--mono)">
-            ✅ Colección completa — los ${found.length} discos del CSV están en tu colección
+            ? Colección completa — los ${found.length} discos del CSV están en tu colección
           </div>`;
       } else {
         resultEl.innerHTML = `
           <div style="margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
             <span style="font-family:var(--mono);font-size:.72rem;color:#ff9900">
-              ✓ ${found.length} encontrados · <strong style="color:#ff4444">${missing.length} faltantes</strong> de ${csvRows.length} en CSV
+              ? ${found.length} encontrados · <strong style="color:#ff4444">${missing.length} faltantes</strong> de ${csvRows.length} en CSV
             </span>
             <button class="btn btn-sm" onclick="verifyAddAllMissingToFailed()">+ Agregar faltantes a pendientes</button>
           </div>
@@ -2592,11 +2606,11 @@ function verifyCollectionVsCSV(input) {
               <tbody>${missing.map((r,i) => `
                 <tr id="vmiss-${i}">
                   <td><span class="tag" style="cursor:pointer;color:var(--blue)" onclick="prefillCatno('${r.catno.replace(/'/g,"\\'")}')">
-                    ${r.catno||'—'} ↗
+                    ${r.catno||'—'} ?
                   </span></td>
                   <td style="color:var(--muted);font-size:.75rem">${r.artist}</td>
                   <td>${r.title}</td>
-                  <td><button class="btn btn-sm btn-danger" onclick="verifyDismissRow(${i})" title="Ignorar">✕</button></td>
+                  <td><button class="btn btn-sm btn-danger" onclick="verifyDismissRow(${i})" title="Ignorar">?</button></td>
                 </tr>`).join('')}
               </tbody>
             </table>
@@ -2630,7 +2644,7 @@ function verifyAddAllMissingToFailed() {
   });
   try { localStorage.setItem('crate_dcg_failed', JSON.stringify(existing)); } catch(e) {}
   renderPersistentFailed();
-  alert(`✓ ${added} discos agregados a la lista de pendientes`);
+  alert(`? ${added} discos agregados a la lista de pendientes`);
 }
 function prefillCatno(catno) {
   // Switch to single tab and prefill the search
@@ -2666,7 +2680,7 @@ function showCheckpoint(discos, totalOk, totalAll) {
           ? `<img src="${d.cover}" referrerpolicy="no-referrer" alt="${d.nombre}">`
           : `<div style="width:100%;aspect-ratio:1;background:var(--bg3);display:flex;align-items:center;justify-content:center"><div class="disk-cover-placeholder" style="width:50px;height:50px"></div></div>`}
         <div class="chkpt-card-name" title="${d.nombre}">${d.nombre}</div>
-        <button class="chkpt-card-del" onclick="checkpointDeleteDisco('${d.id}')">✕ Borrar</button>
+        <button class="chkpt-card-del" onclick="checkpointDeleteDisco('${d.id}')">? Borrar</button>
       </div>`).join('');
 
     document.getElementById('modal-checkpoint').classList.add('open');
@@ -2686,7 +2700,7 @@ function checkpointContinue() {
 
 function stopBulkImport() {
   bulkStop = true;
-  document.getElementById('bulk-stop-btn').textContent = '⏳ Deteniendo...';
+  document.getElementById('bulk-stop-btn').textContent = '? Deteniendo...';
 }
 
 let _bulkLogIdx = 0;
@@ -2815,7 +2829,7 @@ function updateTokenBadge() {
   const token = getDiscogsToken();
   const badge = document.getElementById('dcg-token-badge');
   if (!badge) return;
-  badge.textContent = token ? '✓ configurado' : '⚠ sin token';
+  badge.textContent = token ? '? configurado' : '? sin token';
   badge.style.color = token ? 'var(--green)' : '#ff9900';
 }
 
@@ -2826,7 +2840,7 @@ function initDiscogsTab() {
   if (!input || !status) return;
   if (token) {
     input.value = token;
-    status.textContent = `✓ Token guardado (${token.length} chars)`;
+    status.textContent = `? Token guardado (${token.length} chars)`;
     status.style.color = 'var(--green)';
     // Keep token bar collapsed if token already set
     const body = document.getElementById('dcg-token-body');
@@ -2848,7 +2862,7 @@ function toggleTokenVisibility() {
   const input = document.getElementById('dcg-token-input');
   const isPassword = input.type === 'password';
   input.type = isPassword ? 'text' : 'password';
-  document.getElementById('dcg-token-eye').textContent = isPassword ? '🙈' : '👁';
+  document.getElementById('dcg-token-eye').textContent = isPassword ? '??' : '??';
 }
 
 function saveDiscogsToken() {
@@ -2857,12 +2871,12 @@ function saveDiscogsToken() {
   const status = document.getElementById('dcg-token-status');
 
   if (!val) {
-    status.textContent = '⚠ Campo vacío — pegá tu token';
+    status.textContent = '? Campo vacío — pegá tu token';
     status.style.color = '#ff9900';
     return;
   }
   if (val.length < 10) {
-    status.textContent = `⚠ Token muy corto (${val.length} chars) — copialo completo`;
+    status.textContent = `? Token muy corto (${val.length} chars) — copialo completo`;
     status.style.color = '#ff9900';
     return;
   }
@@ -2877,7 +2891,7 @@ function saveDiscogsToken() {
   // Save full state
   try { save(); } catch(e) {}
 
-  status.textContent = `✓ Token guardado (${val.length} chars)${lsOk ? '' : ' · solo en memoria'}`;
+  status.textContent = `? Token guardado (${val.length} chars)${lsOk ? '' : ' · solo en memoria'}`;
   status.style.color = 'var(--green)';
   updateTokenBadge();
   // Collapse the token bar after saving
@@ -2952,7 +2966,7 @@ function renderDiscogsResults(results, catno) {
   }
   container.innerHTML = results.map(r => {
     const dupeWarning = codigoExiste(r.catno)
-      ? `<span class="tag" style="color:#ff4444;border-color:#ff4444;margin-left:4px">⚠ ya existe</span>` : '';
+      ? `<span class="tag" style="color:#ff4444;border-color:#ff4444;margin-left:4px">? ya existe</span>` : '';
     return `<div class="dcg-result-row" onclick="selectDiscogsRelease(${r.id}, '${(r.catno||'').replace(/'/g,"\\'")}')">
       <div class="dcg-result-thumb">
         ${r.thumb ? `<img src="${r.thumb}" onerror="this.style.display='none'">` : '<div class="mini-vinyl"></div>'}
@@ -3028,7 +3042,7 @@ function renderDiscogsPreview(r) {
 
   const dupeWarning = codigoExiste(catno)
     ? `<div style="background:rgba(255,68,68,.1);border:1px solid #ff4444;border-radius:2px;padding:.6rem 1rem;margin-top:.8rem;font-family:var(--mono);font-size:.72rem;color:#ff4444">
-        ⚠ Ya existe un disco con el código <strong>${catno}</strong> en tu colección. Si importás este, se creará igualmente pero revisá si es un duplicado.
+        ? Ya existe un disco con el código <strong>${catno}</strong> en tu colección. Si importás este, se creará igualmente pero revisá si es un duplicado.
        </div>` : '';
 
   document.getElementById('dcg-preview-card').innerHTML = `
@@ -3047,7 +3061,7 @@ function renderDiscogsPreview(r) {
           ${genres.map(g => `<span class="tag accent">${g}</span>`).join('')}
         </div>
         <div style="margin-top:.8rem;font-family:var(--mono);font-size:.65rem;color:var(--muted)">
-          ${tracks.length} tracks · ${matchedCount > 0 ? `<span style="color:var(--green)">✓ ${matchedCount} links de YouTube encontrados</span>` : `<span style="color:var(--muted)">${videos.length} videos en Discogs (sin match por track)</span>`}
+          ${tracks.length} tracks · ${matchedCount > 0 ? `<span style="color:var(--green)">? ${matchedCount} links de YouTube encontrados</span>` : `<span style="color:var(--muted)">${videos.length} videos en Discogs (sin match por track)</span>`}
         </div>
         ${dupeWarning}
       </div>
@@ -3059,7 +3073,7 @@ function renderDiscogsPreview(r) {
         return `<div class="dcg-track-row">
           <div class="dcg-track-pos">${t.position}</div>
           <div style="flex:1">${t.title}${t.extraartists ? ` <span style="color:var(--muted);font-size:.78rem">(${t.extraartists.map(a=>a.name).join(', ')})</span>` : ''}</div>
-          ${yt ? `<a class="yt-link" href="${yt}" target="_blank">▶ YT</a>` : ''}
+          ${yt ? `<a class="yt-link" href="${yt}" target="_blank">? YT</a>` : ''}
           <div class="dcg-track-dur">${t.duration || ''}</div>
         </div>`;
       }).join('')}
@@ -3085,7 +3099,7 @@ async function importFromDiscogs() {
   // Warn about duplicate codigo
   if (codigoExiste(catno)) {
     const existing = state.discos.find(d => d.codigo && d.codigo.trim().toLowerCase() === catno.trim().toLowerCase());
-    if (!confirm(`⚠ Ya existe un disco con el código "${catno}":\n"${existing.nombre}"\n\n¿Importar de todas formas?`)) return;
+    if (!confirm(`? Ya existe un disco con el código "${catno}":\n"${existing.nombre}"\n\n¿Importar de todas formas?`)) return;
   }
 
   // Add genres to catalog
@@ -3169,8 +3183,8 @@ async function importFromDiscogs() {
   document.getElementById('dcg-catno').value = '';
 
   openDisco(disco.id);
-  const ytMsg = ytMatched > 0 ? `\n🎵 ${ytMatched} tracks con YouTube vinculado` : '';
-  alert(`✓ "${disco.nombre}" importado con ${builtTracks.length} tracks${ytMsg}`);
+  const ytMsg = ytMatched > 0 ? `\n?? ${ytMatched} tracks con YouTube vinculado` : '';
+  alert(`? "${disco.nombre}" importado con ${builtTracks.length} tracks${ytMsg}`);
 }
 
 
@@ -3182,7 +3196,7 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 let currentUser = null;
 let syncTimeout = null;
 
-// ── Auth UI ───────────────────────────────────────────────────────────────
+// -- Auth UI ---------------------------------------------------------------
 function switchAuthTab(tab) {
   document.getElementById('auth-panel-login').style.display    = tab==='login'    ? 'block' : 'none';
   document.getElementById('auth-panel-register').style.display = tab==='register' ? 'block' : 'none';
@@ -3222,7 +3236,7 @@ async function authRegister() {
   });
   btn.disabled = false; btn.textContent = 'CREAR CUENTA';
   if (error) { showAuthMsg('auth-register-msg', tradError(error.message)); return; }
-  showAuthMsg('auth-register-msg', '✓ Cuenta creada — revisá tu email para confirmar', 'success');
+  showAuthMsg('auth-register-msg', '? Cuenta creada — revisá tu email para confirmar', 'success');
 }
 
 async function authForgotPassword() {
@@ -3230,7 +3244,7 @@ async function authForgotPassword() {
   if (!email) { showAuthMsg('auth-login-msg','Ingresá tu email primero'); return; }
   const { error } = await supa.auth.resetPasswordForEmail(email);
   if (error) { showAuthMsg('auth-login-msg', tradError(error.message)); return; }
-  showAuthMsg('auth-login-msg','✓ Te enviamos un email para resetear la contraseña','success');
+  showAuthMsg('auth-login-msg','? Te enviamos un email para resetear la contraseña','success');
 }
 
 async function authLogout() {
@@ -3255,18 +3269,23 @@ function tradError(msg) {
   return msg;
 }
 
-// ── Session handler ────────────────────────────────────────────────────────
+// -- Session handler --------------------------------------------------------
+// onAuthStateChange: only for NEW logins/logouts after initial load
+let _authInitDone = false;
 supa.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user) {
+  if (!_authInitDone) return; // init handled by getSession
+  if (event === 'SIGNED_IN' && session?.user) {
     currentUser = session.user;
     await onUserLoggedIn();
-  } else {
+  } else if (event === 'SIGNED_OUT') {
     currentUser = null;
     document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('login-btn').style.display = 'block';
   }
 });
 
 async function onUserLoggedIn() {
+  hideLoadingScreen();
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('login-btn').style.display = 'none';
   const lb=document.getElementById('login-btn'); if(lb) lb.style.display='none';
@@ -3287,7 +3306,7 @@ async function onUserLoggedIn() {
   // Load collection from cloud
   await loadFromCloud();
 
-  // If local data exists and cloud is empty → offer migration
+  // If local data exists and cloud is empty ? offer migration
   const localRaw = localStorage.getItem('crate_v3');
   if (localRaw) {
     try {
@@ -3300,7 +3319,7 @@ async function onUserLoggedIn() {
           if (local.discogsToken) state.discogsToken = local.discogsToken;
           await syncToCloud(true);
           localStorage.removeItem('crate_v3');
-          alert('✓ Colección migrada a la nube correctamente');
+          alert('? Colección migrada a la nube correctamente');
         }
       }
     } catch(e) {}
@@ -3309,7 +3328,7 @@ async function onUserLoggedIn() {
   renderDiscos(); updateStats(); renderPersistentFailed();
 }
 
-// ── Cloud sync ─────────────────────────────────────────────────────────────
+// -- Cloud sync -------------------------------------------------------------
 function setSyncState(s) {
   const dot = document.getElementById('sync-dot');
   if (!dot) return;
@@ -3364,7 +3383,7 @@ async function doSync() {
   setSyncState(error ? 'error' : 'ok');
 }
 
-// ── Override save() to also sync to cloud ─────────────────────────────────
+// -- Override save() to also sync to cloud ---------------------------------
 const _originalSave = save;
 save = function() {
   // Keep localStorage as offline fallback
@@ -3379,18 +3398,34 @@ save = function() {
 };
 
 // =================== INIT ===================
-// App starts hidden behind auth screen.
-// onAuthStateChange handles load after login.
-// Check for existing session on page load:
+function hideLoadingScreen() {
+  const ls = document.getElementById('loading-screen');
+  if (ls) ls.style.display = 'none';
+}
+
 (async () => {
-  const { data: { session } } = await supa.auth.getSession();
-  if (!session) {
-    // No session: show auth, load local data for offline preview
-    load(); renderDiscos(); updateStats();
+  try {
+    const { data: { session }, error } = await supa.auth.getSession();
+    if (session?.user) {
+      // Has session — log in directly, don't wait for onAuthStateChange
+      currentUser = session.user;
+      await onUserLoggedIn();
+    } else {
+      // No session — show login screen
+      hideLoadingScreen();
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('login-btn').style.display = 'block';
+      load(); renderDiscos(); updateStats();
+    }
+  } catch(e) {
+    // Network error — show login as fallback
+    hideLoadingScreen();
+    document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('login-btn').style.display = 'block';
-    const lb=document.getElementById('login-btn'); if(lb) lb.style.display='flex';
+    load(); renderDiscos(); updateStats();
+  } finally {
+    _authInitDone = true; // from now on, onAuthStateChange can act
   }
-  // If session exists, onAuthStateChange fires automatically
 })();
 // Set CSS var for sticky nav offset
 function setHeaderHeight(){
@@ -3400,7 +3435,7 @@ function setHeaderHeight(){
 setHeaderHeight();
 window.addEventListener('resize', setHeaderHeight);
 
-// ── PWA Service Worker ──
+// -- PWA Service Worker --
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js')
