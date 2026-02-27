@@ -1209,7 +1209,7 @@ function showView(name){
   document.getElementById('view-'+name).classList.add('active');
   const m={discos:0,tracks:1,playlists:2,import:3};
   if(m[name]!==undefined) document.querySelectorAll('.nav-btn')[m[name]].classList.add('active');
-  if(name==='discos'){ renderDiscos(); setTimeout(()=>{ window.scrollTo(0, state._discosScrollY||0); },50); }
+  if(name==='discos'){ renderDiscos(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ window.scrollTo({top: state._discosScrollY||0, behavior:'instant'}); })); }
   if(name==='tracks'){updateAllTrackFilters();renderAllTracks();}
   if(name==='playlists') renderPlaylists();
   if(name==='import') initDiscogsTab();
@@ -1282,12 +1282,14 @@ function renderDiscos(){
 }
 
 function discoCardClick(e, id) {
+  state._discosScrollY = window.scrollY || document.documentElement.scrollTop;
   // If any discos already selected, clicking toggles selection instead of opening
   if(selectedDiscos.size > 0) { toggleDiscoSelect(id); return; }
   openDisco(id);
 }
 function discoRowClick(e, id) {
   if(selectedDiscos.size > 0) { toggleDiscoSelect(id); return; }
+  state._discosScrollY = window.scrollY || document.documentElement.scrollTop;
   openDisco(id);
 }
 function toggleDiscoSelect(id, chk) {
@@ -1329,8 +1331,6 @@ function updateSelect(id,opts,allLabel,current){
 }
 function openDisco(id){
   state.currentDiscoId=id;
-  // Save scroll position of discos list
-  state._discosScrollY = window.scrollY || document.documentElement.scrollTop;
   detailSelectedTracks.clear(); // reset selection on new disco
   const d=state.discos.find(x=>x.id===id);if(!d)return;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
