@@ -1261,7 +1261,7 @@ function renderDiscos(){
         <td><div class="disk-list-name">${d.nombre}</div><div class="disk-list-sello">${d.sello||'—'}</div></td>
         <td><div class="disk-list-artists">${artists.map(a=>`<span>${a}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</div></td>
         <td><div style="display:flex;flex-direction:column;gap:2px">${gens.map(g=>`<span class="tag accent">${g}</span>`).join('')}</div></td>
-        <td><div style="display:flex;flex-direction:column;gap:2px">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div></td>
+        <td style="width:1px"><div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div></td>
         <td class="disk-list-tracks">${d.tracks.length} tr</td>
       </tr>`;
     }).join('')}</tbody></table>`;
