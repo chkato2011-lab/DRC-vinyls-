@@ -90,17 +90,21 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .disk-meta{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
 .track-count{font-family:var(--mono);font-size:.65rem;color:var(--muted)}
 .disk-list{display:flex;flex-direction:column;gap:4px}
-.disk-list-row{display:grid;grid-template-columns:18px 52px minmax(120px,1.5fr) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) auto auto;align-items:center;gap:.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all .15s;padding:.5rem .6rem .5rem .4rem;min-width:0}
+.disk-list-table{width:100%;border-collapse:collapse}
+.disk-list-table td{padding:.5rem .4rem;border-bottom:1px solid var(--border);vertical-align:middle}
+.disk-list-table tr{cursor:pointer;transition:background .15s}
+.disk-list-table tr:hover td{background:var(--bg2)}
+.disk-list-table tr.selected td{background:rgba(56,189,248,.07)}
 .disk-list-row:hover{border-color:var(--accent);background:var(--bg3)}
 .disk-list-thumb{width:52px;height:52px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:1px}
 .disk-list-thumb img{width:100%;height:100%;object-fit:cover}
 
 .mini-vinyl{width:32px;height:32px;border-radius:50%;background:conic-gradient(from 0deg,#1a1a1a 0%,#333 25%,#1a1a1a 50%,#333 75%,#1a1a1a 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #111,0 0 0 5px #222}
 .mini-vinyl::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--bg)}
-.disk-list-name{font-family:var(--display);font-size:1.1rem;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.disk-list-sello{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.disk-list-tracks{font-family:var(--mono);font-size:.65rem;color:var(--muted);white-space:nowrap;text-align:right}
-.disk-list-artists{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden}
+.disk-list-name{font-family:var(--display);font-size:1.1rem;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.disk-list-sello{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.disk-list-tracks{font-family:var(--mono);font-size:.65rem;color:var(--muted);white-space:nowrap;text-align:right;padding-right:.2rem}
+.disk-list-artists{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:flex;flex-direction:column;gap:2px;max-width:120px}
 
 /* TAGS */
 .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:2px;background:var(--bg3);border:1px solid var(--border);color:var(--muted)}
@@ -1248,16 +1252,19 @@ function renderDiscos(){
   const genTag=d=>{const g=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);return g.map(x=>`<span class="tag accent">${x}</span>`).join('');};
 
   if(discosViewMode==='list'){
-    c.innerHTML=`<div class="disk-list">${f.map(d=>`
-      <div class="disk-list-row${selectedDiscos.has(d.id)?' selected':''}" onclick="discoRowClick(event,'${d.id}')">
-        <input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)">
-        <div class="disk-list-thumb">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl"></div>'}</div>
-        <div class="disk-list-name">${d.nombre}</div>
-        <div class="disk-list-sello">${d.sello||'—'}</div>
-        <div class="disk-list-artists">${[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))].map(a=>`<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a}</span>`).join('')||'<span>—</span>'}</div>
-        <div style="display:flex;flex-direction:column;gap:2px;min-width:0">${(Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean)).map(g=>`<span class="tag accent">${g}</span>`).join('')}</div><div style="display:flex;flex-direction:column;gap:2px;min-width:0">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
-        <div class="disk-list-tracks">${d.tracks.length} tracks</div>
-      </div>`).join('')}</div>`;
+    c.innerHTML=`<table class="disk-list-table"><tbody>${f.map(d=>{
+      const artists=[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))];
+      const gens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
+      return `<tr class="${selectedDiscos.has(d.id)?'selected':''}" onclick="discoRowClick(event,'${d.id}')">
+        <td style="width:18px;padding-left:.3rem"><input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)" style="accent-color:var(--accent)"></td>
+        <td style="width:46px;padding:4px"><div class="disk-list-thumb">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl"></div>'}</div></td>
+        <td><div class="disk-list-name">${d.nombre}</div><div class="disk-list-sello">${d.sello||'—'}</div></td>
+        <td><div class="disk-list-artists">${artists.map(a=>`<span>${a}</span>`).join('')||'<span style="color:var(--muted)">—</span>'}</div></td>
+        <td><div style="display:flex;flex-direction:column;gap:2px">${gens.map(g=>`<span class="tag accent">${g}</span>`).join('')}</div></td>
+        <td><div style="display:flex;flex-direction:column;gap:2px">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div></td>
+        <td class="disk-list-tracks">${d.tracks.length} tr</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
   } else {
     c.innerHTML=`<div class="disk-grid">${f.map(d=>`
       <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')">
