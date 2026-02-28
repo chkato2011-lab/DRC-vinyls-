@@ -3349,12 +3349,32 @@ async function loadFromCloud() {
   setSyncState('syncing');
   const { data, error } = await supa.from('colecciones').select('*').eq('user_id', currentUser.id).single();
   if (error || !data) { setSyncState(''); return; }
-  state.discos    = data.discos    || [];
-  state.playlists = data.playlists || [];
-  state.catalogo  = data.catalogo  || {generos:[],subgeneros:[],destaques:[]};
-  if (!state.catalogo.generos)   state.catalogo.generos   = [];
+
+  // Check if localStorage has newer data (e.g. changes made before sync completed)
+  let localNewer = false;
+  try {
+    const local = JSON.parse(localStorage.getItem('crate_v3') || '{}');
+    const localTs = local.savedAt || 0;
+    const cloudTs = data.updated_at ? new Date(data.updated_at).getTime() : 0;
+    if (localTs > cloudTs && local.discos?.length >= (data.discos?.length || 0)) {
+      localNewer = true;
+      state.discos    = local.discos    || [];
+      state.playlists = local.playlists || [];
+      state.catalogo  = local.catalogo  || {generos:[],subgeneros:[],destaques:[]};
+      // Push local data to cloud since it's newer
+      setTimeout(() => doSync(), 500);
+    }
+  } catch(e) {}
+
+  if (!localNewer) {
+    state.discos    = data.discos    || [];
+    state.playlists = data.playlists || [];
+    state.catalogo  = data.catalogo  || {generos:[],subgeneros:[],destaques:[]};
+  }
+
+  if (!state.catalogo.generos)    state.catalogo.generos   = [];
   if (!state.catalogo.subgeneros) state.catalogo.subgeneros = [];
-  if (!state.catalogo.destaques) state.catalogo.destaques = [];
+  if (!state.catalogo.destaques)  state.catalogo.destaques = [];
 
   // Load discogs token from profile
   const { data: prof } = await supa.from('profiles').select('discogs_token').eq('id', currentUser.id).single();
@@ -3395,15 +3415,15 @@ async function doSync() {
 // ── Override save() to also sync to cloud ─────────────────────────────────
 const _originalSave = save;
 save = function() {
-  // Keep localStorage as offline fallback
-  try {
-    localStorage.setItem('crate_v3', JSON.stringify({
-      discos: state.discos, playlists: state.playlists,
-      catalogo: state.catalogo, discogsToken: state.discogsToken||''
-    }));
-  } catch(e) {}
+  // Save timestamp so we can detect most recent version
+  const payload = {
+    discos: state.discos, playlists: state.playlists,
+    catalogo: state.catalogo, discogsToken: state.discogsToken||'',
+    savedAt: Date.now()
+  };
+  try { localStorage.setItem('crate_v3', JSON.stringify(payload)); } catch(e) {}
   showToast();
-  if (currentUser) syncToCloud();
+  if (currentUser) syncToCloud(true); // always immediate
 };
 
 // =================== INIT ===================
