@@ -1643,7 +1643,7 @@ function updateAllTrackFilters(){
     ...(Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean)),
     ...(Array.isArray(t.subgenero)?t.subgenero:[t.subgenero].filter(Boolean))
   ]).filter(Boolean))].sort();
-  const dests=[...new Set(all.flatMap(t=>t.destaque||[]).filter(Boolean))].sort();
+  const dests=[...new Set([...(state.catalogo.destaques||[]),...all.flatMap(t=>t.destaque||[])].filter(Boolean))].sort();
   const sell=[...new Set(all.map(t=>t._disco.sello).filter(Boolean))].sort();
   updateSelect('ft-artista',arts,'Artista: todos',document.getElementById('ft-artista').value);
   updateSelect('ft-genero',gens,'Género 1: todos',document.getElementById('ft-genero').value);
