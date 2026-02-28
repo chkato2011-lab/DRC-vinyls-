@@ -1065,7 +1065,7 @@ function restoreJSON(input){
       state.catalogo=d.catalogo||{generos:[],subgeneros:[],destaques:[]};
       if(!state.catalogo.destaques) state.catalogo.destaques=[];
       if(d.discogsToken){ state.discogsToken=d.discogsToken; try{ localStorage.setItem('discogs_token',d.discogsToken); }catch(e){} }
-      save(); renderDiscos(); updateStats(); showView('discos'); input.value='';
+      save();if(currentUser)syncToCloud(true); renderDiscos(); updateStats(); showView('discos'); input.value='';
     }catch(err){alert('Error: '+err.message);}
   };
   r.readAsText(file,'UTF-8');
@@ -1323,7 +1323,7 @@ function deleteSelectedDiscos() {
   });
   state.discos = state.discos.filter(d => !selectedDiscos.has(d.id));
   selectedDiscos.clear();
-  save(); updateStats(); renderDiscos();
+  save();if(currentUser)syncToCloud(true); updateStats(); renderDiscos();
 }
 function updateSelect(id,opts,allLabel,current){
   const s=document.getElementById(id);
@@ -1503,7 +1503,7 @@ function saveDisco(){
     d.nombre=nombre;d.sello=sello;d.genero=genero;d.codigo=codigo;d.released=released;
     if(state.coverData)d.cover=state.coverData;
   } else state.discos.push({id:genId(),nombre,sello,genero,codigo,released,cover:state.coverData,tracks:[]});
-  save();closeModal('modal-disco');renderDiscos();updateStats();
+  save();if(currentUser)syncToCloud(true);closeModal('modal-disco');renderDiscos();updateStats();
 }
 function editCurrentDisco(){openModalDisco(state.currentDiscoId);}
 function deleteCurrentDisco(){
@@ -1617,7 +1617,7 @@ function saveTrack(){
   };
   if(editId){const idx=d.tracks.findIndex(x=>x.id===editId);d.tracks[idx]=track;}
   else d.tracks.push(track);
-  save();closeModal('modal-track');openDisco(state.currentDiscoId);updateStats();
+  save();if(currentUser)syncToCloud(true);closeModal('modal-track');openDisco(state.currentDiscoId);updateStats();
 }
 function editTrack(discoId,trackId){state.currentDiscoId=discoId;openModalTrack(discoId,trackId);}
 function deleteTrack(discoId,trackId){
@@ -2034,7 +2034,7 @@ function savePlaylist(){
   const desc=document.getElementById('pl-desc').value.trim();
   if(editId){const pl=state.playlists.find(x=>x.id===editId);pl.nombre=nombre;pl.desc=desc;}
   else state.playlists.push({id:genId(),nombre,desc,tracks:[]});
-  save();closeModal('modal-playlist');renderPlaylists();updateStats();
+  save();if(currentUser)syncToCloud(true);closeModal('modal-playlist');renderPlaylists();updateStats();
 }
 function editCurrentPlaylist(){openModalPlaylist(state.currentPlId);}
 function deleteCurrentPlaylist(){
@@ -2086,7 +2086,7 @@ function togglePickerModal(key,discoId,trackId){
 function addSelectedToPlaylist(){
   const pl=state.playlists.find(x=>x.id===state.currentPlId);
   Object.values(pickerMapModal).forEach(({discoId,trackId})=>pl.tracks.push({discoId,trackId}));
-  pickerMapModal={};save();closeModal('modal-picker');renderPlDetail(pl);
+  pickerMapModal={};save();if(currentUser)syncToCloud(true);closeModal('modal-picker');renderPlDetail(pl);
 }
 
 // =================== EXPORT CSV ===================
