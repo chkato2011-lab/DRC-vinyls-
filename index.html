@@ -1170,7 +1170,13 @@ function addChecklistOption(fieldId, catalogKey){
   if(!state.catalogo[catalogKey]) state.catalogo[catalogKey]=[];
   if(!state.catalogo[catalogKey].includes(val)){
     state.catalogo[catalogKey].push(val);
-    save();
+    // Don't save here - saveTrack/saveDisco will save everything together
+    // Just persist catalog update to localStorage quietly
+    try{ localStorage.setItem('crate_v3', JSON.stringify({
+      discos:state.discos, playlists:state.playlists,
+      catalogo:state.catalogo, discogsToken:state.discogsToken||'',
+      savedAt:Date.now()
+    })); }catch(e){}
     // Refresh all open checklists of same type
     document.querySelectorAll('.checklist-field').forEach(f=>{
       if(f._catalogKey===catalogKey) rebuildChecklistItems(f);
