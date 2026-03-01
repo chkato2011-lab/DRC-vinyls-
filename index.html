@@ -1215,6 +1215,7 @@ function showView(name){
   document.getElementById('view-'+name).classList.add('active');
   const m={discos:0,tracks:1,playlists:2,import:3};
   if(m[name]!==undefined) document.querySelectorAll('.nav-btn')[m[name]].classList.add('active');
+  pushNav(name);
   if(name==='discos'){ renderDiscos(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(state.currentDiscoId){ const row=document.querySelector(`tr[onclick*="'${state.currentDiscoId}'"]`); if(row) row.scrollIntoView({block:'center',behavior:'instant'}); } })); }
   if(name==='tracks'){updateAllTrackFilters();renderAllTracks();}
   if(name==='playlists') renderPlaylists();
@@ -1337,6 +1338,7 @@ function updateSelect(id,opts,allLabel,current){
 }
 function openDisco(id){
   state.currentDiscoId=id;
+  pushNav('detail', {id});
   detailSelectedTracks.clear(); // reset selection on new disco
   const d=state.discos.find(x=>x.id===id);if(!d)return;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -1890,6 +1892,7 @@ function openPlaylist(id){
 }
 
 function renderPlDetail(pl){
+  pushNav('pl-detail', {id: pl?.id});
   const list=document.getElementById('pl-tracks-list'),em=document.getElementById('pl-empty');
   document.getElementById('pl-detail-count').textContent=`${pl.tracks.length} track${pl.tracks.length!==1?'s':''}`;
   if(!pl.tracks.length){list.innerHTML='';em.style.display='block';updatePlBatchBar(pl);return;}
@@ -3469,6 +3472,24 @@ function setHeaderHeight(){
 }
 setHeaderHeight();
 window.addEventListener('resize', setHeaderHeight);
+
+// =================== ANDROID BACK BUTTON ===================
+function pushNav(state_name, params={}) {
+  history.pushState({nav: state_name, ...params}, '');
+}
+
+window.addEventListener('popstate', function(e) {
+  const s = e.state;
+  if (!s) return;
+  if (s.nav === 'discos' || s.nav === 'tracks' || s.nav === 'playlists' || s.nav === 'import') {
+    showView(s.nav);
+  } else if (s.nav === 'detail') {
+    showView('discos'); // back from disco detail → disco list
+  } else if (s.nav === 'pl-detail') {
+    showView('playlists'); // back from playlist detail → playlists
+  }
+});
+
 
 // ── PWA Service Worker ──
 if ('serviceWorker' in navigator) {
