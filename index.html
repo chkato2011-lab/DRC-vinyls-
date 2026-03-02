@@ -2789,6 +2789,7 @@ async function buildDiscoFromRelease(r, token) {
     subgenero:  [],
     destaque:   [],
     youtube:    ytMap[t.title] || '',
+    duration:   t.duration || '',
     comentario: '',
     intensidad: 3
   }));
@@ -3393,7 +3394,7 @@ async function loadFromCloud() {
     const local = JSON.parse(localStorage.getItem('crate_v3') || '{}');
     const localTs = local.savedAt || 0;
     const cloudTs = data.updated_at ? new Date(data.updated_at).getTime() : 0;
-    if (localTs > cloudTs && local.discos?.length >= (data.discos?.length || 0)) {
+    if (localTs > cloudTs + 2000) { // local is more than 2s newer than cloud
       localNewer = true;
       state.discos    = local.discos    || [];
       state.playlists = local.playlists || [];
@@ -3649,7 +3650,7 @@ function playerPlayCurrent() {
       player.timer = setTimeout(function() { playerNext(); }, player.totalSecs * 1000);
     }
   } else {
-    timeEl.textContent = player.auto ? 'Sin duracion — manual' : '';
+    timeEl.innerHTML = '<span style="color:var(--muted);font-size:.55rem">Sin duración · </span><input id="player-manual-dur" placeholder="mm:ss" style="background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.6rem;width:50px;outline:none" onchange="playerSetManualDur(this.value)">';
   }
 
   if (t.youtube) {
@@ -3720,6 +3721,39 @@ function playerProgressClick(e) {
   }
 }
 
+function playerSetManualDur(val) {
+  const secs = parseDuration(val);
+  if (!secs) return;
+  player.totalSecs = secs;
+  clearInterval(player.tickInterval);
+  player.elapsed = 0;
+  document.getElementById('player-progress-fill').style.width = '0%';
+  const timeEl = document.getElementById('player-time-display');
+  timeEl.textContent = '0:00 / ' + formatTime(secs);
+  player.tickInterval = setInterval(function() {
+    player.elapsed++;
+    const pct = Math.min((player.elapsed / player.totalSecs) * 100, 100);
+    document.getElementById('player-progress-fill').style.width = pct + '%';
+    timeEl.textContent = formatTime(player.elapsed) + ' / ' + formatTime(player.totalSecs);
+  }, 1000);
+  if (player.auto) {
+    player.timer = setTimeout(function() { playerNext(); }, secs * 1000);
+  }
+}
+
+function extractDuration(t) {
+  // First try dedicated duration field
+  if (t.duration) return t.duration;
+  // Then try to find time pattern in comentario e.g. "7:30" or "6m45s"
+  if (t.comentario) {
+    const m = t.comentario.match(/\b(\d{1,2}:\d{2})\b/);
+    if (m) return m[1];
+    const m2 = t.comentario.match(/\b(\d{1,2})m(\d{2})s?\b/);
+    if (m2) return m2[1] + ':' + m2[2];
+  }
+  return '';
+}
+
 function launchDiscoFromTrack(discoId, trackId) {
   const d = state.discos.find(function(x) { return x.id === discoId; });
   if (!d) return;
@@ -3729,7 +3763,7 @@ function launchDiscoFromTrack(discoId, trackId) {
       nombre: t.nombre,
       artista: t.artista || '',
       youtube: t.youtube || '',
-      duration: t.duration || '',
+      duration: extractDuration(t),
       cover: d.cover || ''
     };
   });
