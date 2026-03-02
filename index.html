@@ -345,6 +345,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .player-auto-badge.on{border-color:var(--green);color:var(--green)}
 /* padding bottom so content doesn't hide behind player */
 body.player-open main{padding-bottom:90px}
+body.player-open .modal{max-height:calc(92vh - 80px);margin-bottom:80px}
 
 /* ── AUTH SCREEN ── */
 #auth-screen{position:fixed;inset:0;background:#0c0c0c;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem}
@@ -508,6 +509,7 @@ body.player-open main{padding-bottom:90px}
       <div class="disk-detail-actions">
         <button class="btn btn-primary btn-sm" onclick="openModalTrack()">+ Agregar Track</button>
         <button class="btn btn-sm" onclick="editCurrentDisco()">✎ Editar Disco</button>
+        <button class="btn btn-sm" id="resync-btn" onclick="resyncDiscoFromDiscogs()" style="color:var(--blue);border-color:var(--blue)" title="Re-importar tracks desde Discogs (actualiza duración)">↻ Discogs</button>
         <button class="btn btn-sm btn-danger" onclick="deleteCurrentDisco()">✕ Eliminar</button>
       </div>
     </div>
@@ -1653,6 +1655,23 @@ function saveTrack(){
   };
   if(editId){const idx=d.tracks.findIndex(x=>x.id===editId);d.tracks[idx]=track;}
   else d.tracks.push(track);
+  // Update player queue if this track is currently loaded
+  if(player && player.queue && player.queue.length > 0) {
+    for(var _pi=0;_pi<player.queue.length;_pi++){
+      if(player.queue[_pi]._trackId===track.id){
+        player.queue[_pi].duration = extractDuration(track);
+        if(_pi===player.idx && player.totalSecs===0 && player.queue[_pi].duration){
+          player.totalSecs=parseDuration(player.queue[_pi].duration);
+          var _te=document.getElementById('player-time-display');
+          if(_te&&player.totalSecs>0){
+            _te.textContent=formatTime(player.elapsed)+' / '+formatTime(player.totalSecs);
+            if(player.auto){clearTimeout(player.timer);player.timer=setTimeout(function(){playerNext();},(player.totalSecs-player.elapsed)*1000);}
+          }
+        }
+        break;
+      }
+    }
+  }
   save();if(currentUser)syncToCloud(true);closeModal('modal-track');openDisco(state.currentDiscoId);updateStats();
 }
 function editTrack(discoId,trackId){state.currentDiscoId=discoId;openModalTrack(discoId,trackId);}
@@ -3056,6 +3075,62 @@ async function selectDiscogsRelease(id, catno) {
   }
 }
 
+
+// Re-sync tracks from Discogs (update duration/position, preserve manual edits)
+async function resyncDiscoFromDiscogs() {
+  const d = state.discos.find(x => x.id === state.currentDiscoId);
+  if (!d) return;
+  const token = getDiscogsToken();
+  if (!token) { alert('Primero configurá tu token de Discogs en la pestaña Importar'); return; }
+  if (!d.codigo) { alert('Este disco no tiene código de catálogo para buscar en Discogs'); return; }
+
+  const btn = document.getElementById('resync-btn');
+  btn.textContent = '↻ Buscando...';
+  btn.disabled = true;
+
+  try {
+    // Search by catno
+    const searchUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(d.codigo)}&type=release&per_page=5&token=${token}`;
+    const searchRes = await fetch(searchUrl, { headers: { 'User-Agent': 'DISCApp/1.0' } });
+    const searchData = await searchRes.json();
+    const results = searchData.results || [];
+    if (!results.length) { alert('No se encontró el disco en Discogs con código: ' + d.codigo); btn.textContent = '↻ Discogs'; btn.disabled = false; return; }
+
+    // Pick best match (exact catno first)
+    const exact = results.find(r => (r.catno||'').toLowerCase() === d.codigo.toLowerCase()) || results[0];
+
+    btn.textContent = '↻ Cargando...';
+    const relRes = await fetch(`https://api.discogs.com/releases/${exact.id}?token=${token}`, { headers: { 'User-Agent': 'DISCApp/1.0' } });
+    const rel = await relRes.json();
+    if (!rel || rel.message) throw new Error(rel?.message || 'Release inválido');
+
+    const tracklist = (rel.tracklist || []).filter(t => t.type_ !== 'heading' && t.title);
+
+    let updated = 0;
+    tracklist.forEach(rt => {
+      // Match by position first, then by name similarity
+      let existing = d.tracks.find(t => t.position && t.position === rt.position);
+      if (!existing) existing = d.tracks.find(t => t.nombre && rt.title && t.nombre.toLowerCase().trim() === rt.title.toLowerCase().trim());
+      if (existing) {
+        if (rt.duration) { existing.duration = rt.duration; updated++; }
+        if (rt.position) existing.position = rt.position;
+      }
+    });
+
+    save();
+    if (currentUser) syncToCloud(true);
+    btn.textContent = '↻ Discogs';
+    btn.disabled = false;
+    openDisco(state.currentDiscoId);
+    alert(`Listo. Se actualizaron ${updated} de ${d.tracks.length} tracks con duración desde Discogs.`);
+
+  } catch(e) {
+    alert('Error al buscar en Discogs: ' + e.message);
+    btn.textContent = '↻ Discogs';
+    btn.disabled = false;
+  }
+}
+
 // Match video URLs to tracks by title similarity
 function matchVideosToTracks(tracklist, videos) {
   if (!videos || !videos.length) return {};
@@ -3760,6 +3835,7 @@ function launchDiscoFromTrack(discoId, trackId) {
   const startIdx = d.tracks.findIndex(function(t) { return t.id === trackId; });
   const queue = d.tracks.slice(startIdx >= 0 ? startIdx : 0).map(function(t) {
     return {
+      _trackId: t.id,
       nombre: t.nombre,
       artista: t.artista || '',
       youtube: t.youtube || '',
