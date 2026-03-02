@@ -321,6 +321,31 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
 
+
+/* ── REPRODUCTOR ── */
+#player-bar{position:fixed;bottom:0;left:0;width:100vw;z-index:500;background:rgba(14,14,14,.97);border-top:1px solid var(--border);backdrop-filter:blur(12px);transform:translateY(100%);transition:transform .3s ease;padding:.6rem 1rem}
+#player-bar.visible{transform:translateY(0)}
+.player-inner{display:flex;align-items:center;gap:.8rem}
+.player-cover{width:44px;height:44px;flex-shrink:0;border-radius:2px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center}
+.player-cover img{width:100%;height:100%;object-fit:cover}
+.player-info{flex:1;min-width:0}
+.player-track{font-family:var(--display);font-size:1rem;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-artist{font-family:var(--mono);font-size:.6rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-time{font-family:var(--mono);font-size:.6rem;color:var(--accent);letter-spacing:1px;margin-top:2px}
+.player-controls{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.player-btn{background:none;border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--mono);font-size:.8rem;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.player-btn:hover{border-color:var(--accent);color:var(--accent)}
+.player-btn.play-btn{background:var(--accent);border-color:var(--accent);color:#fff;width:38px;height:38px;font-size:1rem}
+.player-btn.play-btn:hover{background:#cc3000}
+.player-btn.close-btn{border-color:transparent;color:var(--muted);font-size:.7rem}
+.player-btn.close-btn:hover{border-color:var(--border);color:var(--text)}
+.player-progress{width:100%;height:2px;background:var(--border);border-radius:1px;margin-top:.4rem;overflow:hidden;cursor:pointer}
+.player-progress-fill{height:100%;background:var(--accent);width:0%;transition:width .5s linear}
+.player-auto-badge{font-family:var(--mono);font-size:.5rem;letter-spacing:1px;text-transform:uppercase;padding:1px 4px;border-radius:2px;border:1px solid var(--muted);color:var(--muted);flex-shrink:0}
+.player-auto-badge.on{border-color:var(--green);color:var(--green)}
+/* padding bottom so content doesn't hide behind player */
+body.player-open main{padding-bottom:90px}
+
 /* ── AUTH SCREEN ── */
 #auth-screen{position:fixed;inset:0;background:#0c0c0c;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem}
 .auth-box{width:100%;max-width:400px}
@@ -883,7 +908,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </div>
     </div>
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Link YouTube</label><input class="form-input" id="track-youtube" placeholder="https://youtube.com/watch?v=..."></div>
+      <div style="display:flex;gap:.5rem"><div class="form-group" style="flex:1"><label class="form-label">Link YouTube</label><input class="form-input" id="track-youtube" placeholder="https://youtube.com/watch?v=..."></div><div class="form-group" style="width:80px"><label class="form-label">Duración</label><input class="form-input" id="track-duration" placeholder="7:30"></div></div>
       <div class="form-group"><label class="form-label">Intensidad</label>
         <div class="intensity-selector">
           <button class="int-btn" onclick="setIntensidad(1)">1</button>
@@ -1375,6 +1400,7 @@ function renderDetailTracks(d){
     <td>${(t.destaque||[]).map(x=>`<span class="destaque-tag">${x}</span>`).join(' ')}</td>
     <td>${renderDots(t.intensidad)}</td>
     <td style="display:flex;gap:4px">
+      <button class="btn btn-sm" style="color:#cc0000;border-color:#440000" onclick="event.stopPropagation();launchDiscoFromTrack('${d.id}','${t.id}')" title="Reproducir desde aquí">▶</button>
       <button class="btn btn-sm" onclick="editTrack('${d.id}','${t.id}')">✎</button>
       <button class="btn btn-sm btn-danger" onclick="deleteTrack('${d.id}','${t.id}')">✕</button>
     </td></tr>`;
@@ -1590,6 +1616,7 @@ function openModalTrack(discoId,trackId){
     document.getElementById('track-nombre').value=t.nombre;
     document.getElementById('track-artista').value=t.artista;
     document.getElementById('track-youtube').value=t.youtube||'';
+    document.getElementById('track-duration').value=t.duration||'';
     document.getElementById('track-comentario').value=t.comentario||'';
     // merge genero + subgenero into genero for display (backward compat)
     const g=Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean);
@@ -1598,7 +1625,7 @@ function openModalTrack(discoId,trackId){
     selDest=t.destaque||[];
     setIntensidad(t.intensidad||3);
   } else {
-    ['track-nombre','track-artista','track-youtube','track-comentario'].forEach(id=>document.getElementById(id).value='');
+    ['track-nombre','track-artista','track-youtube','track-comentario','track-duration'].forEach(id=>document.getElementById(id).value='');
   }
   initChecklist('track-genero-cl','generos',selGenero);
   initChecklist('track-destaque-cl','destaques',selDest,3);
@@ -1620,6 +1647,7 @@ function saveTrack(){
     subgenero:[],
     destaque:getChecklistValue('track-destaque-cl'),
     youtube:document.getElementById('track-youtube').value.trim(),
+    duration:document.getElementById('track-duration').value.trim(),
     comentario:document.getElementById('track-comentario').value.trim(),
     intensidad:state.selectedIntensidad
   };
@@ -1727,7 +1755,7 @@ function renderAllTracks(){
       <td>${tgens.map(g=>`<span class="tag" style="color:#e03030;border-color:#e03030">${g}</span>`).join(' ')}</td>
       <td>${(t.destaque||[]).map(d=>`<span class="destaque-tag">${d}</span>`).join(' ')}</td>
       <td>${renderDots(t.intensidad)}</td>
-      <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="editTrack('${t._disco.id}','${t.id}')">✎</button></td>
+      <td onclick="event.stopPropagation()" style="display:flex;gap:4px"><button class="btn btn-sm" style="color:#cc0000;border-color:#440000" onclick="launchDiscoFromTrack('${t._disco.id}','${t.id}')" title="Reproducir desde aquí">▶</button><button class="btn btn-sm" onclick="editTrack('${t._disco.id}','${t.id}')">✎</button></td>
     </tr>`;
   }).join('');
   updateBatchBar();
@@ -3472,6 +3500,11 @@ function setHeaderHeight(){
 }
 setHeaderHeight();
 window.addEventListener('resize', setHeaderHeight);
+// Init player auto button
+setTimeout(()=>{
+  const btn = document.getElementById('player-auto-btn');
+  if(btn){ btn.className='player-btn player-auto-badge on'; }
+},100);
 
 // =================== ANDROID BACK BUTTON ===================
 function pushNav(state_name, params={}) {
@@ -3500,5 +3533,212 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- REPRODUCTOR -->
+<div id="player-bar">
+  <div class="player-inner">
+    <div class="player-cover" id="player-cover"><div style="color:var(--border);font-size:1.2rem">♪</div></div>
+    <div class="player-info">
+      <div class="player-track" id="player-track-name">—</div>
+      <div class="player-artist" id="player-artist-name">—</div>
+      <div class="player-time" id="player-time-display"></div>
+    </div>
+    <div class="player-controls">
+      <button class="player-btn" id="player-auto-btn" onclick="playerToggleAuto()" title="Auto-siguiente">AUTO</button>
+      <button class="player-btn" onclick="playerPrev()" title="Anterior">◀</button>
+      <button class="player-btn play-btn" onclick="playerPlayCurrent()" title="Lanzar en YouTube">▶</button>
+      <button class="player-btn" onclick="playerNext()" title="Siguiente">▶▶</button>
+      <button class="player-btn close-btn" onclick="playerClose()" title="Cerrar">✕</button>
+    </div>
+  </div>
+  <div class="player-progress" onclick="playerProgressClick(event)">
+    <div class="player-progress-fill" id="player-progress-fill"></div>
+  </div>
+</div>
+
 </body>
 </html>
+
+<script>
+// =================== REPRODUCTOR ===================
+const player = {
+  queue: [],
+  idx: 0,
+  auto: true,
+  timer: null,
+  elapsed: 0,
+  totalSecs: 0,
+  tickInterval: null
+};
+
+function parseDuration(str) {
+  if (!str) return 0;
+  str = str.toString().trim();
+  if (str.includes(':')) {
+    const parts = str.split(':').map(Number);
+    if (parts.length === 2) return parts[0]*60 + parts[1];
+    if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+  }
+  const m = str.match(/(\d+)m(?:(\d+)s?)?/);
+  if (m) return parseInt(m[1])*60 + (parseInt(m[2])||0);
+  const n = parseInt(str);
+  return isNaN(n) ? 0 : n;
+}
+
+function formatTime(secs) {
+  if (!secs && secs !== 0) return '';
+  const m = Math.floor(secs/60), s = secs % 60;
+  return m + ':' + String(s).padStart(2,'0');
+}
+
+function playerLaunch(queue, startIdx) {
+  player.queue = queue;
+  player.idx = startIdx || 0;
+  playerShowBar();
+  playerPlayCurrent();
+}
+
+function playerShowBar() {
+  document.getElementById('player-bar').classList.add('visible');
+  document.body.classList.add('player-open');
+}
+
+function playerClose() {
+  clearTimeout(player.timer);
+  clearInterval(player.tickInterval);
+  document.getElementById('player-bar').classList.remove('visible');
+  document.body.classList.remove('player-open');
+  document.getElementById('player-progress-fill').style.width = '0%';
+  player.queue = [];
+}
+
+function playerUpdateUI() {
+  const t = player.queue[player.idx];
+  if (!t) return;
+  document.getElementById('player-track-name').textContent = t.nombre;
+  document.getElementById('player-artist-name').textContent = t.artista || '—';
+  const coverEl = document.getElementById('player-cover');
+  coverEl.innerHTML = t.cover
+    ? '<img src="' + t.cover + '" referrerpolicy="no-referrer">'
+    : '<div style="color:var(--border);font-size:1.2rem">&#9835;</div>';
+}
+
+function playerPlayCurrent() {
+  clearTimeout(player.timer);
+  clearInterval(player.tickInterval);
+  player.elapsed = 0;
+  document.getElementById('player-progress-fill').style.width = '0%';
+
+  const t = player.queue[player.idx];
+  if (!t) return;
+
+  playerUpdateUI();
+
+  player.totalSecs = parseDuration(t.duration);
+  const timeEl = document.getElementById('player-time-display');
+
+  if (player.totalSecs > 0) {
+    timeEl.textContent = '0:00 / ' + formatTime(player.totalSecs);
+    player.tickInterval = setInterval(function() {
+      player.elapsed++;
+      const pct = Math.min((player.elapsed / player.totalSecs) * 100, 100);
+      document.getElementById('player-progress-fill').style.width = pct + '%';
+      timeEl.textContent = formatTime(player.elapsed) + ' / ' + formatTime(player.totalSecs);
+    }, 1000);
+    if (player.auto) {
+      player.timer = setTimeout(function() { playerNext(); }, player.totalSecs * 1000);
+    }
+  } else {
+    timeEl.textContent = player.auto ? 'Sin duracion — manual' : '';
+  }
+
+  if (t.youtube) {
+    window.open(t.youtube, '_blank');
+  } else {
+    const q = encodeURIComponent((t.artista || '') + ' ' + t.nombre);
+    window.open('https://www.youtube.com/results?search_query=' + q, '_blank');
+  }
+}
+
+function playerNext() {
+  clearTimeout(player.timer);
+  clearInterval(player.tickInterval);
+  if (player.idx < player.queue.length - 1) {
+    player.idx++;
+    playerPlayCurrent();
+  } else {
+    document.getElementById('player-time-display').textContent = 'Fin de la cola';
+    document.getElementById('player-progress-fill').style.width = '100%';
+  }
+}
+
+function playerPrev() {
+  clearTimeout(player.timer);
+  clearInterval(player.tickInterval);
+  if (player.idx > 0) {
+    player.idx--;
+    playerPlayCurrent();
+  }
+}
+
+function playerToggleAuto() {
+  player.auto = !player.auto;
+  const btn = document.getElementById('player-auto-btn');
+  if (player.auto) {
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--green)';
+    if (player.totalSecs > 0 && player.elapsed < player.totalSecs) {
+      const remaining = (player.totalSecs - player.elapsed) * 1000;
+      player.timer = setTimeout(function() { playerNext(); }, remaining);
+    }
+  } else {
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--muted)';
+    clearTimeout(player.timer);
+  }
+}
+
+function playerProgressClick(e) {
+  if (!player.totalSecs) return;
+  const bar = e.currentTarget;
+  const pct = e.offsetX / bar.offsetWidth;
+  player.elapsed = Math.floor(pct * player.totalSecs);
+  clearTimeout(player.timer);
+  clearInterval(player.tickInterval);
+  document.getElementById('player-progress-fill').style.width = (pct*100) + '%';
+  document.getElementById('player-time-display').textContent = formatTime(player.elapsed) + ' / ' + formatTime(player.totalSecs);
+  // Restart tick from new position
+  player.tickInterval = setInterval(function() {
+    player.elapsed++;
+    const p2 = Math.min((player.elapsed / player.totalSecs) * 100, 100);
+    document.getElementById('player-progress-fill').style.width = p2 + '%';
+    document.getElementById('player-time-display').textContent = formatTime(player.elapsed) + ' / ' + formatTime(player.totalSecs);
+  }, 1000);
+  if (player.auto) {
+    const remaining = (player.totalSecs - player.elapsed) * 1000;
+    player.timer = setTimeout(function() { playerNext(); }, remaining);
+  }
+}
+
+function launchDiscoFromTrack(discoId, trackId) {
+  const d = state.discos.find(function(x) { return x.id === discoId; });
+  if (!d) return;
+  const startIdx = d.tracks.findIndex(function(t) { return t.id === trackId; });
+  const queue = d.tracks.slice(startIdx >= 0 ? startIdx : 0).map(function(t) {
+    return {
+      nombre: t.nombre,
+      artista: t.artista || '',
+      youtube: t.youtube || '',
+      duration: t.duration || '',
+      cover: d.cover || ''
+    };
+  });
+  playerLaunch(queue, 0);
+}
+
+// Init auto button style
+(function() {
+  var btn = document.getElementById('player-auto-btn');
+  if (btn) { btn.style.borderColor='var(--green)'; btn.style.color='var(--green)'; }
+})();
+</script>
