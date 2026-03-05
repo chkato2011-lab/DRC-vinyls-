@@ -617,7 +617,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <button class="btn btn-sm" onclick="plClearSelection()">Limpiar</button>
     </div>
   </div>
-  <table class="tracks-table" id="pl-tracks-table" style="display:none">
+  <div id="pl-tracks-wrapper" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+  <table class="tracks-table" id="pl-tracks-table" style="display:none;min-width:700px">
     <thead><tr>
       <th style="width:30px"><input type="checkbox" id="pl-chk-all" onchange="plSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
       <th style="width:34px"></th>
@@ -633,6 +634,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     </tr></thead>
     <tbody id="pl-tracks-list"></tbody>
   </table>
+  </div>
   <div id="pl-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🎚️</div><p>Agrega tracks a esta playlist</p></div></div>
 </div>
 
@@ -1943,9 +1945,9 @@ function renderPlDetail(pl){
   const tbody=document.getElementById('pl-tracks-list'),em=document.getElementById('pl-empty');
   const table=document.getElementById('pl-tracks-table');
   document.getElementById('pl-detail-count').textContent=`${pl.tracks.length} track${pl.tracks.length!==1?'s':''}`;
-  if(!pl.tracks.length){tbody.innerHTML='';table.style.display='none';em.style.display='block';updatePlBatchBar(pl);return;}
+  if(!pl.tracks.length){tbody.innerHTML='';table.style.display='none';document.getElementById('pl-tracks-wrapper').style.display='none';em.style.display='block';updatePlBatchBar(pl);return;}
   em.style.display='none';
-  table.style.display='';
+  table.style.display='';document.getElementById('pl-tracks-wrapper').style.display='';
   // Actualizar headers con sort
   table.querySelectorAll('th[onclick]').forEach(th=>{
     const col=th.getAttribute('onclick').match(/sortPlDetail\('(\w+)'\)/)?.[1];
