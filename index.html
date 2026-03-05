@@ -1645,10 +1645,6 @@ function saveTrack(){
   };
   if(editId){const idx=d.tracks.findIndex(x=>x.id===editId);d.tracks[idx]=track;}
   else d.tracks.push(track);
-        break;
-      }
-    }
-  }
   save();if(currentUser)syncToCloud(true);closeModal('modal-track');openDisco(state.currentDiscoId);updateStats();
 }
 function editTrack(discoId,trackId){state.currentDiscoId=discoId;openModalTrack(discoId,trackId);}
