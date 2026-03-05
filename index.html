@@ -321,32 +321,6 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
 
-
-/* ── REPRODUCTOR ── */
-#player-bar{position:fixed;bottom:0;left:0;width:100vw;z-index:500;background:rgba(14,14,14,.97);border-top:1px solid var(--border);backdrop-filter:blur(12px);transform:translateY(100%);transition:transform .3s ease;padding:.6rem 1rem}
-#player-bar.visible{transform:translateY(0)}
-.player-inner{display:flex;align-items:center;gap:.8rem}
-.player-cover{width:44px;height:44px;flex-shrink:0;border-radius:2px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center}
-.player-cover img{width:100%;height:100%;object-fit:cover}
-.player-info{flex:1;min-width:0}
-.player-track{font-family:var(--display);font-size:1rem;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.player-artist{font-family:var(--mono);font-size:.6rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.player-time{font-family:var(--mono);font-size:.6rem;color:var(--accent);letter-spacing:1px;margin-top:2px}
-.player-controls{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
-.player-btn{background:none;border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--mono);font-size:.8rem;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
-.player-btn:hover{border-color:var(--accent);color:var(--accent)}
-.player-btn.play-btn{background:var(--accent);border-color:var(--accent);color:#fff;width:38px;height:38px;font-size:1rem}
-.player-btn.play-btn:hover{background:#cc3000}
-.player-btn.close-btn{border-color:transparent;color:var(--muted);font-size:.7rem}
-.player-btn.close-btn:hover{border-color:var(--border);color:var(--text)}
-.player-progress{width:100%;height:2px;background:var(--border);border-radius:1px;margin-top:.4rem;overflow:hidden;cursor:pointer}
-.player-progress-fill{height:100%;background:var(--accent);width:0%;transition:width .5s linear}
-.player-auto-badge{font-family:var(--mono);font-size:.5rem;letter-spacing:1px;text-transform:uppercase;padding:1px 4px;border-radius:2px;border:1px solid var(--muted);color:var(--muted);flex-shrink:0}
-.player-auto-badge.on{border-color:var(--green);color:var(--green)}
-/* padding bottom so content doesn't hide behind player */
-body.player-open main{padding-bottom:90px}
-body.player-open .modal{max-height:calc(92vh - 80px);margin-bottom:80px}
-
 /* ── AUTH SCREEN ── */
 #auth-screen{position:fixed;inset:0;background:#0c0c0c;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem}
 .auth-box{width:100%;max-width:400px}
@@ -1402,7 +1376,7 @@ function renderDetailTracks(d){
     <td>${(t.destaque||[]).map(x=>`<span class="destaque-tag">${x}</span>`).join(' ')}</td>
     <td>${renderDots(t.intensidad)}</td>
     <td style="display:flex;gap:4px">
-      <button class="btn btn-sm" style="color:#cc0000;border-color:#440000" onclick="event.stopPropagation();launchDiscoFromTrack('${d.id}','${t.id}')" title="Reproducir desde aquí">▶</button>
+      
       <button class="btn btn-sm" onclick="editTrack('${d.id}','${t.id}')">✎</button>
       <button class="btn btn-sm btn-danger" onclick="deleteTrack('${d.id}','${t.id}')">✕</button>
     </td></tr>`;
@@ -1655,19 +1629,6 @@ function saveTrack(){
   };
   if(editId){const idx=d.tracks.findIndex(x=>x.id===editId);d.tracks[idx]=track;}
   else d.tracks.push(track);
-  // Update player queue if this track is currently loaded
-  if(player && player.queue && player.queue.length > 0) {
-    for(var _pi=0;_pi<player.queue.length;_pi++){
-      if(player.queue[_pi]._trackId===track.id){
-        player.queue[_pi].duration = extractDuration(track);
-        if(_pi===player.idx && player.totalSecs===0 && player.queue[_pi].duration){
-          player.totalSecs=parseDuration(player.queue[_pi].duration);
-          var _te=document.getElementById('player-time-display');
-          if(_te&&player.totalSecs>0){
-            _te.textContent=formatTime(player.elapsed)+' / '+formatTime(player.totalSecs);
-            if(player.auto){clearTimeout(player.timer);player.timer=setTimeout(function(){playerNext();},(player.totalSecs-player.elapsed)*1000);}
-          }
-        }
         break;
       }
     }
@@ -1774,7 +1735,7 @@ function renderAllTracks(){
       <td>${tgens.map(g=>`<span class="tag" style="color:#e03030;border-color:#e03030">${g}</span>`).join(' ')}</td>
       <td>${(t.destaque||[]).map(d=>`<span class="destaque-tag">${d}</span>`).join(' ')}</td>
       <td>${renderDots(t.intensidad)}</td>
-      <td onclick="event.stopPropagation()" style="display:flex;gap:4px"><button class="btn btn-sm" style="color:#cc0000;border-color:#440000" onclick="launchDiscoFromTrack('${t._disco.id}','${t.id}')" title="Reproducir desde aquí">▶</button><button class="btn btn-sm" onclick="editTrack('${t._disco.id}','${t.id}')">✎</button></td>
+      <td onclick="event.stopPropagation()" style="display:flex;gap:4px"><button class="btn btn-sm" onclick="editTrack('${t._disco.id}','${t.id}')">✎</button></td>
     </tr>`;
   }).join('');
   updateBatchBar();
@@ -3576,11 +3537,6 @@ function setHeaderHeight(){
 }
 setHeaderHeight();
 window.addEventListener('resize', setHeaderHeight);
-// Init player auto button
-setTimeout(()=>{
-  const btn = document.getElementById('player-auto-btn');
-  if(btn){ btn.className='player-btn player-auto-badge on'; }
-},100);
 
 // =================== ANDROID BACK BUTTON ===================
 function pushNav(state_name, params={}) {
