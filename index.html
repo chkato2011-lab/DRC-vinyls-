@@ -1981,9 +1981,9 @@ function renderPlDetail(pl){
     const sel=plSelectedTracks.has(i);
     const trackIdxInDisco=disco.tracks.findIndex(t=>t.id===track.id);
     const pos=track.position||(trackIdxInDisco>=0?String(trackIdxInDisco+1).padStart(2,'0'):'');
-    return `<tr class="${sel?'row-selected':''}" onclick="togglePlTrackRow(${i},event)">
-      <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="togglePlTrack(${i},this)"></td>
-      <td>${disco.cover?`<img src="${disco.cover}" referrerpolicy="no-referrer" style="width:34px;height:34px;object-fit:cover;border-radius:1px">`:'<div class="mini-vinyl" style="width:28px;height:28px;box-shadow:0 0 0 2px #111,0 0 0 4px #222"></div>'}</td>
+    return `<tr class="${sel?'row-selected':''}">
+      <td><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="togglePlTrack(${i},this)"></td>
+      <td onclick="openDisco('${disco.id}')" style="cursor:pointer" title="Ver disco">${disco.cover?`<img src="${disco.cover}" referrerpolicy="no-referrer" style="width:34px;height:34px;object-fit:cover;border-radius:1px">`:'<div class="mini-vinyl" style="width:28px;height:28px;box-shadow:0 0 0 2px #111,0 0 0 4px #222"></div>'}</td>
       <td style="font-family:var(--mono);font-size:.7rem;color:var(--muted);white-space:nowrap">${pos}</td>
       <td>${track.youtube?`<a class="yt-link" href="${track.youtube}" target="_blank" onclick="event.stopPropagation()">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
       <td style="font-weight:600">${track.nombre}</td>
@@ -1999,10 +1999,7 @@ function renderPlDetail(pl){
   updatePlBatchBar(pl);
 }
 
-function togglePlTrackRow(i, e){
-  const chk=e.currentTarget.querySelector('input[type=checkbox]');
-  if(chk&&e.target!==chk){chk.checked=!chk.checked;togglePlTrack(i,chk);}
-}
+
 
 function togglePlTrack(idx, chk){
   if(chk.checked) plSelectedTracks.add(idx); else plSelectedTracks.delete(idx);
