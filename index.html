@@ -1979,7 +1979,8 @@ function renderPlDetail(pl){
     const dests=track.destaque||[];
     const genres=(Array.isArray(track.genero)?track.genero:[track.genero].filter(Boolean));
     const sel=plSelectedTracks.has(i);
-    const pos=track.position||'';
+    const trackIdxInDisco=disco.tracks.findIndex(t=>t.id===track.id);
+    const pos=track.position||(trackIdxInDisco>=0?String(trackIdxInDisco+1).padStart(2,'0'):'');
     return `<tr class="${sel?'row-selected':''}" onclick="togglePlTrackRow(${i},event)">
       <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="togglePlTrack(${i},this)"></td>
       <td>${disco.cover?`<img src="${disco.cover}" referrerpolicy="no-referrer" style="width:34px;height:34px;object-fit:cover;border-radius:1px">`:'<div class="mini-vinyl" style="width:28px;height:28px;box-shadow:0 0 0 2px #111,0 0 0 4px #222"></div>'}</td>
