@@ -622,6 +622,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <thead><tr>
       <th style="width:30px"><input type="checkbox" id="pl-chk-all" onchange="plSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
       <th style="width:34px"></th>
+      <th style="width:40px">#</th>
       <th style="width:40px">YT</th>
       <th onclick="sortPlDetail('nombre')">Nombre</th>
       <th onclick="sortPlDetail('artista')">Artista</th>
@@ -1978,9 +1979,11 @@ function renderPlDetail(pl){
     const dests=track.destaque||[];
     const genres=(Array.isArray(track.genero)?track.genero:[track.genero].filter(Boolean));
     const sel=plSelectedTracks.has(i);
+    const pos=track.position||'';
     return `<tr class="${sel?'row-selected':''}" onclick="togglePlTrackRow(${i},event)">
       <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="togglePlTrack(${i},this)"></td>
       <td>${disco.cover?`<img src="${disco.cover}" referrerpolicy="no-referrer" style="width:34px;height:34px;object-fit:cover;border-radius:1px">`:'<div class="mini-vinyl" style="width:28px;height:28px;box-shadow:0 0 0 2px #111,0 0 0 4px #222"></div>'}</td>
+      <td style="font-family:var(--mono);font-size:.7rem;color:var(--muted);white-space:nowrap">${pos}</td>
       <td>${track.youtube?`<a class="yt-link" href="${track.youtube}" target="_blank" onclick="event.stopPropagation()">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
       <td style="font-weight:600">${track.nombre}</td>
       <td style="color:var(--muted);font-size:.82rem">${track.artista||'—'}</td>
