@@ -1288,13 +1288,14 @@ function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
-  const m={discos:0,tracks:1,playlists:2,import:3};
+  const m={discos:0,tracks:1,playlists:2,import:3,admin:4};
   if(m[name]!==undefined) document.querySelectorAll('.nav-btn')[m[name]].classList.add('active');
   pushNav(name);
   if(name==='discos'){ renderDiscos(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(state.currentDiscoId){ const row=document.querySelector(`tr[onclick*="'${state.currentDiscoId}'"]`); if(row) row.scrollIntoView({block:'center',behavior:'instant'}); } })); }
   if(name==='tracks'){updateAllTrackFilters();renderAllTracks();}
   if(name==='playlists') renderPlaylists();
   if(name==='import') initDiscogsTab();
+  if(name==='admin') loadAdminData();
   updateStats(); closeExportMenus();
 }
 
@@ -3848,12 +3849,7 @@ async function adminSetPlan(userId, plan) {
   loadAdminData();
 }
 
-// Cargar datos admin al entrar a la vista
-const _origShowView = showView;
-function showView(name) {
-  _origShowView(name);
-  if (name === 'admin') loadAdminData();
-}
+
 </script>
 </body>
 </html>
