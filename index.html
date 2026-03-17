@@ -642,6 +642,51 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 
 <!-- MODAL UPGRADE -->
+
+<!-- MODAL BIENVENIDA / ELEGIR PLAN -->
+<div class="modal-overlay" id="modal-welcome" style="z-index:400;display:none">
+  <div class="modal" style="max-width:520px;text-align:center">
+    <div style="font-family:var(--display);font-size:2.5rem;letter-spacing:6px;margin-bottom:.3rem">DIS<span style="color:var(--accent)">C</span></div>
+    <div class="modal-title" style="font-size:1.2rem;margin-bottom:.4rem">BIENVENIDO</div>
+    <p style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:1.8rem;line-height:1.7">Tu colección de vinilos, siempre con vos.<br>Elegí el plan que mejor se adapta.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem">
+
+      <!-- TRIAL -->
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:1.2rem 1.2rem;min-width:140px;flex:1">
+        <div style="font-family:var(--display);font-size:1.3rem;letter-spacing:2px;margin-bottom:.3rem">TRIAL</div>
+        <div style="font-family:var(--mono);font-size:.9rem;color:var(--muted);margin-bottom:.4rem">Gratis</div>
+        <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-bottom:.9rem;line-height:1.6">Hasta 5 discos<br>Sin límite de tracks</div>
+        <button class="btn btn-sm" style="width:100%" onclick="choosePlan('trial')">EMPEZAR GRATIS</button>
+      </div>
+
+      <!-- MENSUAL -->
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:1.2rem 1.2rem;min-width:140px;flex:1">
+        <div style="font-family:var(--display);font-size:1.3rem;letter-spacing:2px;margin-bottom:.3rem">MENSUAL</div>
+        <div style="font-family:var(--mono);font-size:.9rem;color:var(--accent);margin-bottom:.4rem">U$S 10 / mes</div>
+        <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-bottom:.9rem;line-height:1.6">Discos ilimitados<br>Sync en la nube</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem">
+          <button class="btn btn-primary btn-sm" onclick="choosePlan('monthly','mp')">MercadoPago</button>
+          <button class="btn btn-blue btn-sm" onclick="choosePlan('monthly','pp')">PayPal</button>
+        </div>
+      </div>
+
+      <!-- ANUAL -->
+      <div style="background:var(--bg3);border:1px solid var(--accent2);border-radius:2px;padding:1.2rem 1.2rem;min-width:140px;flex:1;position:relative">
+        <div style="position:absolute;top:-.6rem;left:50%;transform:translateX(-50%);background:var(--accent2);color:#000;font-family:var(--mono);font-size:.5rem;padding:2px 8px;border-radius:10px;white-space:nowrap;font-weight:700">AHORRÁS 17%</div>
+        <div style="font-family:var(--display);font-size:1.3rem;letter-spacing:2px;margin-bottom:.3rem">ANUAL</div>
+        <div style="font-family:var(--mono);font-size:.9rem;color:var(--accent2);margin-bottom:.4rem">U$S 100 / año</div>
+        <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-bottom:.9rem;line-height:1.6">Discos ilimitados<br>Sync en la nube</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem">
+          <button class="btn btn-primary btn-sm" onclick="choosePlan('annual','mp')">MercadoPago</button>
+          <button class="btn btn-blue btn-sm" onclick="choosePlan('annual','pp')">PayPal</button>
+        </div>
+      </div>
+
+    </div>
+    <div id="welcome-msg" style="font-family:var(--mono);font-size:.65rem;color:var(--muted);min-height:1rem"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-upgrade" style="z-index:300">
   <div class="modal" style="max-width:480px;text-align:center">
     <div class="modal-title" style="font-size:1.4rem;margin-bottom:.5rem">ACTUALIZÁ TU PLAN</div>
@@ -3466,6 +3511,8 @@ async function authRegister() {
   btn.disabled = false; btn.textContent = 'CREAR CUENTA';
   if (error) { showAuthMsg('auth-register-msg', tradError(error.message)); return; }
   showAuthMsg('auth-register-msg', '✓ Cuenta creada — revisá tu email para confirmar', 'success');
+  // Guardar email para crear suscripción después del login
+  sessionStorage.setItem('new_user_email', email);
 }
 
 async function authForgotPassword() {
@@ -3523,9 +3570,20 @@ async function onUserLoggedIn() {
   const { data: profile } = await supa.from('profiles').select('*').eq('id', currentUser.id).single();
 
   // Load subscription
-  const { data: subData } = await supa.from('subscriptions')
+  const { data: subData, error: subError } = await supa.from('subscriptions')
     .select('*').eq('user_id', currentUser.id).single();
   currentSubscription = subData || null;
+
+  // Si no tiene suscripción → mostrar modal de bienvenida para elegir plan
+  if (!currentSubscription) {
+    // Ocultar auth screen primero
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('login-btn').style.display = 'none';
+    await loadFromCloud();
+    renderDiscos(); updateStats();
+    document.getElementById('modal-welcome').style.display = 'flex';
+    return; // El modal de bienvenida va a completar el flujo
+  }
 
   // Update header badge
   const badge = document.getElementById('user-badge');
@@ -3743,6 +3801,66 @@ const PLANS = {
   monthly: { mp_price: 10, paypal_price: '10.00', label: 'Mensual U$S 10/mes' },
   annual:  { mp_price: 100, paypal_price: '100.00', label: 'Anual U$S 100/año' }
 };
+
+async function choosePlan(plan, gateway) {
+  if (!currentUser) return;
+  const msgEl = document.getElementById('welcome-msg');
+  if (msgEl) msgEl.textContent = 'Procesando...';
+
+  if (plan === 'trial') {
+    // Crear fila trial en subscriptions
+    const { error } = await supa.from('subscriptions').insert({
+      user_id: currentUser.id,
+      email: currentUser.email,
+      plan: 'trial',
+      status: 'active',
+      expires_at: null
+    });
+    if (error && !error.message.includes('duplicate')) {
+      if (msgEl) msgEl.textContent = 'Error: ' + error.message;
+      return;
+    }
+    currentSubscription = { plan: 'trial', status: 'active', expires_at: null };
+    updatePlanBadge();
+    document.getElementById('modal-welcome').style.display = 'none';
+    sessionStorage.removeItem('new_user_email');
+    return;
+  }
+
+  // Para planes de pago: primero crear fila pending, luego redirigir al pago
+  const { error } = await supa.from('subscriptions').insert({
+    user_id: currentUser.id,
+    email: currentUser.email,
+    plan: 'trial', // empieza como trial hasta que se confirme el pago
+    status: 'active',
+    expires_at: null
+  });
+  // Ignorar error de duplicate key (ya existe)
+
+  currentSubscription = { plan: 'trial', status: 'active', expires_at: null };
+  updatePlanBadge();
+  document.getElementById('modal-welcome').style.display = 'none';
+  sessionStorage.removeItem('new_user_email');
+
+  // Redirigir al flujo de pago
+  if (gateway === 'mp') subscribeMercadoPago(plan);
+  else if (gateway === 'pp') subscribePayPal(plan);
+}
+
+function updatePlanBadge() {
+  const planTag = document.getElementById('user-plan-tag');
+  if (!planTag) return;
+  const plan = getUserPlan();
+  if (plan === 'admin') {
+    planTag.textContent = 'ADMIN'; planTag.className = 'plan-tag active';
+  } else if (plan === 'monthly' || plan === 'annual') {
+    planTag.textContent = 'PRO'; planTag.className = 'plan-tag active';
+  } else {
+    planTag.textContent = 'FREE'; planTag.className = 'plan-tag free';
+  }
+  const adminNav = document.getElementById('nav-admin');
+  if (adminNav) adminNav.style.display = plan === 'admin' ? '' : 'none';
+}
 
 function showUpgradeModal() {
   document.getElementById('modal-upgrade').style.display = 'flex';
