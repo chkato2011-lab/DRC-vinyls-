@@ -3572,17 +3572,24 @@ async function onUserLoggedIn() {
   // Load subscription
   const { data: subData, error: subError } = await supa.from('subscriptions')
     .select('*').eq('user_id', currentUser.id).single();
-  currentSubscription = subData || null;
 
-  // Si no tiene suscripción → mostrar modal de bienvenida para elegir plan
-  if (!currentSubscription) {
-    // Ocultar auth screen primero
+  if (subError && subError.code !== 'PGRST116') {
+    // Error de red u otro — no interrumpir el flujo, asumir trial
+    currentSubscription = null;
+  } else {
+    currentSubscription = subData || null;
+  }
+
+  // Mostrar modal de bienvenida SOLO si no existe ninguna fila para este usuario
+  // (PGRST116 = no rows found = usuario nunca eligió plan)
+  const isNewUser = !subData && subError?.code === 'PGRST116';
+  if (isNewUser) {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('login-btn').style.display = 'none';
     await loadFromCloud();
     renderDiscos(); updateStats();
     document.getElementById('modal-welcome').style.display = 'flex';
-    return; // El modal de bienvenida va a completar el flujo
+    return;
   }
 
   // Update header badge
