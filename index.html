@@ -426,6 +426,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   <button class="nav-btn" onclick="showView('tracks')">Tracks</button>
   <button class="nav-btn" onclick="showView('playlists')">Playlists</button>
   <button class="nav-btn" onclick="showView('import')" style="color:var(--green)">Importar</button>
+  <button class="nav-btn" id="nav-admin" style="display:none;color:var(--accent2)" onclick="showView('admin')">Admin</button>
   <div class="nav-backup">
     <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">💾</button>
     <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">📂</label>
@@ -637,6 +638,61 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   </table>
   </div>
   <div id="pl-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🎚️</div><p>Agrega tracks a esta playlist</p></div></div>
+</div>
+
+
+<!-- MODAL UPGRADE -->
+<div class="modal-overlay" id="modal-upgrade" style="z-index:300">
+  <div class="modal" style="max-width:480px;text-align:center">
+    <div class="modal-title" style="font-size:1.4rem;margin-bottom:.5rem">ACTUALIZÁ TU PLAN</div>
+    <p style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:1.5rem">Alcanzaste el límite de 5 discos del plan gratuito.<br>Suscribite para coleccionar sin límites.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:1.2rem 1.5rem;min-width:160px">
+        <div style="font-family:var(--display);font-size:1.4rem;letter-spacing:2px;margin-bottom:.3rem">MENSUAL</div>
+        <div style="font-family:var(--mono);font-size:1.1rem;color:var(--accent);margin-bottom:.8rem">U$S 10 / mes</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <button class="btn btn-primary btn-sm" onclick="subscribeMercadoPago('monthly')">MercadoPago</button>
+          <button class="btn btn-blue btn-sm" onclick="subscribePayPal('monthly')">PayPal</button>
+        </div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--accent2);border-radius:2px;padding:1.2rem 1.5rem;min-width:160px;position:relative">
+        <div style="position:absolute;top:-.6rem;left:50%;transform:translateX(-50%);background:var(--accent2);color:#000;font-family:var(--mono);font-size:.55rem;padding:2px 8px;border-radius:10px;white-space:nowrap">AHORRÁS 17%</div>
+        <div style="font-family:var(--display);font-size:1.4rem;letter-spacing:2px;margin-bottom:.3rem">ANUAL</div>
+        <div style="font-family:var(--mono);font-size:1.1rem;color:var(--accent2);margin-bottom:.8rem">U$S 100 / año</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <button class="btn btn-primary btn-sm" onclick="subscribeMercadoPago('annual')">MercadoPago</button>
+          <button class="btn btn-blue btn-sm" onclick="subscribePayPal('annual')">PayPal</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-sm" onclick="closeModal('modal-upgrade')">Cerrar</button>
+  </div>
+</div>
+
+<!-- VISTA ADMIN -->
+<div class="view" id="view-admin">
+  <div class="section-header">
+    <div class="section-title"><small>// panel</small>ADMIN</div>
+    <button class="btn btn-sm" onclick="loadAdminData()">↻ Actualizar</button>
+  </div>
+  <div style="margin-bottom:2rem">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// usuarios</div>
+    <div style="overflow-x:auto">
+      <table class="tracks-table" id="admin-users-table">
+        <thead><tr>
+          <th>Email</th>
+          <th>Plan</th>
+          <th>Estado</th>
+          <th>Vence</th>
+          <th>MP ID</th>
+          <th>PP ID</th>
+          <th>Creado</th>
+          <th>Acciones</th>
+        </tr></thead>
+        <tbody id="admin-users-body"><tr><td colspan="8" style="color:var(--muted);text-align:center">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- IMPORT -->
@@ -1530,13 +1586,14 @@ function previewCover(input){
   };r.readAsDataURL(f);
 }
 function saveDisco(){
+  const editId=document.getElementById('disco-edit-id').value;
+  if(!editId && !canAddDisco()){showUpgradeModal();return;}
   const nombre=document.getElementById('disco-nombre').value.trim();
   if(!nombre){alert('El nombre es obligatorio');return;}
   const sello=document.getElementById('disco-sello').value.trim();
   const codigo=document.getElementById('disco-codigo').value.trim();
   const released=document.getElementById('disco-released').value.trim();
   const genero=getChecklistValue('disco-genero-cl');
-  const editId=document.getElementById('disco-edit-id').value;
   if(codigo && codigoExiste(codigo, editId||null)){
     const dup=state.discos.find(d=>d.id!==(editId||null)&&d.codigo&&d.codigo.trim().toLowerCase()===codigo.trim().toLowerCase());
     if(!confirm(`⚠️ Ya existe un disco con el código "${codigo}":\n"${dup?.nombre}"\n\n¿Guardás de todas formas?`))return;
@@ -2478,6 +2535,7 @@ async function startBulkImport() {
       const disco = await buildDiscoFromRelease(rel, token);
       // Override released with CSV value if available and API didn't return one
       if (!disco.released && row.released) disco.released = row.released;
+      if (!canAddDisco()) { addBulkLog(row, 'error', '✕ Límite de discos alcanzado · Actualizá tu plan'); skipped++; continue; }
       state.discos.push(disco);
       save(); updateStats();
       checkpointBatch.push(disco);
@@ -3330,6 +3388,7 @@ async function importFromDiscogs() {
     });
   }
 
+  if (!canAddDisco()) { showUpgradeModal(); return; }
   state.discos.push(disco);
   save(); updateStats();
 
@@ -3350,6 +3409,19 @@ const SUPA_KEY = 'sb_publishable__lj6jvZG3omxTbcjsqUvxw_afFyIrnY';
 const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 let currentUser = null;
+let currentSubscription = null; // {plan, status, expires_at}
+
+function getUserPlan() {
+  if (!currentSubscription) return 'trial';
+  return currentSubscription.plan || 'trial';
+}
+
+function canAddDisco() {
+  const plan = getUserPlan();
+  if (plan === 'admin' || plan === 'monthly' || plan === 'annual') return true;
+  // trial: max 5 discos
+  return state.discos.length < 5;
+}
 let syncTimeout = null;
 
 // ── Auth UI ───────────────────────────────────────────────────────────────
@@ -3449,15 +3521,31 @@ async function onUserLoggedIn() {
   // Load profile
   const { data: profile } = await supa.from('profiles').select('*').eq('id', currentUser.id).single();
 
+  // Load subscription
+  const { data: subData } = await supa.from('subscriptions')
+    .select('*').eq('user_id', currentUser.id).single();
+  currentSubscription = subData || null;
+
   // Update header badge
   const badge = document.getElementById('user-badge');
   badge.style.display = 'flex';
   const name = profile?.display_name || currentUser.email.split('@')[0];
   document.getElementById('user-email-label').textContent = name;
   const planTag = document.getElementById('user-plan-tag');
-  const plan = profile?.plan || 'free';
-  planTag.textContent = plan;
-  planTag.className = 'plan-tag ' + (plan==='active' ? 'active' : 'free');
+  const plan = getUserPlan();
+  if (plan === 'admin') {
+    planTag.textContent = 'ADMIN';
+    planTag.className = 'plan-tag active';
+  } else if (plan === 'monthly' || plan === 'annual') {
+    planTag.textContent = 'PRO';
+    planTag.className = 'plan-tag active';
+  } else {
+    planTag.textContent = 'FREE';
+    planTag.className = 'plan-tag free';
+  }
+  // Mostrar panel admin si corresponde
+  const adminNav = document.getElementById('nav-admin');
+  if (adminNav) adminNav.style.display = plan === 'admin' ? '' : 'none';
 
   // Load collection from cloud
   await loadFromCloud();
@@ -3641,5 +3729,131 @@ if ('serviceWorker' in navigator) {
 
 
 
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// SUBSCRIPCIONES — MercadoPago + PayPal
+// ══════════════════════════════════════════════════════════════════
+
+const MP_PUBLIC_KEY = 'TEST-0c1f82db-3638-4528-9cf6-a4a9fc96d17b';
+const PAYPAL_CLIENT_ID = 'Af-JuTwmkDZPDE1GmqV9MvVo90plDdSowIam0oN6WMv2dvNOj_PifrUMij6BzN7L9uG_y78S7KvfrqvD';
+
+const PLANS = {
+  monthly: { mp_price: 10, paypal_price: '10.00', label: 'Mensual U$S 10/mes' },
+  annual:  { mp_price: 100, paypal_price: '100.00', label: 'Anual U$S 100/año' }
+};
+
+function showUpgradeModal() {
+  document.getElementById('modal-upgrade').style.display = 'flex';
+}
+
+// ── MercadoPago ────────────────────────────────────────────────────
+async function subscribeMercadoPago(plan) {
+  if (!currentUser) return;
+  const p = PLANS[plan];
+  // Crear preferencia de pago via Supabase Edge Function
+  try {
+    const res = await fetch(`${SUPA_URL}/functions/v1/mp-subscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${(await supa.auth.getSession()).data.session.access_token}`
+      },
+      body: JSON.stringify({ plan, user_id: currentUser.id, email: currentUser.email })
+    });
+    const data = await res.json();
+    if (data.init_point) {
+      window.open(data.init_point, '_blank');
+    } else {
+      alert('Error al crear el pago: ' + (data.error || 'desconocido'));
+    }
+  } catch(e) {
+    alert('Error de conexión: ' + e.message);
+  }
+}
+
+// ── PayPal ────────────────────────────────────────────────────────
+async function subscribePayPal(plan) {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${SUPA_URL}/functions/v1/pp-subscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${(await supa.auth.getSession()).data.session.access_token}`
+      },
+      body: JSON.stringify({ plan, user_id: currentUser.id, email: currentUser.email })
+    });
+    const data = await res.json();
+    if (data.approval_url) {
+      window.open(data.approval_url, '_blank');
+    } else {
+      alert('Error al crear el pago PayPal: ' + (data.error || 'desconocido'));
+    }
+  } catch(e) {
+    alert('Error de conexión: ' + e.message);
+  }
+}
+
+// ── Admin panel ───────────────────────────────────────────────────
+async function loadAdminData() {
+  if (getUserPlan() !== 'admin') return;
+  const tbody = document.getElementById('admin-users-body');
+  tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center">Cargando...</td></tr>';
+
+  // Necesitamos usar service_role key para ver todos los usuarios
+  // Por ahora mostramos solo la tabla subscriptions (con RLS admin policy)
+  const { data, error } = await supa.from('subscriptions').select('*').order('created_at', {ascending:false});
+
+  if (error || !data) {
+    tbody.innerHTML = `<tr><td colspan="8" style="color:var(--accent)">Error: ${error?.message || 'sin datos'}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(s => `
+    <tr>
+      <td style="font-size:.78rem">${s.email || '—'}</td>
+      <td><span class="tag ${s.plan==='admin'||s.plan==='monthly'||s.plan==='annual'?'green':'accent'}">${s.plan}</span></td>
+      <td><span class="tag ${s.status==='active'?'green':'accent'}">${s.status}</span></td>
+      <td style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">${s.expires_at ? new Date(s.expires_at).toLocaleDateString() : '∞'}</td>
+      <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis">${s.mp_subscription_id||'—'}</td>
+      <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis">${s.paypal_subscription_id||'—'}</td>
+      <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted)">${new Date(s.created_at).toLocaleDateString()}</td>
+      <td>
+        <select style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.6rem;padding:2px 4px;border-radius:2px" onchange="adminSetPlan('${s.user_id}', this.value)">
+          <option value="">Cambiar plan</option>
+          <option value="trial">trial</option>
+          <option value="monthly">monthly</option>
+          <option value="annual">annual</option>
+          <option value="admin">admin</option>
+        </select>
+      </td>
+    </tr>`).join('');
+}
+
+async function adminSetPlan(userId, plan) {
+  if (!plan || getUserPlan() !== 'admin') return;
+  const expires = plan === 'monthly'
+    ? new Date(Date.now() + 30*24*60*60*1000).toISOString()
+    : plan === 'annual'
+    ? new Date(Date.now() + 365*24*60*60*1000).toISOString()
+    : null;
+
+  const { error } = await supa.from('subscriptions')
+    .update({ plan, status: 'active', expires_at: expires, updated_at: new Date().toISOString() })
+    .eq('user_id', userId);
+
+  if (error) { alert('Error: ' + error.message); return; }
+  alert('Plan actualizado correctamente');
+  loadAdminData();
+}
+
+// Cargar datos admin al entrar a la vista
+const _origShowView = showView;
+function showView(name) {
+  _origShowView(name);
+  if (name === 'admin') loadAdminData();
+}
+</script>
 </body>
 </html>
