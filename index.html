@@ -3944,7 +3944,7 @@ async function loadAdminData() {
       <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis">${s.mp_subscription_id||'—'}</td>
       <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis">${s.paypal_subscription_id||'—'}</td>
       <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted)">${new Date(s.created_at).toLocaleDateString()}</td>
-      <td>
+      <td style="display:flex;gap:4px;align-items:center">
         <select style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.6rem;padding:2px 4px;border-radius:2px" onchange="adminSetPlan('${s.user_id}', this.value)">
           <option value="">Cambiar plan</option>
           <option value="trial">trial</option>
@@ -3952,8 +3952,19 @@ async function loadAdminData() {
           <option value="annual">annual</option>
           <option value="admin">admin</option>
         </select>
+        <button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${s.user_id}','${s.email}')" title="Eliminar usuario" style="padding:.2rem .5rem;font-size:.65rem">✕</button>
       </td>
     </tr>`).join('');
+}
+
+async function adminDeleteUser(userId, email) {
+  if (getUserPlan() !== 'admin') return;
+  if (userId === currentUser.id) { alert('No podés eliminar tu propio usuario'); return; }
+  if (!confirm(`¿Eliminar el usuario ${email}?\nEsto borrará su cuenta y suscripción permanentemente.`)) return;
+  const { error } = await supa.rpc('admin_delete_user', { target_user_id: userId });
+  if (error) { alert('Error: ' + error.message); return; }
+  alert(`✓ Usuario ${email} eliminado`);
+  loadAdminData();
 }
 
 async function adminSetPlan(userId, plan) {
