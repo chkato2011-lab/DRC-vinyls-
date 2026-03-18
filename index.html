@@ -684,6 +684,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
     </div>
     <div id="welcome-msg" style="font-family:var(--mono);font-size:.65rem;color:var(--muted);min-height:1rem"></div>
+    <div id="welcome-skip-wrap" style="margin-top:.8rem"></div>
   </div>
 </div>
 
@@ -3583,11 +3584,23 @@ async function onUserLoggedIn() {
   // Mostrar modal de bienvenida SOLO si no existe ninguna fila para este usuario
   // (PGRST116 = no rows found = usuario nunca eligió plan)
   const isNewUser = !subData && subError?.code === 'PGRST116';
-  if (isNewUser) {
+  const isTrial = subData?.plan === 'trial';
+
+  if (isNewUser || isTrial) {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('login-btn').style.display = 'none';
     await loadFromCloud();
     renderDiscos(); updateStats();
+    // Si ya tiene plan trial (no es nuevo) mostrar botón para saltear
+    const skipWrap = document.getElementById('welcome-skip-wrap');
+    if (skipWrap) {
+      if (isTrial) {
+        const remaining = 5 - state.discos.length;
+        skipWrap.innerHTML = `<button class="btn btn-sm" style="color:var(--muted);border-color:var(--border)" onclick="document.getElementById('modal-welcome').style.display='none'">Continuar con plan gratuito · ${Math.max(0,remaining)} disco${remaining!==1?'s':''} disponible${remaining!==1?'s':''}</button>`;
+      } else {
+        skipWrap.innerHTML = '';
+      }
+    }
     document.getElementById('modal-welcome').style.display = 'flex';
     return;
   }
