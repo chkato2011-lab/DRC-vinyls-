@@ -3900,11 +3900,13 @@ async function subscribeMercadoPago(plan) {
       },
       body: JSON.stringify({ plan, user_id: currentUser.id, email: currentUser.email })
     });
-    const data = await res.json();
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { data = { error: text }; }
     if (data.init_point) {
       window.open(data.init_point, '_blank');
     } else {
-      alert('Error al crear el pago: ' + (data.error || 'desconocido'));
+      alert('Error MP [' + res.status + ']: ' + (data.error || text || 'desconocido'));
     }
   } catch(e) {
     alert('Error de conexión: ' + e.message);
