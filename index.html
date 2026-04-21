@@ -3889,28 +3889,13 @@ function showUpgradeModal() {
 // ── MercadoPago ────────────────────────────────────────────────────
 async function subscribeMercadoPago(plan) {
   if (!currentUser) return;
-  const p = PLANS[plan];
-  // Crear preferencia de pago via Supabase Edge Function
-  try {
-    const res = await fetch(`${SUPA_URL}/functions/v1/mp-subscribe`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(await supa.auth.getSession()).data.session.access_token}`
-      },
-      body: JSON.stringify({ plan, user_id: currentUser.id, email: currentUser.email })
-    });
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch(e) { data = { error: text }; }
-    if (data.init_point) {
-      window.open(data.init_point, '_blank');
-    } else {
-      alert('Error MP [' + res.status + ']: ' + (data.error || text || 'desconocido'));
-    }
-  } catch(e) {
-    alert('Error de conexión: ' + e.message);
-  }
+  const MP_PLAN_URLS = {
+    monthly: 'https://www.mercadopago.com.uy/subscriptions/checkout?preapproval_plan_id=fc404c1a82364b76bb07d3d92e84fc10',
+    annual:  'https://www.mercadopago.com.uy/subscriptions/checkout?preapproval_plan_id=320b009c8a434b55a38b2feee97dbddb'
+  };
+  const url = MP_PLAN_URLS[plan];
+  if (!url) return;
+  window.open(url, '_blank');
 }
 
 // ── PayPal ────────────────────────────────────────────────────────
