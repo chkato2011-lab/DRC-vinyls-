@@ -386,15 +386,29 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <!-- Register -->
     <div id="auth-panel-register" style="display:none">
       <div class="auth-field">
-        <label class="auth-label">Nombre</label>
-        <input class="auth-input" id="auth-name" type="text" placeholder="Tu nombre" autocomplete="name">
+        <label class="auth-label">Usuario *</label>
+        <input class="auth-input" id="auth-username" type="text" placeholder="Ej: dj_kato" autocomplete="username">
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <div class="auth-field" style="flex:1">
+          <label class="auth-label">Nombre *</label>
+          <input class="auth-input" id="auth-firstname" type="text" placeholder="Tu nombre" autocomplete="given-name">
+        </div>
+        <div class="auth-field" style="flex:1">
+          <label class="auth-label">Apellido *</label>
+          <input class="auth-input" id="auth-lastname" type="text" placeholder="Tu apellido" autocomplete="family-name">
+        </div>
       </div>
       <div class="auth-field">
-        <label class="auth-label">Email</label>
+        <label class="auth-label">País *</label>
+        <input class="auth-input" id="auth-country" type="text" placeholder="Ej: Uruguay" autocomplete="country-name">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Email *</label>
         <input class="auth-input" id="auth-email-reg" type="email" placeholder="tu@email.com" autocomplete="email">
       </div>
       <div class="auth-field">
-        <label class="auth-label">Contraseña</label>
+        <label class="auth-label">Contraseña *</label>
         <input class="auth-input" id="auth-pass-reg" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
       </div>
       <button class="auth-btn" onclick="authRegister()" id="auth-register-btn">CREAR CUENTA</button>
@@ -444,6 +458,15 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <select class="filter-select" id="filter-genero" onchange="renderDiscos()"><option value="">Género 1: todos</option></select>
       <select class="filter-select" id="filter-genero2" onchange="renderDiscos()"><option value="">Género 2: todos</option></select>
       <select class="filter-select" id="filter-sello" onchange="renderDiscos()"><option value="">Sello: todos</option></select>
+      <select class="filter-select" id="disco-sort" onchange="renderDiscos()">
+        <option value="">Orden: por defecto</option>
+        <option value="nombre_asc">Nombre A-Z</option>
+        <option value="nombre_desc">Nombre Z-A</option>
+        <option value="sello_asc">Sello A-Z</option>
+        <option value="sello_desc">Sello Z-A</option>
+        <option value="added_desc">Más recientes</option>
+        <option value="added_asc">Más antiguos</option>
+      </select>
       <input type="text" class="search-input" id="search-discos" placeholder="Buscar disco, código o artista..." oninput="renderDiscos()">
       <div class="view-toggle">
         <button class="vt-btn" id="vt-grid" onclick="setDiscosView('grid')" title="Grilla" style="font-size:.9rem">▣</button>
@@ -726,16 +749,18 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <div style="overflow-x:auto">
       <table class="tracks-table" id="admin-users-table">
         <thead><tr>
+          <th onclick="sortAdmin('username')" style="cursor:pointer">Usuario</th>
+          <th onclick="sortAdmin('first_name')" style="cursor:pointer">Nombre</th>
+          <th onclick="sortAdmin('last_name')" style="cursor:pointer">Apellido</th>
+          <th onclick="sortAdmin('country')" style="cursor:pointer">País</th>
           <th>Email</th>
-          <th>Plan</th>
+          <th onclick="sortAdmin('plan')" style="cursor:pointer">Plan</th>
           <th>Estado</th>
+          <th onclick="sortAdmin('created_at')" style="cursor:pointer">Registro</th>
           <th>Vence</th>
-          <th>MP ID</th>
-          <th>PP ID</th>
-          <th>Creado</th>
           <th>Acciones</th>
         </tr></thead>
-        <tbody id="admin-users-body"><tr><td colspan="8" style="color:var(--muted);text-align:center">Cargando...</td></tr></tbody>
+        <tbody id="admin-users-body"><tr><td colspan="10" style="color:var(--muted);text-align:center">Cargando...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1368,14 +1393,27 @@ function renderDiscos(){
   updateSelect('filter-genero',gens,'Género 1: todos',gf);
   updateSelect('filter-genero2',gens,'Género 2: todos',gf2);
   updateSelect('filter-sello',sell,'Sello: todos',sf);
+  const sortVal = document.getElementById('disco-sort')?.value || '';
   let f=state.discos.filter(d=>{
     const dgens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
-    if(gf&&!dgens.includes(gf))return false;
-    if(gf2&&!dgens.includes(gf2))return false;
+    if(gf&&gf2){if(!dgens.includes(gf)&&!dgens.includes(gf2))return false;}
+    else if(gf&&!dgens.includes(gf))return false;
+    else if(gf2&&!dgens.includes(gf2))return false;
     if(sf&&d.sello!==sf)return false;
     if(s&&!d.nombre.toLowerCase().includes(s)&&!d.sello?.toLowerCase().includes(s)&&!d.codigo?.toLowerCase().includes(s)&&!d.tracks.some(t=>t.artista?.toLowerCase().includes(s)))return false;
     return true;
   });
+  if(sortVal){
+    f.sort((a,b)=>{
+      if(sortVal==='nombre_asc') return (a.nombre||'').localeCompare(b.nombre||'');
+      if(sortVal==='nombre_desc') return (b.nombre||'').localeCompare(a.nombre||'');
+      if(sortVal==='sello_asc') return (a.sello||'').localeCompare(b.sello||'');
+      if(sortVal==='sello_desc') return (b.sello||'').localeCompare(a.sello||'');
+      if(sortVal==='added_desc') return new Date(b.added_at||0) - new Date(a.added_at||0);
+      if(sortVal==='added_asc') return new Date(a.added_at||0) - new Date(b.added_at||0);
+      return 0;
+    });
+  }
   const c=document.getElementById('disk-container');
   if(!f.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">🎛️</div><p>${state.discos.length===0?'Agrega tu primer disco':'Sin resultados'}</p></div>`;return;}
   const genTag=d=>{const g=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);return g.map(x=>`<span class="tag accent">${x}</span>`).join('');};
@@ -1649,7 +1687,7 @@ function saveDisco(){
     const d=state.discos.find(x=>x.id===editId);
     d.nombre=nombre;d.sello=sello;d.genero=genero;d.codigo=codigo;d.released=released;
     if(state.coverData)d.cover=state.coverData;
-  } else state.discos.push({id:genId(),nombre,sello,genero,codigo,released,cover:state.coverData,tracks:[]});
+  } else state.discos.push({id:genId(),nombre,sello,genero,codigo,released,cover:state.coverData,tracks:[],added_at:new Date().toISOString()});
   save();if(currentUser)syncToCloud(true);closeModal('modal-disco');renderDiscos();updateStats();
 }
 function editCurrentDisco(){openModalDisco(state.currentDiscoId);}
@@ -1815,8 +1853,9 @@ function renderAllTracks(){
     ];
     const tdests=t.destaque||[];
     if(af&&t.artista!==af)return false;
-    if(gf&&!tgens.includes(gf))return false;
-    if(gf2&&!tgens.includes(gf2))return false;
+    if(gf&&gf2){if(!tgens.includes(gf)&&!tgens.includes(gf2))return false;}
+    else if(gf&&!tgens.includes(gf))return false;
+    else if(gf2&&!tgens.includes(gf2))return false;
     if(inf&&t.intensidad!=inf)return false;
     if(df&&!tdests.includes(df))return false;
     if(lf&&t._disco.sello!==lf)return false;
@@ -2951,7 +2990,7 @@ async function buildDiscoFromRelease(r, token) {
     intensidad: 3
   }));
 
-  const disco = { id: genId(), nombre: r.title, sello: labels, genero: allGenres, codigo: catno, released: r.year ? String(r.year) : '', cover: null, coverUrl: null, fromDiscogs: true, tracks };
+  const disco = { id: genId(), nombre: r.title, sello: labels, genero: allGenres, codigo: catno, released: r.year ? String(r.year) : '', cover: null, coverUrl: null, fromDiscogs: true, added_at: new Date().toISOString(), tracks };
 
   // Cover strategy:
   // 1. Store the raw Discogs URL as coverUrl (always works as <img src>)
@@ -3498,21 +3537,25 @@ async function authLogin() {
 }
 
 async function authRegister() {
-  const name  = document.getElementById('auth-name').value.trim();
-  const email = document.getElementById('auth-email-reg').value.trim();
-  const pass  = document.getElementById('auth-pass-reg').value;
-  if (!name || !email || !pass) { showAuthMsg('auth-register-msg','Completá todos los campos'); return; }
+  const username  = document.getElementById('auth-username').value.trim();
+  const firstname = document.getElementById('auth-firstname').value.trim();
+  const lastname  = document.getElementById('auth-lastname').value.trim();
+  const country   = document.getElementById('auth-country').value.trim();
+  const email     = document.getElementById('auth-email-reg').value.trim();
+  const pass      = document.getElementById('auth-pass-reg').value;
+  if (!username || !firstname || !lastname || !country || !email || !pass) {
+    showAuthMsg('auth-register-msg','Completá todos los campos'); return;
+  }
   if (pass.length < 6) { showAuthMsg('auth-register-msg','La contraseña debe tener al menos 6 caracteres'); return; }
   const btn = document.getElementById('auth-register-btn');
   btn.disabled = true; btn.textContent = 'Creando cuenta...';
   const { error } = await supa.auth.signUp({
     email, password: pass,
-    options: { data: { display_name: name } }
+    options: { data: { display_name: username, username, first_name: firstname, last_name: lastname, country } }
   });
   btn.disabled = false; btn.textContent = 'CREAR CUENTA';
   if (error) { showAuthMsg('auth-register-msg', tradError(error.message)); return; }
   showAuthMsg('auth-register-msg', '✓ Cuenta creada — revisá tu email para confirmar', 'success');
-  // Guardar email para crear suscripción después del login
   sessionStorage.setItem('new_user_email', email);
 }
 
@@ -3911,39 +3954,72 @@ async function subscribePayPal(plan) {
 }
 
 // ── Admin panel ───────────────────────────────────────────────────
-async function loadAdminData() {
-  if (getUserPlan() !== 'admin') return;
+let adminSortCol = 'created_at', adminSortDir = 'desc';
+let adminDataCache = [];
+
+function sortAdmin(col) {
+  if (adminSortCol === col) adminSortDir = adminSortDir === 'asc' ? 'desc' : 'asc';
+  else { adminSortCol = col; adminSortDir = 'asc'; }
+  renderAdminTable(adminDataCache);
+}
+
+function renderAdminTable(data) {
   const tbody = document.getElementById('admin-users-body');
-  tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center">Cargando...</td></tr>';
-
-  // Usar función RPC que bypasea RLS (security definer)
-  const { data, error } = await supa.rpc('get_all_subscriptions');
-
-  if (error || !data) {
-    tbody.innerHTML = `<tr><td colspan="8" style="color:var(--accent)">Error: ${error?.message || 'sin datos'}</td></tr>`;
+  if (!data || !data.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--muted);text-align:center">Sin usuarios</td></tr>';
     return;
   }
-
-  tbody.innerHTML = data.map(s => `
+  // Actualizar headers
+  document.querySelectorAll('#admin-users-table th[onclick]').forEach(th => {
+    const col = th.getAttribute('onclick').match(/sortAdmin\('(\w+)'\)/)?.[1];
+    th.className = col && adminSortCol === col ? (adminSortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '';
+  });
+  const sorted = [...data].sort((a, b) => {
+    let av = a[adminSortCol] || '', bv = b[adminSortCol] || '';
+    if (adminSortCol === 'created_at') { av = new Date(av); bv = new Date(bv); }
+    const r = av < bv ? -1 : av > bv ? 1 : 0;
+    return adminSortDir === 'asc' ? r : -r;
+  });
+  tbody.innerHTML = sorted.map(s => `
     <tr>
-      <td style="font-size:.78rem">${s.email || '—'}</td>
+      <td style="font-family:var(--mono);font-size:.75rem">${s.username||'—'}</td>
+      <td style="font-size:.8rem">${s.first_name||'—'}</td>
+      <td style="font-size:.8rem">${s.last_name||'—'}</td>
+      <td style="font-size:.8rem">${s.country||'—'}</td>
+      <td style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">${s.email||'—'}</td>
       <td><span class="tag ${s.plan==='admin'||s.plan==='monthly'||s.plan==='annual'?'green':'accent'}">${s.plan}</span></td>
       <td><span class="tag ${s.status==='active'?'green':'accent'}">${s.status}</span></td>
-      <td style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">${s.expires_at ? new Date(s.expires_at).toLocaleDateString() : '∞'}</td>
-      <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis">${s.mp_subscription_id||'—'}</td>
-      <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis">${s.paypal_subscription_id||'—'}</td>
-      <td style="font-family:var(--mono);font-size:.6rem;color:var(--muted)">${new Date(s.created_at).toLocaleDateString()}</td>
+      <td style="font-family:var(--mono);font-size:.65rem;color:var(--muted)">${s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}</td>
+      <td style="font-family:var(--mono);font-size:.65rem;color:var(--muted)">${s.expires_at ? new Date(s.expires_at).toLocaleDateString() : '∞'}</td>
       <td style="display:flex;gap:4px;align-items:center">
         <select style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.6rem;padding:2px 4px;border-radius:2px" onchange="adminSetPlan('${s.user_id}', this.value)">
-          <option value="">Cambiar plan</option>
+          <option value="">Plan</option>
           <option value="trial">trial</option>
           <option value="monthly">monthly</option>
           <option value="annual">annual</option>
           <option value="admin">admin</option>
         </select>
-        <button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${s.user_id}','${s.email}')" title="Eliminar usuario" style="padding:.2rem .5rem;font-size:.65rem">✕</button>
+        <button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${s.user_id}','${s.email}')" title="Eliminar" style="padding:.2rem .5rem;font-size:.65rem">✕</button>
       </td>
     </tr>`).join('');
+}
+
+async function loadAdminData() {
+  if (getUserPlan() !== 'admin') return;
+  const tbody = document.getElementById('admin-users-body');
+  tbody.innerHTML = '<tr><td colspan="10" style="color:var(--muted);text-align:center">Cargando...</td></tr>';
+  const { data, error } = await supa.rpc('get_all_subscriptions');
+  if (error || !data) {
+    tbody.innerHTML = `<tr><td colspan="10" style="color:var(--accent)">Error: ${error?.message || 'sin datos'}</td></tr>`;
+    return;
+  }
+  // Enriquecer con datos de perfil
+  const enriched = await Promise.all(data.map(async s => {
+    const { data: prof } = await supa.from('profiles').select('username,first_name,last_name,country').eq('id', s.user_id).single();
+    return { ...s, username: prof?.username||'', first_name: prof?.first_name||'', last_name: prof?.last_name||'', country: prof?.country||'' };
+  }));
+  adminDataCache = enriched;
+  renderAdminTable(enriched);
 }
 
 async function adminDeleteUser(userId, email) {
