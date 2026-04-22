@@ -3901,24 +3901,13 @@ async function subscribeMercadoPago(plan) {
 // ── PayPal ────────────────────────────────────────────────────────
 async function subscribePayPal(plan) {
   if (!currentUser) return;
-  try {
-    const res = await fetch(`${SUPA_URL}/functions/v1/pp-subscribe`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(await supa.auth.getSession()).data.session.access_token}`
-      },
-      body: JSON.stringify({ plan, user_id: currentUser.id, email: currentUser.email })
-    });
-    const data = await res.json();
-    if (data.approval_url) {
-      window.open(data.approval_url, '_blank');
-    } else {
-      alert('Error al crear el pago PayPal: ' + (data.error || 'desconocido'));
-    }
-  } catch(e) {
-    alert('Error de conexión: ' + e.message);
-  }
+  const PP_PLAN_URLS = {
+    monthly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-07K19723DP5799804NHUBUJQ',
+    annual:  'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-6XT02149231523913NHUBRQY'
+  };
+  const url = PP_PLAN_URLS[plan];
+  if (!url) return;
+  window.open(url, '_blank');
 }
 
 // ── Admin panel ───────────────────────────────────────────────────
