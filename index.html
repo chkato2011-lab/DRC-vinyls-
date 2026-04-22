@@ -3470,6 +3470,7 @@ async function importFromDiscogs() {
     cover: imgUrl || null,   // URL as immediate fallback
     coverUrl: imgUrl || null,
     fromDiscogs: true,
+    added_at: new Date().toISOString(),
     tracks: builtTracks
   };
 
@@ -4022,7 +4023,7 @@ function renderAdminTable(data) {
   });
   tbody.innerHTML = sorted.map(s => `
     <tr>
-      <td style="font-family:var(--mono);font-size:.75rem">${s.username||'—'}</td>
+      <td style="font-family:var(--mono);font-size:.75rem">${s.username||s.email?.split('@')[0]||'—'}</td>
       <td style="font-size:.8rem">${s.first_name||'—'}</td>
       <td style="font-size:.8rem">${s.last_name||'—'}</td>
       <td style="font-size:.8rem">${s.country||'—'}</td>
@@ -4053,13 +4054,8 @@ async function loadAdminData() {
     tbody.innerHTML = `<tr><td colspan="10" style="color:var(--accent)">Error: ${error?.message || 'sin datos'}</td></tr>`;
     return;
   }
-  // Enriquecer con datos de perfil
-  const enriched = await Promise.all(data.map(async s => {
-    const { data: prof } = await supa.from('profiles').select('username,first_name,last_name,country').eq('id', s.user_id).single();
-    return { ...s, username: prof?.username||'', first_name: prof?.first_name||'', last_name: prof?.last_name||'', country: prof?.country||'' };
-  }));
-  adminDataCache = enriched;
-  renderAdminTable(enriched);
+  adminDataCache = data;
+  renderAdminTable(data);
 }
 
 async function adminDeleteUser(userId, email) {
