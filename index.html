@@ -3721,15 +3721,16 @@ async function onUserLoggedIn() {
     } catch(e) {}
   }
 
-  // Asignar fecha de añadido a discos sin fecha (21/4/2026 para colección existente)
-  let changed = false;
-  state.discos.forEach(d => {
-    if (!d.added_at) {
-      d.added_at = '2026-04-21T00:00:00.000Z';
-      changed = true;
-    }
-  });
-  if (changed && currentUser) { save(); syncToCloud(true); }
+  // Backfill fecha de añadido — solo corre una vez por usuario (flag en localStorage)
+  const backfillKey = 'backfill_added_at_v1_' + (currentUser?.id||'');
+  if (!localStorage.getItem(backfillKey)) {
+    let changed = false;
+    state.discos.forEach(d => {
+      if (!d.added_at) { d.added_at = '2026-04-21T00:00:00.000Z'; changed = true; }
+    });
+    if (changed && currentUser) { save(); syncToCloud(true); }
+    localStorage.setItem(backfillKey, '1');
+  }
   renderDiscos(); updateStats(); renderPersistentFailed();
 }
 
