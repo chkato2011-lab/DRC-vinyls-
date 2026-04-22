@@ -387,7 +387,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <div id="auth-panel-register" style="display:none">
       <div class="auth-field">
         <label class="auth-label">Usuario *</label>
-        <input class="auth-input" id="auth-username" type="text" placeholder="Ej: dj_kato" autocomplete="username">
+        <input class="auth-input" id="auth-username" type="text" placeholder="Usuario" autocomplete="username">
       </div>
       <div style="display:flex;gap:.5rem">
         <div class="auth-field" style="flex:1">
@@ -401,7 +401,27 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </div>
       <div class="auth-field">
         <label class="auth-label">País *</label>
-        <input class="auth-input" id="auth-country" type="text" placeholder="Ej: Uruguay" autocomplete="country-name">
+        <select class="auth-input" id="auth-country" autocomplete="country-name">
+          <option value="">Seleccioná tu país...</option>
+          <option>Afghanistan</option><option>Albania</option><option>Algeria</option><option>Argentina</option>
+          <option>Australia</option><option>Austria</option><option>Belgium</option><option>Bolivia</option>
+          <option>Brazil</option><option>Canada</option><option>Chile</option><option>China</option>
+          <option>Colombia</option><option>Costa Rica</option><option>Croatia</option><option>Cuba</option>
+          <option>Czech Republic</option><option>Denmark</option><option>Dominican Republic</option>
+          <option>Ecuador</option><option>Egypt</option><option>El Salvador</option><option>Finland</option>
+          <option>France</option><option>Germany</option><option>Greece</option><option>Guatemala</option>
+          <option>Honduras</option><option>Hungary</option><option>India</option><option>Indonesia</option>
+          <option>Iran</option><option>Iraq</option><option>Ireland</option><option>Israel</option>
+          <option>Italy</option><option>Japan</option><option>Jordan</option><option>Kenya</option>
+          <option>Malaysia</option><option>Mexico</option><option>Morocco</option><option>Netherlands</option>
+          <option>New Zealand</option><option>Nicaragua</option><option>Nigeria</option><option>Norway</option>
+          <option>Pakistan</option><option>Panama</option><option>Paraguay</option><option>Peru</option>
+          <option>Philippines</option><option>Poland</option><option>Portugal</option><option>Puerto Rico</option>
+          <option>Romania</option><option>Russia</option><option>Saudi Arabia</option><option>South Africa</option>
+          <option>South Korea</option><option>Spain</option><option>Sweden</option><option>Switzerland</option>
+          <option>Thailand</option><option>Turkey</option><option>Ukraine</option><option>United Kingdom</option>
+          <option>United States</option><option>Uruguay</option><option>Venezuela</option><option>Vietnam</option>
+        </select>
       </div>
       <div class="auth-field">
         <label class="auth-label">Email *</label>
@@ -1507,12 +1527,14 @@ function openDisco(id){
   document.getElementById('detail-name').textContent=d.nombre;
   document.getElementById('detail-cover').innerHTML=d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="disk-cover-placeholder"></div>';
   const gens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
+  const addedStr = d.added_at ? new Date(d.added_at).toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
   document.getElementById('detail-meta').innerHTML=[
     d.sello?`<span class="tag yellow">${d.sello}</span>`:'',
     d.codigo?`<span class="tag" style="border-color:var(--accent2);color:var(--accent2)">${d.codigo}</span>`:'',
     d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:'',
     ...gens.map(g=>`<span class="tag accent">${g}</span>`),
-    `<span class="tag">${d.tracks.length} tracks</span>`
+    `<span class="tag">${d.tracks.length} tracks</span>`,
+    addedStr?`<span class="tag" style="color:var(--muted);border-color:var(--border)" title="Fecha de añadido">📅 ${addedStr}</span>`:''
   ].filter(Boolean).join('');
   renderDetailTracks(d);
 }
@@ -3691,6 +3713,15 @@ async function onUserLoggedIn() {
     } catch(e) {}
   }
 
+  // Asignar fecha de añadido a discos sin fecha (21/4/2026 para colección existente)
+  let changed = false;
+  state.discos.forEach(d => {
+    if (!d.added_at) {
+      d.added_at = '2026-04-21T00:00:00.000Z';
+      changed = true;
+    }
+  });
+  if (changed && currentUser) { save(); syncToCloud(true); }
   renderDiscos(); updateStats(); renderPersistentFailed();
 }
 
