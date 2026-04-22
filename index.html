@@ -1429,8 +1429,14 @@ function renderDiscos(){
       if(sortVal==='nombre_desc') return (b.nombre||'').localeCompare(a.nombre||'');
       if(sortVal==='sello_asc') return (a.sello||'').localeCompare(b.sello||'');
       if(sortVal==='sello_desc') return (b.sello||'').localeCompare(a.sello||'');
-      if(sortVal==='added_desc') return new Date(b.added_at||0) - new Date(a.added_at||0);
-      if(sortVal==='added_asc') return new Date(a.added_at||0) - new Date(b.added_at||0);
+      if(sortVal==='added_desc'){
+        const ad=new Date(a.added_at||'2099-01-01'), bd=new Date(b.added_at||'2099-01-01');
+        return bd - ad;
+      }
+      if(sortVal==='added_asc'){
+        const ad=new Date(a.added_at||'2099-01-01'), bd=new Date(b.added_at||'2099-01-01');
+        return ad - bd;
+      }
       return 0;
     });
   }
@@ -1450,6 +1456,7 @@ function renderDiscos(){
         <td><div style="display:flex;flex-direction:column;gap:2px">${gens.map(g=>`<span class="tag accent">${g}</span>`).join('')}</div></td>
         <td style="width:1px"><div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">${d.codigo?`<span class="tag yellow">${d.codigo}</span>`:''}${d.released?`<span class="tag" style="color:#4a9eff;border-color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div></td>
         <td class="disk-list-tracks" style="white-space:nowrap">${d.tracks.length}<br><span style="font-size:.55rem">tracks</span></td>
+        <td style="font-family:var(--mono);font-size:.58rem;color:var(--muted);white-space:nowrap">${d.added_at?new Date(d.added_at).toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'}):''}</td>
       </tr>`;
     }).join('')}</tbody></table></div>`;
   } else {
@@ -1460,6 +1467,7 @@ function renderDiscos(){
         <div class="disk-info">
           <div class="disk-name">${d.nombre}</div>
           <div class="disk-label">${d.sello||'—'}${d.codigo?` · <span style="color:var(--accent2)">${d.codigo}</span>`:''}${d.released?` · <span style="color:#4a9eff;font-weight:600">${d.released}</span>`:''}</div>
+          ${d.added_at?`<div style="font-family:var(--mono);font-size:.55rem;color:var(--muted);margin-top:2px">📅 ${new Date(d.added_at).toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'2-digit'})}</div>`:''}
           <div class="disk-meta" style="flex-wrap:wrap;gap:3px">${genTag(d)}<span class="track-count">${d.tracks.length} tr</span></div>
         </div>
       </div>`).join('')}</div>`;
