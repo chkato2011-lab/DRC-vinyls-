@@ -541,7 +541,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <table class="tracks-table">
       <thead><tr>
         <th style="width:30px"><input type="checkbox" id="detail-chk-all" onchange="detailSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
-        <th>#</th><th>YT</th><th>Nombre</th><th>Artista</th><th>Género</th><th>Destaque</th><th>Int.</th><th></th>
+        <th>#</th><th>YT</th><th data-i18n="col_name">Nombre</th><th data-i18n="col_artist">Artista</th><th data-i18n="col_genre">Género</th><th data-i18n="col_tags">Tags</th><th>Int.</th><th></th>
       </tr></thead>
       <tbody id="detail-tracks"></tbody>
     </table>
@@ -564,14 +564,14 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   <div class="section-header">
     <div class="section-title"><small>// biblioteca</small>TRACKS</div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
-      <select class="filter-select" id="ft-artista" onchange="renderAllTracks()"><option value="">Artista: todos</option></select>
+      <select class="filter-select" id="ft-artista" onchange="renderAllTracks()"><option value="" data-i18n="artist_all">Artista: todos</option></select>
       <select class="filter-select" id="ft-genero" onchange="renderAllTracks()"><option value="" data-i18n="genre1_all">Género 1: todos</option></select>
       <select class="filter-select" id="ft-genero2" onchange="renderAllTracks()"><option value="" data-i18n="genre2_all">Género 2: todos</option></select>
       <select class="filter-select" id="ft-intensidad" onchange="renderAllTracks()">
-        <option value="">Int.: todas</option>
+        <option value="" data-i18n="int_all">Int.: todas</option>
         <option value="1">● 1</option><option value="2">● 2</option><option value="3">● 3</option><option value="4">● 4</option><option value="5">● 5</option>
       </select>
-      <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="">Destaque: todos</option></select>
+      <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="" data-i18n="tag_all">Tags: todos</option></select>
       <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="" data-i18n="label_all">Sello: todos</option></select>
       <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." data-i18n-placeholder="search_ph" oninput="renderAllTracks()">
 
@@ -594,14 +594,13 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
           <th style="width:30px"><input type="checkbox" id="select-all-tracks" onchange="toggleSelectAllTracks(this)" style="accent-color:var(--blue);cursor:pointer"></th>
           <th style="width:34px"></th>
           <th style="width:40px">YT</th>
-          <th onclick="sortTracks('nombre')">Nombre</th>
-          <th onclick="sortTracks('artista')">Artista</th>
-          <th onclick="sortTracks('disco')">Disco</th>
-          <th onclick="sortTracks('sello')">Sello</th>
-          <th onclick="sortTracks('genero')">Género</th>
-          
-          <th onclick="sortTracks('destaque')">Destaque</th>
-          <th onclick="sortTracks('intensidad')">Int.</th>
+          <th onclick="sortTracks('nombre')" data-i18n="col_name">Nombre</th>
+          <th onclick="sortTracks('artista')" data-i18n="col_artist">Artista</th>
+          <th onclick="sortTracks('disco')" data-i18n="col_disc">Disco</th>
+          <th onclick="sortTracks('sello')" data-i18n="col_label">Sello</th>
+          <th onclick="sortTracks('genero')" data-i18n="col_genre">Género</th>
+          <th onclick="sortTracks('destaque')" data-i18n="col_tags">Tags</th>
+          <th onclick="sortTracks('intensidad')" data-i18n="col_int">Int.</th>
           <th></th>
       </thead>
       <tbody id="all-tracks-body"></tbody>
@@ -615,13 +614,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   <div class="section-header">
     <div class="section-title"><small>// sets</small>PLAYLISTS</div>
     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-      <div class="export-wrap">
-        <button class="btn" onclick="toggleExportMenu('exp-pl')">↓ CSV</button>
-        <div class="export-menu" id="exp-pl">
-          <button class="export-item" onclick="exportCSV('playlists');closeExportMenus()">Todas las playlists</button>
-        </div>
-      </div>
-      <button class="btn btn-blue" onclick="openModalPlaylist()">+ Nueva Playlist</button>
+      <button class="btn btn-blue" onclick="openModalPlaylist()" data-i18n="btn_new_playlist">+ Nueva Playlist</button>
     </div>
   </div>
   <div class="playlist-grid" id="playlist-grid"></div>
@@ -666,13 +659,13 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <th style="width:34px"></th>
       <th style="width:40px">#</th>
       <th style="width:40px">YT</th>
-      <th onclick="sortPlDetail('nombre')">Nombre</th>
-      <th onclick="sortPlDetail('artista')">Artista</th>
-      <th onclick="sortPlDetail('disco')">Disco</th>
-      <th onclick="sortPlDetail('sello')">Sello</th>
-      <th onclick="sortPlDetail('genero')">Género</th>
-      <th onclick="sortPlDetail('destaque')">Destaque</th>
-      <th onclick="sortPlDetail('intensidad')">Int.</th>
+      <th onclick="sortPlDetail('nombre')" data-i18n="col_name">Nombre</th>
+      <th onclick="sortPlDetail('artista')" data-i18n="col_artist">Artista</th>
+      <th onclick="sortPlDetail('disco')" data-i18n="col_disc">Disco</th>
+      <th onclick="sortPlDetail('sello')" data-i18n="col_label">Sello</th>
+      <th onclick="sortPlDetail('genero')" data-i18n="col_genre">Género</th>
+      <th onclick="sortPlDetail('destaque')" data-i18n="col_tags">Tags</th>
+      <th onclick="sortPlDetail('intensidad')" data-i18n="col_int">Int.</th>
       <th></th>
     </tr></thead>
     <tbody id="pl-tracks-list"></tbody>
@@ -986,16 +979,16 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <label class="cover-upload" id="cover-label" for="cover-input"><span id="cover-ph">📷<br>Carátula</span></label>
       <input type="file" id="cover-input" accept="image/*" style="display:none" onchange="previewCover(this)">
       <div style="flex:1">
-        <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="disco-nombre" placeholder="ej. Selected Ambient Works"></div>
-        <div class="form-group"><label class="form-label">Sello Discográfico</label><input class="form-input" id="disco-sello" placeholder="ej. R&S Records"></div>
+        <div class="form-group"><label class="form-label" data-i18n="lbl_name_req">Nombre *</label><input class="form-input" id="disco-nombre" placeholder="ej. Selected Ambient Works"></div>
+        <div class="form-group"><label class="form-label" data-i18n="lbl_record_label">Sello Discográfico</label><input class="form-input" id="disco-sello" placeholder="ej. R&S Records"></div>
         <div style="display:flex;gap:.8rem">
-          <div class="form-group" style="flex:1"><label class="form-label">Código de Disco</label><input class="form-input" id="disco-codigo" placeholder="ej. ORG017"></div>
-          <div class="form-group" style="width:100px"><label class="form-label">Año</label><input class="form-input" id="disco-released" placeholder="ej. 1993" maxlength="4"></div>
+          <div class="form-group" style="flex:1"><label class="form-label" data-i18n="lbl_cat_code">Código de Disco</label><input class="form-input" id="disco-codigo" placeholder="ej. ORG017"></div>
+          <div class="form-group" style="width:100px"><label class="form-label" data-i18n="lbl_year">Año</label><input class="form-input" id="disco-released" placeholder="ej. 1993" maxlength="4"></div>
         </div>
       </div>
     </div>
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Género</label>
+      <div class="form-group"><label class="form-label" data-i18n="col_genre">Género</label>
         <div class="checklist-field" id="disco-genero-cl">
           <div class="checklist-display" onclick="toggleChecklist('disco-genero-cl')"><span class="checklist-placeholder">Seleccionar género</span></div>
           <div class="checklist-dropdown"><div class="checklist-add"><input type="text" placeholder="Agregar género..."><button onclick="addChecklistOption('disco-genero-cl','generos')">+</button></div></div>
@@ -1016,11 +1009,11 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <div class="modal-title" id="modal-track-title">NUEVO TRACK</div>
     <input type="hidden" id="track-edit-id">
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="track-nombre" placeholder="ej. Windowlicker"></div>
-      <div class="form-group"><label class="form-label">Artista *</label><input class="form-input" id="track-artista" placeholder="ej. Aphex Twin"></div>
+      <div class="form-group"><label class="form-label" data-i18n="lbl_name_req">Nombre *</label><input class="form-input" id="track-nombre" placeholder="ej. Windowlicker"></div>
+      <div class="form-group"><label class="form-label" data-i18n="lbl_artist_req">Artista *</label><input class="form-input" id="track-artista" placeholder="ej. Aphex Twin"></div>
     </div>
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Género</label>
+      <div class="form-group"><label class="form-label" data-i18n="col_genre">Género</label>
         <div class="checklist-field" id="track-genero-cl">
           <div class="checklist-display" onclick="toggleChecklist('track-genero-cl')"><span class="checklist-placeholder">Seleccionar género</span></div>
           <div class="checklist-dropdown"><div class="checklist-add"><input type="text" placeholder="Agregar género..."><button onclick="addChecklistOption('track-genero-cl','generos')">+</button></div></div>
@@ -1028,15 +1021,15 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </div>
 
     </div>
-    <div class="form-group"><label class="form-label">Destaque (máx. 3)</label>
+    <div class="form-group"><label class="form-label" data-i18n="lbl_tags_max">Tags (máx. 3)</label>
       <div class="checklist-field destaque" id="track-destaque-cl">
-        <div class="checklist-display" onclick="toggleChecklist('track-destaque-cl')"><span class="checklist-placeholder">Seleccionar destaques</span></div>
-        <div class="checklist-dropdown"><div class="checklist-add"><input type="text" placeholder="Agregar destaque..."><button onclick="addChecklistOption('track-destaque-cl','destaques')">+</button></div></div>
+        <div class="checklist-display" onclick="toggleChecklist('track-destaque-cl')"><span class="checklist-placeholder" data-i18n="select_tags">Seleccionar tags</span></div>
+        <div class="checklist-dropdown"><div class="checklist-add"><input type="text" placeholder="Agregar tag..." data-i18n-placeholder="add_tag_ph"><button onclick="addChecklistOption('track-destaque-cl','destaques')">+</button></div></div>
       </div>
     </div>
     <div class="form-grid">
-      <div style="display:flex;gap:.5rem"><div class="form-group" style="flex:1"><label class="form-label">Link YouTube</label><input class="form-input" id="track-youtube" placeholder="https://youtube.com/watch?v=..."></div><div class="form-group" style="width:80px"><label class="form-label">Duración</label><input class="form-input" id="track-duration" placeholder="7:30"></div></div>
-      <div class="form-group"><label class="form-label">Intensidad</label>
+      <div style="display:flex;gap:.5rem"><div class="form-group" style="flex:1"><label class="form-label" data-i18n="lbl_youtube">Link YouTube</label><input class="form-input" id="track-youtube" placeholder="https://youtube.com/watch?v=..."></div><div class="form-group" style="width:80px"><label class="form-label" data-i18n="lbl_duration">Duración</label><input class="form-input" id="track-duration" placeholder="7:30"></div></div>
+      <div class="form-group"><label class="form-label" data-i18n="lbl_intensity">Intensidad</label>
         <div class="intensity-selector">
           <button class="int-btn" onclick="setIntensidad(1)">1</button>
           <button class="int-btn" onclick="setIntensidad(2)">2</button>
@@ -1046,10 +1039,10 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         </div>
       </div>
     </div>
-    <div class="form-group"><label class="form-label">Comentario</label><textarea class="form-input form-textarea" id="track-comentario" placeholder="Notas, referencias, contexto..."></textarea></div>
+    <div class="form-group"><label class="form-label" data-i18n="lbl_comment">Comentario</label><textarea class="form-input form-textarea" id="track-comentario" placeholder="Notas, referencias, contexto..."></textarea></div>
     <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.2rem">
-      <button class="btn" onclick="closeModal('modal-track')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveTrack()">Guardar</button>
+      <button class="btn" onclick="closeModal('modal-track')" data-i18n="btn_cancel">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTrack()" data-i18n="btn_save">Guardar</button>
     </div>
   </div>
 </div>
@@ -1060,8 +1053,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <button class="modal-close" onclick="closeModal('modal-playlist')">✕</button>
     <div class="modal-title" id="modal-pl-title">NUEVA PLAYLIST</div>
     <input type="hidden" id="pl-edit-id">
-    <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="pl-nombre" placeholder="ej. Set Opening — After Hours"></div>
-    <div class="form-group"><label class="form-label">Descripción / Notas</label><textarea class="form-input form-textarea" id="pl-desc" placeholder="Contexto, venue, BPM range, mood..." data-i18n-placeholder="pl_desc_ph"></textarea></div>
+    <div class="form-group"><label class="form-label" data-i18n="lbl_name_req">Nombre *</label><input class="form-input" id="pl-nombre" placeholder="ej. Set Opening — After Hours"></div>
+    <div class="form-group"><label class="form-label" data-i18n="lbl_desc">Descripción / Notas</label><textarea class="form-input form-textarea" id="pl-desc" placeholder="Contexto, venue, BPM range, mood..." data-i18n-placeholder="pl_desc_ph"></textarea></div>
     <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.5rem">
       <button class="btn" onclick="closeModal('modal-playlist')" data-i18n="btn_cancel">Cancelar</button>
       <button class="btn btn-blue" onclick="savePlaylist()" data-i18n="btn_save">Guardar</button>
@@ -1396,9 +1389,10 @@ function renderDiscos(){
   const s=document.getElementById('search-discos').value.toLowerCase();
   const gens=[...new Set(state.discos.map(d=>d.genero).flat().filter(Boolean))].sort();
   const sell=[...new Set(state.discos.map(d=>d.sello).filter(Boolean))].sort();
-  updateSelect('filter-genero',gens,'Género 1: todos',gf);
-  updateSelect('filter-genero2',gens,'Género 2: todos',gf2);
-  updateSelect('filter-sello',sell,'Sello: todos',sf);
+  const _td = typeof t==='function' ? t : k=>k;
+  updateSelect('filter-genero',gens,_td('genre1_all'),gf);
+  updateSelect('filter-genero2',gens,_td('genre2_all'),gf2);
+  updateSelect('filter-sello',sell,_td('label_all'),sf);
   const sortVal = document.getElementById('disco-sort')?.value || '';
   let f=state.discos.filter(d=>{
     const dgens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
@@ -1460,6 +1454,7 @@ function renderDiscos(){
   }
   updateDiscoBatchBar();
   const dc=document.getElementById('discos-count');if(dc)dc.textContent=`(${f.length}${f.length!==state.discos.length?' de '+state.discos.length:''})`;
+  if(typeof applyLang==='function') applyLang();
 }
 
 function discoCardClick(e, id) {
@@ -1842,11 +1837,12 @@ function updateAllTrackFilters(){
   ]).filter(Boolean))].sort();
   const dests=[...new Set([...(state.catalogo.destaques||[]),...all.flatMap(t=>t.destaque||[])].filter(Boolean))].sort();
   const sell=[...new Set(all.map(t=>t._disco.sello).filter(Boolean))].sort();
-  updateSelect('ft-artista',arts,'Artista: todos',document.getElementById('ft-artista').value);
-  updateSelect('ft-genero',gens,'Género 1: todos',document.getElementById('ft-genero').value);
-  updateSelect('ft-genero2',gens,'Género 2: todos',document.getElementById('ft-genero2').value);
-  updateSelect('ft-destaque',dests,'Destaque: todos',document.getElementById('ft-destaque').value);
-  updateSelect('ft-sello',sell,'Sello: todos',document.getElementById('ft-sello').value);
+  const _t = typeof t==='function' ? t : k=>k;
+  updateSelect('ft-artista',arts,_t('artist_all'),document.getElementById('ft-artista').value);
+  updateSelect('ft-genero',gens,_t('genre1_all'),document.getElementById('ft-genero').value);
+  updateSelect('ft-genero2',gens,_t('genre2_all'),document.getElementById('ft-genero2').value);
+  updateSelect('ft-destaque',dests,_t('tag_all'),document.getElementById('ft-destaque').value);
+  updateSelect('ft-sello',sell,_t('label_all'),document.getElementById('ft-sello').value);
   // batch playlist options
   const bps=document.getElementById('batch-playlist-sel');
   const curBp=bps.value;
@@ -4115,6 +4111,12 @@ const TRANSLATIONS = {
     step3_body: 'Buscá por código de catálogo. Si hay múltiples versiones te pregunta cuál elegir. Los fallidos quedan guardados en "Discos no encontrados".',
     step3_note: 'Se procesa de a uno para respetar el límite de la API (~3-4 seg por disco).',
     search_by_catno: 'Buscar por código de catálogo',
+    lbl_record_label: 'Sello Discográfico', lbl_cat_code: 'Código de Disco',
+    lbl_year: 'Año', lbl_name_req: 'Nombre *', lbl_artist_req: 'Artista *',
+    lbl_youtube: 'Link YouTube', lbl_duration: 'Duración',
+    lbl_intensity: 'Intensidad', lbl_comment: 'Comentario',
+    lbl_tags_max: 'Tags (máx. 3)', col_int: 'Int.',
+    select_tags: 'Seleccionar tags', add_tag_ph: 'Agregar tag...',
   },
   en: {
     nav_discs: 'Discs', nav_tracks: 'Tracks', nav_playlists: 'Playlists',
@@ -4150,6 +4152,12 @@ const TRANSLATIONS = {
     step3_body: "Search by catalog number. If there are multiple versions, you'll be asked to choose. Failed ones are saved in \"Discs not found\".",
     step3_note: 'Processed one by one to respect API limits (~3-4 sec per disc).',
     search_by_catno: 'Search by catalog number',
+    lbl_record_label: 'Record Label', lbl_cat_code: 'Catalog Code',
+    lbl_year: 'Year', lbl_name_req: 'Name *', lbl_artist_req: 'Artist *',
+    lbl_youtube: 'YouTube Link', lbl_duration: 'Duration',
+    lbl_intensity: 'Intensity', lbl_comment: 'Comment',
+    lbl_tags_max: 'Tags (max. 3)', col_int: 'Int.',
+    select_tags: 'Select tags', add_tag_ph: 'Add tag...',
   }
 };
 
@@ -4158,6 +4166,8 @@ let currentLang = localStorage.getItem('disc_lang') || 'es';
 function t(key) {
   return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS['es']?.[key] || key;
 }
+// Alias global para uso en renderAllTracks y otras funciones
+const _t = (key) => t(key);
 
 function applyLang() {
   // Textos con data-i18n
@@ -4180,6 +4190,9 @@ function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('disc_lang', lang);
   applyLang();
+  // Refrescar filtros dinámicos que usan t()
+  if (typeof updateDiscoFilters === 'function') updateDiscoFilters();
+  if (typeof updateAllTrackFilters === 'function') updateAllTrackFilters();
 }
 
 // Aplicar idioma al cargar
