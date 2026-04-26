@@ -477,7 +477,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- DISCOS -->
 <div class="view active" id="view-discos">
   <div class="section-header">
-    <div class="section-title"><small>// colección</small>DISCOS <span id="discos-count" style="font-family:var(--mono);font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:1px"></span></div>
+    <div class="section-title"><small data-i18n="sub_collection">// colección</small><span data-i18n="nav_discs">DISCOS</span> <span id="discos-count" style="font-family:var(--mono);font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:1px"></span></div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
       <select class="filter-select" id="filter-genero" onchange="renderDiscos()"><option value="" data-i18n="genre1_all">Género 1: todos</option></select>
       <select class="filter-select" id="filter-genero2" onchange="renderDiscos()"><option value="" data-i18n="genre2_all">Género 2: todos</option></select>
@@ -529,10 +529,10 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <div class="disk-name-big" id="detail-name">—</div>
       <div class="meta-row" id="detail-meta"></div>
       <div class="disk-detail-actions">
-        <button class="btn btn-primary btn-sm" onclick="openModalTrack()">+ Agregar Track</button>
-        <button class="btn btn-sm" onclick="editCurrentDisco()">✎ Editar Disco</button>
+        <button class="btn btn-primary btn-sm" onclick="openModalTrack()" data-i18n="btn_add_track">+ Agregar Track</button>
+        <button class="btn btn-sm" onclick="editCurrentDisco()" data-i18n="btn_edit_disc">✎ Editar Disco</button>
         <button class="btn btn-sm" id="resync-btn" onclick="resyncDiscoFromDiscogs()" style="color:var(--blue);border-color:var(--blue)" title="Re-importar tracks desde Discogs (actualiza duración)">↻ Discogs</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteCurrentDisco()">✕ Eliminar</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCurrentDisco()" data-i18n="btn_delete">✕ Eliminar</button>
       </div>
     </div>
   </div>
@@ -1039,7 +1039,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         </div>
       </div>
     </div>
-    <div class="form-group"><label class="form-label" data-i18n="lbl_comment">Comentario</label><textarea class="form-input form-textarea" id="track-comentario" placeholder="Notas, referencias, contexto..."></textarea></div>
+    <div class="form-group"><label class="form-label" data-i18n="lbl_comment">Comentario</label><textarea class="form-input form-textarea" id="track-comentario" placeholder="Notas, referencias, contexto..." data-i18n-placeholder="comment_ph"></textarea></div>
     <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.2rem">
       <button class="btn" onclick="closeModal('modal-track')" data-i18n="btn_cancel">Cancelar</button>
       <button class="btn btn-primary" onclick="saveTrack()" data-i18n="btn_save">Guardar</button>
@@ -1385,11 +1385,14 @@ function setDiscosView(mode){
 let selectedDiscos = new Set();
 
 function renderDiscos(){
-  const gf=document.getElementById('filter-genero').value,gf2=document.getElementById('filter-genero2').value,sf=document.getElementById('filter-sello').value;
   const s=document.getElementById('search-discos').value.toLowerCase();
   const gens=[...new Set(state.discos.map(d=>d.genero).flat().filter(Boolean))].sort();
   const sell=[...new Set(state.discos.map(d=>d.sello).filter(Boolean))].sort();
   const _td = typeof t==='function' ? t : k=>k;
+  // Guardar valores ANTES de regenerar los selects
+  const gf=document.getElementById('filter-genero').value;
+  const gf2=document.getElementById('filter-genero2').value;
+  const sf=document.getElementById('filter-sello').value;
   updateSelect('filter-genero',gens,_td('genre1_all'),gf);
   updateSelect('filter-genero2',gens,_td('genre2_all'),gf2);
   updateSelect('filter-sello',sell,_td('label_all'),sf);
@@ -1628,7 +1631,7 @@ function renderDots(val){
 function openModalDisco(id){
   state.coverData=null;
   document.getElementById('disco-edit-id').value=id||'';
-  document.getElementById('modal-disco-title').textContent=id?'EDITAR DISCO':'NUEVO DISCO';
+  document.getElementById('modal-disco-title').textContent=id?t('edit_disc'):t('new_disc');
   let selGeneros=[];
   if(id){
     const d=state.discos.find(x=>x.id===id);
@@ -1770,7 +1773,7 @@ function openModalTrack(discoId,trackId){
   discoId=discoId||state.currentDiscoId;
   setIntensidad(3);
   document.getElementById('track-edit-id').value=trackId||'';
-  document.getElementById('modal-track-title').textContent=trackId?'EDITAR TRACK':'NUEVO TRACK';
+  document.getElementById('modal-track-title').textContent=trackId?t('edit_track'):t('new_track');
   let selGenero=[],selDest=[];
   if(trackId){
     const d=state.discos.find(x=>x.id===discoId);
@@ -4117,6 +4120,11 @@ const TRANSLATIONS = {
     lbl_intensity: 'Intensidad', lbl_comment: 'Comentario',
     lbl_tags_max: 'Tags (máx. 3)', col_int: 'Int.',
     select_tags: 'Seleccionar tags', add_tag_ph: 'Agregar tag...',
+    sub_collection: '// colección', btn_add_track: '+ Agregar Track',
+    btn_edit_disc: '✎ Editar Disco', btn_delete: '✕ Eliminar',
+    edit_disc: 'EDITAR DISCO', new_disc: 'NUEVO DISCO',
+    edit_track: 'EDITAR TRACK', new_track: 'NUEVO TRACK',
+    comment_ph: 'Notas, referencias, contexto...',
   },
   en: {
     nav_discs: 'Discs', nav_tracks: 'Tracks', nav_playlists: 'Playlists',
@@ -4158,6 +4166,11 @@ const TRANSLATIONS = {
     lbl_intensity: 'Intensity', lbl_comment: 'Comment',
     lbl_tags_max: 'Tags (max. 3)', col_int: 'Int.',
     select_tags: 'Select tags', add_tag_ph: 'Add tag...',
+    sub_collection: '// collection', btn_add_track: '+ Add Track',
+    btn_edit_disc: '✎ Edit Disc', btn_delete: '✕ Delete',
+    edit_disc: 'EDIT DISC', new_disc: 'NEW DISC',
+    edit_track: 'EDIT TRACK', new_track: 'NEW TRACK',
+    comment_ph: 'Notes, references, context...',
   }
 };
 
