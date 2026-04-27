@@ -469,6 +469,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   <button class="nav-btn" onclick="showView('playlists')">Playlists</button>
   <button class="nav-btn" onclick="showView('import')" style="color:var(--green)" data-i18n="nav_import">Importar</button>
   <button class="nav-btn" id="nav-admin" style="display:none;color:var(--accent2)" onclick="showView('admin')">Admin</button>
+  <button class="nav-btn" onclick="showView('install')" data-i18n="nav_install" style="color:#38bdf8">↓ App</button>
   <div class="nav-backup">
     <button class="btn btn-sm" onclick="backupJSON()" title="Guardar backup">💾</button>
     <label class="btn btn-sm" for="restore-input" style="cursor:pointer" title="Cargar backup">📂</label>
@@ -779,6 +780,78 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </table>
     </div>
   </div>
+</div>
+
+
+<!-- INSTALL -->
+<div class="view" id="view-install">
+  <div class="section-header">
+    <div class="section-title"><small data-i18n="sub_install">// descargá la app</small><span data-i18n="nav_install">↓ App</span></div>
+  </div>
+
+  <!-- Android -->
+  <div style="margin-bottom:2rem">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// Android</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1.4rem;max-width:480px">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+        <div style="font-size:2.5rem">🤖</div>
+        <div>
+          <div style="font-family:var(--display);font-size:1.2rem;letter-spacing:2px" data-i18n="install_android_title">INSTALAR EN ANDROID</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted)" data-i18n="install_android_sub">Chrome · Samsung Internet</div>
+        </div>
+      </div>
+      <ol style="font-family:var(--mono);font-size:.72rem;line-height:2;color:var(--text);padding-left:1.2rem;margin:0">
+        <li data-i18n="android_step1">Abrí <strong>discrc.com</strong> en Chrome</li>
+        <li data-i18n="android_step2">Tocá el menú <strong>⋮</strong> (tres puntos arriba a la derecha)</li>
+        <li data-i18n="android_step3">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></li>
+        <li data-i18n="android_step4">Tocá <strong>"Instalar"</strong> en el banner que aparece</li>
+      </ol>
+      <div style="margin-top:1rem">
+        <button class="btn btn-primary" onclick="triggerPWAInstall()" id="btn-pwa-install" style="display:none" data-i18n="btn_install_now">⬇ Instalar ahora</button>
+        <div id="pwa-install-note" style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.5rem" data-i18n="install_note">Si el botón no aparece, usá los pasos de arriba.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- iOS -->
+  <div style="margin-bottom:2rem">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// iOS · iPhone · iPad</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1.4rem;max-width:480px">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+        <div style="font-size:2.5rem">🍎</div>
+        <div>
+          <div style="font-family:var(--display);font-size:1.2rem;letter-spacing:2px" data-i18n="install_ios_title">INSTALAR EN iPHONE / iPAD</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted)" data-i18n="install_ios_sub">Safari</div>
+        </div>
+      </div>
+      <ol style="font-family:var(--mono);font-size:.72rem;line-height:2;color:var(--text);padding-left:1.2rem;margin:0">
+        <li data-i18n="ios_step1">Abrí <strong>discrc.com</strong> en Safari</li>
+        <li data-i18n="ios_step2">Tocá el botón <strong>Compartir</strong> <span style="font-size:1rem">⎙</span> (abajo en el centro)</li>
+        <li data-i18n="ios_step3">Deslizá hacia abajo y tocá <strong>"Agregar a pantalla de inicio"</strong></li>
+        <li data-i18n="ios_step4">Tocá <strong>"Agregar"</strong> arriba a la derecha</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Desktop -->
+  <div style="margin-bottom:2rem">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// Desktop · Windows · Mac</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1.4rem;max-width:480px">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+        <div style="font-size:2.5rem">💻</div>
+        <div>
+          <div style="font-family:var(--display);font-size:1.2rem;letter-spacing:2px" data-i18n="install_desktop_title">INSTALAR EN COMPUTADORA</div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted)" data-i18n="install_desktop_sub">Chrome · Edge</div>
+        </div>
+      </div>
+      <ol style="font-family:var(--mono);font-size:.72rem;line-height:2;color:var(--text);padding-left:1.2rem;margin:0">
+        <li data-i18n="desktop_step1">Abrí <strong>discrc.com</strong> en Chrome o Edge</li>
+        <li data-i18n="desktop_step2">Hacé clic en el ícono <strong>⊕</strong> en la barra de direcciones</li>
+        <li data-i18n="desktop_step3">Seleccioná <strong>"Instalar"</strong></li>
+      </ol>
+    </div>
+  </div>
+
 </div>
 
 <!-- IMPORT -->
@@ -1362,7 +1435,7 @@ function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
-  const m={discos:0,tracks:1,playlists:2,import:3,admin:4};
+  const m={discos:0,tracks:1,playlists:2,import:3,admin:4,install:5};
   if(m[name]!==undefined) document.querySelectorAll('.nav-btn')[m[name]].classList.add('active');
   pushNav(name);
   if(name==='discos'){ renderDiscos(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(state.currentDiscoId){ const row=document.querySelector(`tr[onclick*="'${state.currentDiscoId}'"]`); if(row) row.scrollIntoView({block:'center',behavior:'instant'}); } })); }
@@ -1370,6 +1443,7 @@ function showView(name){
   if(name==='playlists') renderPlaylists();
   if(name==='import') initDiscogsTab();
   if(name==='admin') loadAdminData();
+  if(name==='install') applyLang();
   updateStats(); closeExportMenus();
 }
 
@@ -4135,6 +4209,22 @@ const TRANSLATIONS = {
     btn_other_results: '← Otros resultados', btn_import_disc: '✓ Importar este disco',
     sub_import: '// desde discogs',
     tracks_word: 'tracks', yt_links_found: 'links de YouTube encontrados', videos_no_match: 'videos en Discogs (sin match por track)',
+    nav_install: '↓ App', sub_install: '// descargá la app',
+    install_android_title: 'INSTALAR EN ANDROID', install_android_sub: 'Chrome · Samsung Internet',
+    android_step1: 'Abrí <strong>discrc.com</strong> en Chrome',
+    android_step2: 'Tocá el menú <strong>⋮</strong> (tres puntos arriba a la derecha)',
+    android_step3: 'Seleccioná <strong>"Agregar a pantalla de inicio"</strong>',
+    android_step4: 'Tocá <strong>"Instalar"</strong> en el banner que aparece',
+    btn_install_now: '⬇ Instalar ahora', install_note: 'Si el botón no aparece, usá los pasos de arriba.',
+    install_ios_title: 'INSTALAR EN iPHONE / iPAD', install_ios_sub: 'Safari',
+    ios_step1: 'Abrí <strong>discrc.com</strong> en Safari',
+    ios_step2: 'Tocá el botón <strong>Compartir</strong> ⎙ (abajo en el centro)',
+    ios_step3: 'Deslizá hacia abajo y tocá <strong>"Agregar a pantalla de inicio"</strong>',
+    ios_step4: 'Tocá <strong>"Agregar"</strong> arriba a la derecha',
+    install_desktop_title: 'INSTALAR EN COMPUTADORA', install_desktop_sub: 'Chrome · Edge',
+    desktop_step1: 'Abrí <strong>discrc.com</strong> en Chrome o Edge',
+    desktop_step2: 'Hacé clic en el ícono <strong>⊕</strong> en la barra de direcciones',
+    desktop_step3: 'Seleccioná <strong>"Instalar"</strong>',
   },
   en: {
     nav_discs: 'Discs', nav_tracks: 'Tracks', nav_playlists: 'Playlists',
@@ -4186,6 +4276,22 @@ const TRANSLATIONS = {
     btn_other_results: '← Other results', btn_import_disc: '✓ Import this disc',
     sub_import: '// from discogs',
     tracks_word: 'tracks', yt_links_found: 'YouTube links found', videos_no_match: 'videos on Discogs (no track match)',
+    nav_install: '↓ App', sub_install: '// download the app',
+    install_android_title: 'INSTALL ON ANDROID', install_android_sub: 'Chrome · Samsung Internet',
+    android_step1: 'Open <strong>discrc.com</strong> in Chrome',
+    android_step2: 'Tap the menu <strong>⋮</strong> (three dots top right)',
+    android_step3: 'Select <strong>"Add to Home Screen"</strong>',
+    android_step4: 'Tap <strong>"Install"</strong> on the banner that appears',
+    btn_install_now: '⬇ Install now', install_note: 'If the button does not appear, follow the steps above.',
+    install_ios_title: 'INSTALL ON iPHONE / iPAD', install_ios_sub: 'Safari',
+    ios_step1: 'Open <strong>discrc.com</strong> in Safari',
+    ios_step2: 'Tap the <strong>Share</strong> button ⎙ (bottom center)',
+    ios_step3: 'Scroll down and tap <strong>"Add to Home Screen"</strong>',
+    ios_step4: 'Tap <strong>"Add"</strong> top right',
+    install_desktop_title: 'INSTALL ON COMPUTER', install_desktop_sub: 'Chrome · Edge',
+    desktop_step1: 'Open <strong>discrc.com</strong> in Chrome or Edge',
+    desktop_step2: 'Click the <strong>⊕</strong> icon in the address bar',
+    desktop_step3: 'Select <strong>"Install"</strong>',
   }
 };
 
@@ -4218,9 +4324,24 @@ function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('disc_lang', lang);
   applyLang();
-  // Refrescar filtros dinámicos que usan t()
   if (typeof renderDiscos === 'function') renderDiscos();
   if (typeof updateAllTrackFilters === 'function') updateAllTrackFilters();
+}
+
+// PWA Install prompt
+let _pwaInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaInstallPrompt = e;
+  const btn = document.getElementById('btn-pwa-install');
+  if (btn) btn.style.display = 'inline-block';
+});
+
+function triggerPWAInstall() {
+  if (_pwaInstallPrompt) {
+    _pwaInstallPrompt.prompt();
+    _pwaInstallPrompt.userChoice.then(() => { _pwaInstallPrompt = null; });
+  }
 }
 
 // Aplicar idioma al cargar
