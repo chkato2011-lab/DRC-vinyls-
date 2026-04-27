@@ -1,5 +1,5 @@
-const CACHE = "disc-v3";
-const ASSETS = ["/", "/index.html"];
+const CACHE = "disc-v4";
+const ASSETS = ["/", "/index.html", "/manifest.json", "/icons/icon-192x192.png", "/icons/icon-512x512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(
