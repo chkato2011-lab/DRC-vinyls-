@@ -780,7 +780,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <!-- IMPORT -->
 <div class="view" id="view-import">
   <div class="section-header">
-    <div class="section-title"><small style="display:none">// desde youtube / discogs</small>IMPORTAR</div>
+    <div class="section-title"><small style="display:none" data-i18n="sub_import">// desde discogs</small><span data-i18n="nav_import">IMPORTAR</span></div>
     <div id="imp-session-badge" style="display:none"><span class="tag green" id="imp-pending-badge"></span></div>
   </div>
 
@@ -851,7 +851,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         <div id="dcg-preview-card"></div>
         <div style="display:flex;gap:.5rem;margin-top:1.2rem">
           <button class="btn btn-sm" onclick="dcgBackToResults()" data-i18n="btn_other_results">← Otros resultados</button>
-          <button class="btn btn-green" onclick="importFromDiscogs()">✓ Importar este disco</button>
+          <button class="btn btn-green" onclick="importFromDiscogs()" data-i18n="btn_import_disc">✓ Importar este disco</button>
         </div>
       </div>
       <!-- Persistent failed list -->
@@ -4129,6 +4129,7 @@ const TRANSLATIONS = {
     btn_back_discs: '← Volver a Discos', btn_back_playlists: '← Volver a Playlists',
     edit_playlist: 'EDITAR PLAYLIST',
     btn_other_results: '← Otros resultados', btn_import_disc: '✓ Importar este disco',
+    sub_import: '// desde discogs',
   },
   en: {
     nav_discs: 'Discs', nav_tracks: 'Tracks', nav_playlists: 'Playlists',
@@ -4178,6 +4179,7 @@ const TRANSLATIONS = {
     btn_back_discs: '← Back to Discs', btn_back_playlists: '← Back to Playlists',
     edit_playlist: 'EDIT PLAYLIST',
     btn_other_results: '← Other results', btn_import_disc: '✓ Import this disc',
+    sub_import: '// from discogs',
   }
 };
 
