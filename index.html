@@ -3376,7 +3376,7 @@ function renderDiscogsPreview(r) {
           ${genres.map(g => `<span class="tag accent">${g}</span>`).join('')}
         </div>
         <div style="margin-top:.8rem;font-family:var(--mono);font-size:.65rem;color:var(--muted)">
-          ${tracks.length} tracks · ${matchedCount > 0 ? `<span style="color:var(--green)">✓ ${matchedCount} links de YouTube encontrados</span>` : `<span style="color:var(--muted)">${videos.length} videos en Discogs (sin match por track)</span>`}
+          ${tracks.length} ${t('tracks_word')} · ${matchedCount > 0 ? `<span style="color:var(--green)">✓ ${matchedCount} ${t('yt_links_found')}</span>` : `<span style="color:var(--muted)">${videos.length} ${t('videos_no_match')}</span>`}
         </div>
         ${dupeWarning}
       </div>
@@ -4130,6 +4130,7 @@ const TRANSLATIONS = {
     edit_playlist: 'EDITAR PLAYLIST',
     btn_other_results: '← Otros resultados', btn_import_disc: '✓ Importar este disco',
     sub_import: '// desde discogs',
+    tracks_word: 'tracks', yt_links_found: 'links de YouTube encontrados', videos_no_match: 'videos en Discogs (sin match por track)',
   },
   en: {
     nav_discs: 'Discs', nav_tracks: 'Tracks', nav_playlists: 'Playlists',
@@ -4180,6 +4181,7 @@ const TRANSLATIONS = {
     edit_playlist: 'EDIT PLAYLIST',
     btn_other_results: '← Other results', btn_import_disc: '✓ Import this disc',
     sub_import: '// from discogs',
+    tracks_word: 'tracks', yt_links_found: 'YouTube links found', videos_no_match: 'videos on Discogs (no track match)',
   }
 };
 
