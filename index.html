@@ -850,7 +850,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         <p style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem">Preview del disco</p>
         <div id="dcg-preview-card"></div>
         <div style="display:flex;gap:.5rem;margin-top:1.2rem">
-          <button class="btn btn-sm" onclick="dcgBackToResults()">← Otros resultados</button>
+          <button class="btn btn-sm" onclick="dcgBackToResults()" data-i18n="btn_other_results">← Otros resultados</button>
           <button class="btn btn-green" onclick="importFromDiscogs()">✓ Importar este disco</button>
         </div>
       </div>
@@ -3348,6 +3348,7 @@ function renderDiscogsPreview(r) {
   const labels = (r.labels || []).map(l => l.name).filter((v,i,a) => a.indexOf(v) === i).join(', ');
   const catno = (r.labels || [])[0]?.catno || '';
   const styles_sg = r.styles || [];
+  const genres = [...new Set([...(r.genres||[]), ...(r.styles||[])])];
   const imgUrl = r.images?.[0]?.uri || '';
   const tracks = (r.tracklist || []).filter(t => t.type_ !== 'heading' && t.title);
   const videos = r.videos || [];
@@ -4127,6 +4128,7 @@ const TRANSLATIONS = {
     comment_ph: 'Notas, referencias, contexto...',
     btn_back_discs: '← Volver a Discos', btn_back_playlists: '← Volver a Playlists',
     edit_playlist: 'EDITAR PLAYLIST',
+    btn_other_results: '← Otros resultados', btn_import_disc: '✓ Importar este disco',
   },
   en: {
     nav_discs: 'Discs', nav_tracks: 'Tracks', nav_playlists: 'Playlists',
@@ -4175,6 +4177,7 @@ const TRANSLATIONS = {
     comment_ph: 'Notes, references, context...',
     btn_back_discs: '← Back to Discs', btn_back_playlists: '← Back to Playlists',
     edit_playlist: 'EDIT PLAYLIST',
+    btn_other_results: '← Other results', btn_import_disc: '✓ Import this disc',
   }
 };
 
