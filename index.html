@@ -497,7 +497,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista" style="font-size:.9rem">☰</button>
       </div>
       <div class="export-wrap">
-        <button class="btn" onclick="toggleExportMenu('exp-discos')">↓ Exportar</button>
+        <button class="btn" onclick="toggleExportMenu('exp-discos')" data-i18n="btn_export">↓ Exportar</button>
         <div class="export-menu" id="exp-discos">
           <button class="export-item" onclick="exportCSV('discos');closeExportMenus()">CSV — Lista de Discos</button>
           <button class="export-item" onclick="exportCSV('tracks');closeExportMenus()">CSV — Todos los Tracks</button>
@@ -521,7 +521,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- DISCO DETAIL -->
 <div class="view" id="view-detail">
-  <button class="back-btn" onclick="showView('discos')">← Volver a Discos</button>
+  <button class="back-btn" onclick="showView('discos')" data-i18n="btn_back_discs">← Volver a Discos</button>
   <div class="disk-detail-header">
     <div class="disk-detail-cover" id="detail-cover"><div class="disk-cover-placeholder"></div></div>
     <div>
@@ -623,7 +623,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- PLAYLIST DETAIL -->
 <div class="view" id="view-pl-detail">
-  <button class="back-btn" onclick="showView('playlists')">← Volver a Playlists</button>
+  <button class="back-btn" onclick="showView('playlists')" data-i18n="btn_back_playlists">← Volver a Playlists</button>
   <div class="pl-detail-header">
     <div>
       <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:.3rem">// playlist</div>
@@ -2269,7 +2269,7 @@ function removeFromPlaylist(idx){
 }
 function openModalPlaylist(id){
   document.getElementById('pl-edit-id').value=id||'';
-  document.getElementById('modal-pl-title').textContent=id?'EDITAR PLAYLIST':'NUEVA PLAYLIST';
+  document.getElementById('modal-pl-title').textContent=id?t('edit_playlist'):t('new_playlist');
   if(id){const pl=state.playlists.find(x=>x.id===id);document.getElementById('pl-nombre').value=pl.nombre;document.getElementById('pl-desc').value=pl.desc||'';}
   else{document.getElementById('pl-nombre').value='';document.getElementById('pl-desc').value='';}
   document.getElementById('modal-playlist').classList.add('open');
@@ -4125,6 +4125,8 @@ const TRANSLATIONS = {
     edit_disc: 'EDITAR DISCO', new_disc: 'NUEVO DISCO',
     edit_track: 'EDITAR TRACK', new_track: 'NUEVO TRACK',
     comment_ph: 'Notas, referencias, contexto...',
+    btn_back_discs: '← Volver a Discos', btn_back_playlists: '← Volver a Playlists',
+    edit_playlist: 'EDITAR PLAYLIST',
   },
   en: {
     nav_discs: 'Discs', nav_tracks: 'Tracks', nav_playlists: 'Playlists',
@@ -4171,6 +4173,8 @@ const TRANSLATIONS = {
     edit_disc: 'EDIT DISC', new_disc: 'NEW DISC',
     edit_track: 'EDIT TRACK', new_track: 'NEW TRACK',
     comment_ph: 'Notes, references, context...',
+    btn_back_discs: '← Back to Discs', btn_back_playlists: '← Back to Playlists',
+    edit_playlist: 'EDIT PLAYLIST',
   }
 };
 
@@ -4204,7 +4208,7 @@ function setLang(lang) {
   localStorage.setItem('disc_lang', lang);
   applyLang();
   // Refrescar filtros dinámicos que usan t()
-  if (typeof updateDiscoFilters === 'function') updateDiscoFilters();
+  if (typeof renderDiscos === 'function') renderDiscos();
   if (typeof updateAllTrackFilters === 'function') updateAllTrackFilters();
 }
 
