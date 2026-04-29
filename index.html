@@ -3268,7 +3268,9 @@ function codigoExiste(codigo, excludeId = null) {
   return state.discos.some(d => d.id !== excludeId && d.codigo && d.codigo.trim().toLowerCase() === norm);
 }
 
-async function searchDiscogs() {
+let _dcgSearchState = { catno: '', page: 1, total: 0, results: [] };
+
+async function searchDiscogs(page = 1) {
   const token = getDiscogsToken();
   if (!token) { alert('Primero guardá tu token de Discogs arriba'); return; }
   const catno = document.getElementById('dcg-catno').value.trim();
@@ -3276,15 +3278,24 @@ async function searchDiscogs() {
 
   document.getElementById('dcg-searching').style.display = 'inline';
   document.getElementById('dcg-search-btn').disabled = true;
-  document.getElementById('dcg-results').style.display = 'none';
-  document.getElementById('dcg-preview').style.display = 'none';
+  if (page === 1) {
+    document.getElementById('dcg-results').style.display = 'none';
+    document.getElementById('dcg-preview').style.display = 'none';
+    _dcgSearchState.results = [];
+  }
 
   try {
-    const url = `https://api.discogs.com/database/search?catno=${encodeURIComponent(catno)}&type=release&per_page=10&token=${token}`;
+    const url = `https://api.discogs.com/database/search?catno=${encodeURIComponent(catno)}&type=release&per_page=10&page=${page}&token=${token}`;
     const res = await fetch(url, { headers: { 'User-Agent': 'DISCApp/1.0' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    renderDiscogsResults(data.results || [], catno);
+    _dcgSearchState = {
+      catno,
+      page,
+      total: data.pagination?.items || 0,
+      results: page === 1 ? (data.results || []) : [..._dcgSearchState.results, ...(data.results || [])]
+    };
+    renderDiscogsResults(_dcgSearchState.results, catno, _dcgSearchState.total, page);
   } catch (e) {
     alert('Error al buscar en Discogs: ' + e.message);
   } finally {
@@ -3293,14 +3304,14 @@ async function searchDiscogs() {
   }
 }
 
-function renderDiscogsResults(results, catno) {
+function renderDiscogsResults(results, catno, total = 0, page = 1) {
   const container = document.getElementById('dcg-results-list');
   if (!results.length) {
     container.innerHTML = '<div style="font-family:var(--mono);font-size:.75rem;color:var(--muted);padding:1rem">Sin resultados. Probá con otro código.</div>';
     document.getElementById('dcg-results').style.display = 'block';
     return;
   }
-  container.innerHTML = results.map(r => {
+  const rows = results.map(r => {
     const dupeWarning = codigoExiste(r.catno)
       ? `<span class="tag" style="color:#ff4444;border-color:#ff4444;margin-left:4px">⚠ ya existe</span>` : '';
     return `<div class="dcg-result-row" onclick="selectDiscogsRelease(${r.id}, '${(r.catno||'').replace(/'/g,"\\'")}')">
@@ -3320,6 +3331,20 @@ function renderDiscogsResults(results, catno) {
       <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);flex-shrink:0"># ${r.id}</span>
     </div>`;
   }).join('');
+
+  const shown = results.length;
+  const hasMore = total > shown;
+  const nextPage = page + 1;
+  const moreBtn = hasMore ? `
+    <div style="padding:.8rem;text-align:center;border-top:1px solid var(--border)">
+      <span style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">${shown} de ${total} resultados</span>
+      <button class="btn btn-sm" style="margin-left:.8rem" onclick="searchDiscogs(${nextPage})">Ver 10 más →</button>
+    </div>` : `
+    <div style="padding:.6rem;text-align:center;border-top:1px solid var(--border)">
+      <span style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">${shown} de ${total} resultados</span>
+    </div>`;
+
+  container.innerHTML = rows + moreBtn;
   document.getElementById('dcg-results').style.display = 'block';
 }
 
