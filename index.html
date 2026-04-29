@@ -4000,8 +4000,12 @@ async function choosePlan(plan, gateway) {
   const msgEl = document.getElementById('welcome-msg');
   if (msgEl) msgEl.textContent = 'Procesando...';
 
-  if (plan === 'trial') {
-    // Crear fila trial en subscriptions
+  // Verificar si ya existe una fila para este usuario antes de insertar
+  const { data: existing } = await supa.from('subscriptions')
+    .select('id, plan').eq('user_id', currentUser.id).single();
+
+  if (!existing) {
+    // Solo insertar si no existe
     const { error } = await supa.from('subscriptions').insert({
       user_id: currentUser.id,
       email: currentUser.email,
@@ -4009,33 +4013,18 @@ async function choosePlan(plan, gateway) {
       status: 'active',
       expires_at: null
     });
-    if (error && !error.message.includes('duplicate')) {
+    if (error) {
       if (msgEl) msgEl.textContent = 'Error: ' + error.message;
       return;
     }
-    currentSubscription = { plan: 'trial', status: 'active', expires_at: null };
-    updatePlanBadge();
-    document.getElementById('modal-welcome').style.display = 'none';
-    sessionStorage.removeItem('new_user_email');
-    return;
   }
 
-  // Para planes de pago: primero crear fila pending, luego redirigir al pago
-  const { error } = await supa.from('subscriptions').insert({
-    user_id: currentUser.id,
-    email: currentUser.email,
-    plan: 'trial', // empieza como trial hasta que se confirme el pago
-    status: 'active',
-    expires_at: null
-  });
-  // Ignorar error de duplicate key (ya existe)
-
-  currentSubscription = { plan: 'trial', status: 'active', expires_at: null };
+  currentSubscription = existing || { plan: 'trial', status: 'active', expires_at: null };
   updatePlanBadge();
   document.getElementById('modal-welcome').style.display = 'none';
   sessionStorage.removeItem('new_user_email');
 
-  // Redirigir al flujo de pago
+  // Si eligió un plan de pago, redirigir
   if (gateway === 'mp') subscribeMercadoPago(plan);
   else if (gateway === 'pp') subscribePayPal(plan);
 }
