@@ -368,6 +368,14 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">DIS<span>C</span></div>
+  <div style="max-width:320px;text-align:center;margin-bottom:1.5rem;padding:0 1rem">
+    <p style="font-family:var(--mono);font-size:.68rem;color:var(--muted);line-height:2;letter-spacing:.5px">
+      <span data-i18n="welcome_line1">Plataforma para curadores de vinilos.</span><br>
+      <span data-i18n="welcome_line2">Organizá tus discos · importá desde Discogs</span><br>
+      <span data-i18n="welcome_line3">Ordená por sello, género, intensidad · tags personalizados</span><br>
+      <span data-i18n="welcome_line4">Creá playlists · escuchá en YouTube</span>
+    </p>
+  </div>
     <div class="auth-subtitle">// disc record collection</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">Ingresar</button>
@@ -888,7 +896,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     </div>
 
     <!-- Sub-tabs: individual vs bulk -->
-    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem">
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem;position:relative;z-index:1">
       <button class="nav-btn active" id="dcg-sub-single" onclick="switchDcgSub('single')" style="padding:.6rem 1.2rem;border-bottom:2px solid var(--accent);color:var(--accent)" data-i18n="nav_search">BUSCAR</button>
       <button class="nav-btn" id="dcg-sub-bulk" onclick="switchDcgSub('bulk')" style="padding:.6rem 1.2rem;border-bottom:2px solid transparent">CSV</button>
     </div>
@@ -899,7 +907,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.info-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(90deg)':''" style="background:none;border:1px solid var(--blue);border-radius:2px;padding:.4rem .9rem;cursor:pointer;font-family:var(--mono);font-size:.63rem;color:var(--blue);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:.5rem">
           <span class="info-arrow" style="font-size:.6rem;transition:transform .2s">+</span> <span data-i18n="how_it_works">¿Cómo funciona?</span>
         </button>
-        <div style="display:none" class="restore-info restore-info-body" style="margin-top:0;border-top:none;border-radius:0 0 2px 2px">
+        <div style="display:none" class="restore-info restore-info-body" style="margin-top:.5rem;border-radius:2px">
           <strong data-i18n="step1_title">Paso 1 — Obtener token de Discogs</strong><br>
           1. <span data-i18n="step1_1">Entrá a</span> <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:#7dd3fc">discogs.com → <span data-i18n="step1_link">Configuración → Desarrolladores</span></a><br>
           2. <span data-i18n="step1_2">Hacé clic en <em>"Generate new token"</em></span><br>
@@ -4225,6 +4233,10 @@ const TRANSLATIONS = {
     sub_import: '// desde discogs',
     tracks_word: 'tracks', yt_links_found: 'links de YouTube encontrados', videos_no_match: 'videos en Discogs (sin match por track)',
     nav_install: '↓ App', sub_install: '// descargá la app',
+    welcome_line1: 'Plataforma para curadores de vinilos.',
+    welcome_line2: 'Organizá tus discos · importá desde Discogs',
+    welcome_line3: 'Ordená por sello, género, intensidad · tags personalizados',
+    welcome_line4: 'Creá playlists · escuchá en YouTube',
     install_android_title: 'INSTALAR EN ANDROID', install_android_sub: 'Chrome · Samsung Internet',
     android_step1: 'Abrí <strong>discrc.com</strong> en Chrome',
     android_step2: 'Tocá el menú <strong>⋮</strong> (tres puntos arriba a la derecha)',
@@ -4294,6 +4306,10 @@ const TRANSLATIONS = {
     sub_import: '// from discogs',
     tracks_word: 'tracks', yt_links_found: 'YouTube links found', videos_no_match: 'videos on Discogs (no track match)',
     nav_install: '↓ App', sub_install: '// download the app',
+    welcome_line1: 'Platform for vinyl curators.',
+    welcome_line2: 'Organize your discs · import from Discogs',
+    welcome_line3: 'Sort by label, genre, intensity · custom tags',
+    welcome_line4: 'Create playlists · listen on YouTube',
     install_android_title: 'INSTALL ON ANDROID', install_android_sub: 'Chrome · Samsung Internet',
     android_step1: 'Open <strong>discrc.com</strong> in Chrome',
     android_step2: 'Tap the menu <strong>⋮</strong> (three dots top right)',
