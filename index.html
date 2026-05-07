@@ -326,8 +326,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .loading-text{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
 
 /* ── AUTH SCREEN ── */
-#auth-screen{position:fixed;inset:0;background:#0c0c0c;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem}
-.auth-box{width:100%;max-width:400px}
+#auth-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;overflow:hidden}
+.auth-box{width:100%;max-width:400px;background:rgba(0,0,0,0.82);border-radius:4px;padding:2rem 2.5rem;position:relative;z-index:2;backdrop-filter:blur(2px)}
 .auth-logo{font-family:var(--display);font-size:3rem;letter-spacing:8px;margin-bottom:.2rem}
 .auth-logo span{color:var(--accent)}
 .auth-subtitle{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:2.5rem}
@@ -366,6 +366,13 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 </div>
 
 <div id="auth-screen">
+  <!-- Fondo collage de la app -->
+  <div id="auth-bg" style="position:absolute;inset:0;z-index:0;overflow:hidden">
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0a0a0a 0%,#111 50%,#0a0a0a 100%)"></div>
+    <!-- Grid de mini-capturas simuladas con CSS -->
+    <div id="auth-tiles" style="position:absolute;inset:-10%;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(5,1fr);gap:6px;transform:rotate(-5deg);opacity:0.18;filter:blur(1px)"></div>
+  </div>
+  <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.85) 100%)"></div>
   <div class="auth-box">
     <div class="auth-logo">DIS<span>C</span></div>
   <div style="max-width:320px;text-align:center;margin-bottom:1.5rem;padding:0 1rem">
@@ -4370,6 +4377,36 @@ function setLang(lang) {
   if (typeof updateAllTrackFilters === 'function') updateAllTrackFilters();
 }
 
+// ══════════════════════════════════════════════════════
+// Auth screen background collage
+// ══════════════════════════════════════════════════════
+function buildAuthBg() {
+  const container = document.getElementById('auth-tiles');
+  if (!container) return;
+  // Paleta de colores de la app
+  const colors = [
+    '#cc3300','#1a1a1a','#222','#181818','#2a0a00',
+    '#0a1a2a','#1a2a1a','#2a1a00','#001a2a','#1a001a',
+  ];
+  // Textos que simulan capturas de la app
+  const labels = [
+    'DISCOS','TRACKS','PLAYLISTS','IMPORT',
+    'HOUSE','MINIMAL','TECH HOUSE','PROGRESSIVE',
+    'SELLO','GÉNERO','TAGS','INT.',
+    'A1','B2','A2','B1',
+    '●●●●○','●●●○○','●●●●●','●●○○○',
+    'BOMBA','INTRO','BAJADA','DROP',
+    'EDIT TRACK','NEW DISC','SAVE','CANCEL',
+  ];
+  const tiles = 20;
+  container.innerHTML = Array.from({length:tiles}).map((_,i) => {
+    const bg = colors[i % colors.length];
+    const label = labels[i % labels.length];
+    const h = 60 + Math.random() * 80;
+    return `<div style="background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;height:${h}px;font-family:monospace;font-size:.55rem;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;overflow:hidden;padding:4px">${label}</div>`;
+  }).join('');
+}
+
 // PWA Install prompt
 let _pwaInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
@@ -4399,6 +4436,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sel = document.getElementById('lang-select');
   if (sel) sel.value = currentLang;
   applyLang();
+  buildAuthBg();
 });
 </script>
 </body>
