@@ -695,6 +695,33 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 </div>
 
 
+<!-- MODAL TRIAL VENCIDO -->
+<div class="modal-overlay" id="modal-trial-expired" style="z-index:500;display:none">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div class="modal-title" style="font-size:1.3rem;margin-bottom:.5rem" data-i18n="trial_expired_title">PRUEBA GRATUITA VENCIDA</div>
+    <p style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.8" data-i18n="trial_expired_body">Tu período de prueba de 30 días ha finalizado.<br>Suscribite para continuar usando DISC sin límites.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:2px;padding:1rem 1.2rem;min-width:140px">
+        <div style="font-family:var(--display);font-size:1.2rem;letter-spacing:2px;margin-bottom:.3rem" data-i18n="plan_monthly">MENSUAL</div>
+        <div style="font-family:var(--mono);font-size:1rem;color:var(--accent);margin-bottom:.8rem">U$S 10 / <span data-i18n="per_month">mes</span></div>
+        <div style="display:flex;flex-direction:column;gap:.3rem">
+          <button class="btn btn-primary btn-sm" onclick="subscribeMercadoPago('monthly')">MercadoPago</button>
+          <button class="btn btn-blue btn-sm" onclick="subscribePayPal('monthly')">PayPal</button>
+        </div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--accent2);border-radius:2px;padding:1rem 1.2rem;min-width:140px;position:relative">
+        <div style="position:absolute;top:-.6rem;left:50%;transform:translateX(-50%);background:var(--accent2);color:#000;font-family:var(--mono);font-size:.5rem;padding:2px 8px;border-radius:10px;white-space:nowrap;font-weight:700" data-i18n="save_pct">AHORRÁS 17%</div>
+        <div style="font-family:var(--display);font-size:1.2rem;letter-spacing:2px;margin-bottom:.3rem" data-i18n="plan_annual">ANUAL</div>
+        <div style="font-family:var(--mono);font-size:1rem;color:var(--accent2);margin-bottom:.8rem">U$S 100 / <span data-i18n="per_year">año</span></div>
+        <div style="display:flex;flex-direction:column;gap:.3rem">
+          <button class="btn btn-primary btn-sm" onclick="subscribeMercadoPago('annual')">MercadoPago</button>
+          <button class="btn btn-blue btn-sm" onclick="subscribePayPal('annual')">PayPal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL UPGRADE -->
 
 <!-- MODAL BIENVENIDA / ELEGIR PLAN -->
@@ -1716,7 +1743,7 @@ function detailClearSelection(){
 function renderDots(val){
   val=val||0;
   return '<div class="intensity">'+[1,2,3,4,5].map(i=>{
-    const c = i<=val ? `dot on-${i}` : 'dot';
+    const c = i<=val ? `dot on-${val}` : 'dot';
     return `<div class="${c}"></div>`;
   }).join('')+'</div>';
 }
@@ -3641,8 +3668,13 @@ function getUserPlan() {
 function canAddDisco() {
   const plan = getUserPlan();
   if (plan === 'admin' || plan === 'monthly' || plan === 'annual') return true;
-  // trial: max 5 discos
+  if (currentSubscription?.status === 'expired') return false;
+  // trial activo: max 5 discos
   return state.discos.length < 5;
+}
+
+function isTrialExpired() {
+  return currentSubscription?.plan === 'trial' && currentSubscription?.status === 'expired';
 }
 let syncTimeout = null;
 
@@ -3754,16 +3786,35 @@ async function onUserLoggedIn() {
     .select('*').eq('user_id', currentUser.id).single();
 
   if (subError && subError.code !== 'PGRST116') {
-    // Error de red u otro — no interrumpir el flujo, asumir trial
     currentSubscription = null;
   } else {
     currentSubscription = subData || null;
+    // Verificar si el trial venció
+    if (currentSubscription?.plan === 'trial' && currentSubscription?.expires_at) {
+      const expired = new Date(currentSubscription.expires_at) < new Date();
+      if (expired) {
+        currentSubscription.status = 'expired';
+        // Actualizar en Supabase
+        await supa.from('subscriptions').update({ status: 'expired' }).eq('user_id', currentUser.id);
+      }
+    }
   }
 
   // Mostrar modal de bienvenida SOLO si no existe ninguna fila para este usuario
   // (PGRST116 = no rows found = usuario nunca eligió plan)
   const isNewUser = !subData && subError?.code === 'PGRST116';
-  const isTrial = subData?.plan === 'trial';
+  const isTrial = subData?.plan === 'trial' && currentSubscription?.status !== 'expired';
+  const isExpired = currentSubscription?.status === 'expired';
+
+  // Si el trial vencio, bloquear la app y mostrar modal de pago
+  if (isExpired) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('login-btn').style.display = 'none';
+    await loadFromCloud();
+    renderDiscos(); updateStats();
+    document.getElementById('modal-trial-expired').style.display = 'flex';
+    return;
+  }
 
   if (isNewUser || isTrial) {
     document.getElementById('auth-screen').style.display = 'none';
@@ -3775,7 +3826,10 @@ async function onUserLoggedIn() {
     if (skipWrap) {
       if (isTrial) {
         const remaining = 5 - state.discos.length;
-        skipWrap.innerHTML = `<button class="btn btn-sm" style="color:var(--muted);border-color:var(--border)" onclick="document.getElementById('modal-welcome').style.display='none'">Continuar con plan gratuito · ${Math.max(0,remaining)} disco${remaining!==1?'s':''} disponible${remaining!==1?'s':''}</button>`;
+        const daysLeft = currentSubscription?.expires_at
+          ? Math.max(0, Math.ceil((new Date(currentSubscription.expires_at) - new Date()) / (1000*60*60*24)))
+          : 30;
+        skipWrap.innerHTML = `<button class="btn btn-sm" style="color:var(--muted);border-color:var(--border)" onclick="document.getElementById('modal-welcome').style.display='none'">${t('continue_trial')} · ${daysLeft} ${t('days_left')} · ${Math.max(0,remaining)} ${t('discs_left')}</button>`;
       } else {
         skipWrap.innerHTML = '';
       }
@@ -4021,13 +4075,14 @@ async function choosePlan(plan, gateway) {
     .select('id, plan').eq('user_id', currentUser.id).single();
 
   if (!existing) {
-    // Solo insertar si no existe
+    // Trial: 30 días desde el registro
+    const trialExpires = new Date(Date.now() + 30*24*60*60*1000).toISOString();
     const { error } = await supa.from('subscriptions').insert({
       user_id: currentUser.id,
       email: currentUser.email,
       plan: 'trial',
       status: 'active',
-      expires_at: null
+      expires_at: trialExpires
     });
     if (error) {
       if (msgEl) msgEl.textContent = 'Error: ' + error.message;
@@ -4241,6 +4296,10 @@ const TRANSLATIONS = {
     tracks_word: 'tracks', yt_links_found: 'links de YouTube encontrados', videos_no_match: 'videos en Discogs (sin match por track)',
     nav_install: '↓ App', sub_install: '// descargá la app',
     welcome_line1: 'Plataforma para curadores de vinilos.',
+    trial_expired_title: 'PRUEBA GRATUITA VENCIDA',
+    trial_expired_body: 'Tu período de prueba de 30 días ha finalizado.<br>Suscribite para continuar usando DISC sin límites.',
+    plan_monthly: 'MENSUAL', plan_annual: 'ANUAL',
+    per_month: 'mes', per_year: 'año', save_pct: 'AHORRÁS 17%',
     welcome_line2: 'Organizá tus discos · importá desde Discogs',
     welcome_line3: 'Ordená por sello, género, intensidad · tags personalizados',
     welcome_line4: 'Creá playlists · escuchá en YouTube',
@@ -4314,6 +4373,10 @@ const TRANSLATIONS = {
     tracks_word: 'tracks', yt_links_found: 'YouTube links found', videos_no_match: 'videos on Discogs (no track match)',
     nav_install: '↓ App', sub_install: '// download the app',
     welcome_line1: 'Platform for vinyl curators.',
+    trial_expired_title: 'FREE TRIAL EXPIRED',
+    trial_expired_body: 'Your 30-day free trial has ended.<br>Subscribe to keep using DISC without limits.',
+    plan_monthly: 'MONTHLY', plan_annual: 'ANNUAL',
+    per_month: 'month', per_year: 'year', save_pct: 'SAVE 17%',
     welcome_line2: 'Organize your discs · import from Discogs',
     welcome_line3: 'Sort by label, genre, intensity · custom tags',
     welcome_line4: 'Create playlists · listen on YouTube',
