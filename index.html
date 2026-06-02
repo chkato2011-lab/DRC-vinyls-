@@ -502,7 +502,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <select class="filter-select" id="filter-genero" onchange="renderDiscos()"><option value="" data-i18n="genre1_all">Género 1: todos</option></select>
       <select class="filter-select" id="filter-genero2" onchange="renderDiscos()"><option value="" data-i18n="genre2_all">Género 2: todos</option></select>
       <select class="filter-select" id="filter-sello" onchange="renderDiscos()"><option value="" data-i18n="label_all">Sello: todos</option></select>
-      <select class="filter-select" id="disco-sort" onchange="renderDiscos()">
+      <select class="filter-select" id="disco-sort" onchange="localStorage.setItem('disc_sort',this.value);renderDiscos()">
         <option value="" data-i18n="sort_default">Orden: por defecto</option>
         <option value="nombre_asc" data-i18n="sort_name_az">Nombre A-Z</option>
         <option value="nombre_desc" data-i18n="sort_name_za">Nombre Z-A</option>
@@ -1517,7 +1517,14 @@ function renderDiscos(){
   updateSelect('filter-genero',gens,_td('genre1_all'),gf);
   updateSelect('filter-genero2',gens,_td('genre2_all'),gf2);
   updateSelect('filter-sello',sell,_td('label_all'),sf);
-  const sortVal = document.getElementById('disco-sort')?.value || '';
+  const discoSortEl = document.getElementById('disco-sort');
+  // Restaurar sort guardado
+  if (discoSortEl && !discoSortEl._restored) {
+    const saved = localStorage.getItem('disc_sort') || '';
+    if (saved) discoSortEl.value = saved;
+    discoSortEl._restored = true;
+  }
+  const sortVal = discoSortEl?.value || '';
   let f=state.discos.filter(d=>{
     const dgens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
     if(gf&&gf2){if(!dgens.includes(gf)&&!dgens.includes(gf2))return false;}
