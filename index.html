@@ -960,6 +960,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 function navTo(id) {
   document.getElementById('page-main').style.display = 'block';
   document.getElementById('page-gestion').style.display = 'none';
+  closeMobileMenu();
+  const btn = document.getElementById('mobile-menu-btn');
+  if(btn) btn.style.display = 'none';
   setTimeout(() => { const el = document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth'}); }, 60);
 }
 function showGestion() {
@@ -969,6 +972,9 @@ function showGestion() {
   const el = document.getElementById('admin-label');
   if (el && u) el.textContent = u.nombre+' '+u.apellido+' — '+u.email;
   showPanel('eventos');
+
+  const btn = document.getElementById('mobile-menu-btn');
+  if(btn) btn.style.display = 'flex';
 }
 
 // ═══════════════════════════════════════════
@@ -985,6 +991,7 @@ function showPanel(name) {
   if (name==='contab') loadMov();
   if (name==='accesos') loadRRPP();
   if (name==='usuarios') loadUsuarios();
+  closeMobileMenu();
 }
 function switchTab(el, tid) {
   el.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -2044,15 +2051,7 @@ function updateMobileMenuBtn(show) {
   const btn = document.getElementById('mobile-menu-btn');
   if(btn) btn.style.display = show ? 'flex' : 'none';
 }
-// Patch showGestion to show btn
-const _sg = showGestion;
-showGestion = function(){ _sg(); updateMobileMenuBtn(true); };
-// Patch showPanel to close menu on mobile
-const _sp = showPanel;
-showPanel = function(name){ _sp(name); closeMobileMenu(); };
-// Patch navTo to hide btn when going to main
-const _navTo = navTo;
-navTo = function(id){ closeMobileMenu(); updateMobileMenuBtn(false); _navTo(id); };
+// Mobile menu closes on panel/nav selection - handled inline
 </script>
 </body>
 </html>
