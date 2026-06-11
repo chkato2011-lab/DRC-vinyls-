@@ -1735,7 +1735,7 @@ async function loadEvGastos() {
       <td style="text-align:center;">
         <label style="display:flex;align-items:center;justify-content:center;cursor:pointer;gap:.4rem;">
           <input type="checkbox" ${g.estado==='pagado'?'checked':''} 
-            onchange="toggleGastoPago('${g.id}','${g.concepto.replace(/'/g,"\\'")}',${g.monto},this.checked)"
+            onchange="toggleGastoPago('${g.id}',this.dataset.concepto,${g.monto},this.checked)" data-concepto="${g.concepto.replace(/"/g,'&quot;')}"
             style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;">
           <span style="font-family:var(--fc);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:${g.estado==='pagado'?'var(--green)':'var(--muted)'}">
             ${g.estado==='pagado'?'Pagado':'Pendiente'}
@@ -1769,9 +1769,8 @@ async function toggleGastoPago(id, concepto, monto, checked) {
   const estado = checked ? 'pagado' : 'pendiente';
   await sb().from('gastos_evento').update({estado}).eq('id',id);
   if (checked) {
-    // Register as outgoing movement
     await sb().from('movimientos').insert({
-      descripcion:'[Gasto] '+concepto+' — '+currentEvData.nombre,
+      descripcion:'[Gasto] '+(concepto||'')+'  '+( currentEvData ? currentEvData.nombre : ''),
       monto:+monto, tipo:'out',
       fecha:new Date().toISOString().split('T')[0],
       evento_id:currentEvId
