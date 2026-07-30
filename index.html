@@ -135,6 +135,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .tracks-table td{padding:.7rem .8rem;border-bottom:1px solid var(--border);font-size:.86rem;vertical-align:middle}
 .tracks-table tr:hover td{background:var(--bg2)}
 .tracks-table tr.row-selected td{background:rgba(56,189,248,.07)}
+.tracks-table tr.row-random td{background:rgba(234,179,8,.1);border-left:2px solid var(--accent2)}
 .track-num{font-family:var(--mono);font-size:.65rem;color:var(--muted);width:30px}
 .track-artist{color:var(--muted);font-size:.78rem;margin-top:2px;font-family:var(--mono)}
 
@@ -511,7 +512,10 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
         <option value="added_desc" data-i18n="sort_newest">Más recientes</option>
         <option value="added_asc" data-i18n="sort_oldest">Más antiguos</option>
       </select>
-      <input type="text" class="search-input" id="search-discos" placeholder="Buscar disco, código o artista..." data-i18n-placeholder="search_discs_ph" oninput="renderDiscos()">
+      <div style="position:relative;display:inline-flex;align-items:center">
+        <input type="text" class="search-input" id="search-discos" placeholder="Buscar disco, código o artista..." data-i18n-placeholder="search_discs_ph" oninput="renderDiscos();document.getElementById('clear-discos').style.display=this.value?'flex':'none'">
+        <button id="clear-discos" onclick="document.getElementById('search-discos').value='';renderDiscos();this.style.display='none'" style="display:none;position:absolute;right:6px;width:18px;height:18px;border-radius:50%;background:#cc3300;border:none;color:#fff;font-size:.6rem;cursor:pointer;align-items:center;justify-content:center;font-weight:700">✕</button>
+      </div>
       <div class="view-toggle">
         <button class="vt-btn" id="vt-grid" onclick="setDiscosView('grid')" title="Grilla" style="font-size:.9rem">▣</button>
         <button class="vt-btn active" id="vt-list" onclick="setDiscosView('list')" title="Lista" style="font-size:.9rem">☰</button>
@@ -561,7 +565,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <table class="tracks-table">
       <thead><tr>
         <th style="width:30px"><input type="checkbox" id="detail-chk-all" onchange="detailSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
-        <th>#</th><th>YT</th><th data-i18n="col_name">Nombre</th><th data-i18n="col_artist">Artista</th><th data-i18n="col_genre">Género</th><th data-i18n="col_tags">Tags</th><th>Int.</th><th></th>
+        <th>#</th><th style="width:40px">YT</th><th data-i18n="col_name">Nombre</th><th data-i18n="col_artist">Artista</th><th data-i18n="col_genre">Género</th><th data-i18n="col_tags">Tags</th><th data-i18n="col_int">Int.</th><th></th>
       </tr></thead>
       <tbody id="detail-tracks"></tbody>
     </table>
@@ -593,7 +597,11 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </select>
       <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="" data-i18n="tag_all">Tags: todos</option></select>
       <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="" data-i18n="label_all">Sello: todos</option></select>
-      <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." data-i18n-placeholder="search_ph" oninput="renderAllTracks()">
+      <button onclick="randomTrack()" style="background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;transition:all .15s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🎲 <span data-i18n="btn_random">Aleatorio</span></button>
+      <div style="position:relative;display:inline-flex;align-items:center">
+        <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." data-i18n-placeholder="search_ph" oninput="renderAllTracks();document.getElementById('clear-tracks').style.display=this.value?'flex':'none'">
+        <button id="clear-tracks" onclick="document.getElementById('search-tracks').value='';renderAllTracks();this.style.display='none'" style="display:none;position:absolute;right:6px;width:18px;height:18px;border-radius:50%;background:#cc3300;border:none;color:#fff;font-size:.6rem;cursor:pointer;align-items:center;justify-content:center;font-weight:700">✕</button>
+      </div>
 
     </div>
   </div>
@@ -1669,7 +1677,7 @@ function renderDetailTracks(d){
     const sel=detailSelectedTracks.has(key);
     return `<tr class="${sel?'row-selected':''}">
     <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="toggleDetailTrack('${d.id}','${t.id}',this)"></td>
-    <td class="track-num">${t.position||String(i+1).padStart(2,'0')}</td>
+    <td class="track-num">${numToVinylPos(t.position||String(i+1).padStart(2,'0'))}</td>
     <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
     <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:2px">💬 ${t.comentario}</div>`:''}</td>
     <td><div class="track-artist">${t.artista}</div></td>
@@ -1747,6 +1755,37 @@ function detailClearSelection(){
   const d=state.discos.find(x=>x.id===state.currentDiscoId);
   if(d) renderDetailTracks(d);
 }
+function numToVinylPos(pos) {
+  if (!pos) return '';
+  // Si ya tiene formato alfanumérico (A1, B2, etc) devolverlo tal cual
+  if (/^[A-Za-z]\d+$/.test(pos.trim())) return pos.trim().toUpperCase();
+  // Convertir numérico a formato vinilo
+  const n = parseInt(pos);
+  if (isNaN(n) || n < 1) return pos;
+  const sideMap = [
+    null,           // 0 (no usado)
+    'A1','A2',      // 1-2
+    'B1','B2',      // 3-4
+    'C1','C2','C3','C4', // 5-8
+    'D1','D2','D3','D4'  // 9-12
+  ];
+  return sideMap[n] || pos;
+}
+
+function randomTrack() {
+  // Obtener todos los tracks visibles (filtrados)
+  const rows = document.querySelectorAll('#all-tracks-body tr');
+  if (!rows.length) return;
+  // Quitar highlight anterior
+  rows.forEach(r => r.classList.remove('row-random'));
+  // Elegir uno al azar
+  const idx = Math.floor(Math.random() * rows.length);
+  const row = rows[idx];
+  row.classList.add('row-random');
+  // Hacer scroll hasta la fila
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function renderDots(val){
   val=val||0;
   return '<div class="intensity">'+[1,2,3,4,5].map(i=>{
@@ -2186,7 +2225,8 @@ function renderPlaylists(){
   const grid=document.getElementById('playlist-grid'),em=document.getElementById('playlist-empty');
   if(!state.playlists.length){grid.innerHTML='';em.style.display='block';return;}
   em.style.display='none';
-  grid.innerHTML=state.playlists.map(pl=>{
+  const sortedPlaylists = [...state.playlists].reverse();
+  grid.innerHTML=sortedPlaylists.map(pl=>{
     let coverHtml='<div class="mini-vinyl" style="width:28px;height:28px;box-shadow:0 0 0 3px #111,0 0 0 5px #222"></div>';
     for(const ref of pl.tracks){
       const d=state.discos.find(x=>x.id===ref.discoId);
