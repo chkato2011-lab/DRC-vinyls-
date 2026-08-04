@@ -497,7 +497,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- DISCOS -->
 <div class="view active" id="view-discos">
-  <div id="discos-filters-bar" style="position:sticky;top:var(--nav-h,96px);z-index:90;background:var(--bg);padding:.5rem 2rem;margin:0 -2rem;margin-bottom:0">
+  <div id="discos-filters-bar" style="position:sticky;top:96px;z-index:90;background:var(--bg);padding-bottom:.5rem">
   <div class="section-header" style="margin-bottom:.5rem">
     <div class="section-title"><small data-i18n="sub_collection">// colección</small><span data-i18n="nav_discs">DISCOS</span> <span id="discos-count" style="font-family:var(--mono);font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:1px"></span></div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
@@ -532,6 +532,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <button class="btn btn-primary" onclick="openModalDisco()" data-i18n="btn_new_disc">+ Nuevo Disco</button>
     </div>
   </div>
+  </div><!-- /discos-filters-bar -->
   <!-- Batch delete bar -->
   <div id="disco-batch-bar" style="display:none;background:var(--bg2);border:1px solid #ff4444;border-radius:2px;padding:.6rem 1rem;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
     <span id="disco-batch-count" style="font-family:var(--mono);font-size:.72rem;color:#ff4444"></span>
@@ -586,7 +587,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- ALL TRACKS -->
 <div class="view" id="view-tracks">
-  <div id="tracks-filters-bar" style="position:sticky;top:var(--nav-h,96px);z-index:90;background:var(--bg);padding:.5rem 2rem;margin:0 -2rem;margin-bottom:0">
+  <div id="tracks-filters-bar" style="position:sticky;top:96px;z-index:90;background:var(--bg);padding-bottom:.5rem">
   <div class="section-header" style="margin-bottom:.5rem">
     <div class="section-title"><small>// biblioteca</small>TRACKS</div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
@@ -607,6 +608,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
     </div>
   </div>
+  </div><!-- /tracks-filters-bar -->
   <!-- Batch add to playlist bar -->
   <div id="batch-bar" style="display:none;background:var(--bg2);border:1px solid var(--blue);border-radius:2px;padding:.6rem 1rem;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
     <span id="batch-count" style="font-family:var(--mono);font-size:.72rem;color:var(--blue)"></span>
