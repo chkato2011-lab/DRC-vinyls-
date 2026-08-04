@@ -135,7 +135,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .tracks-table td{padding:.7rem .8rem;border-bottom:1px solid var(--border);font-size:.86rem;vertical-align:middle}
 .tracks-table tr:hover td{background:var(--bg2)}
 .tracks-table tr.row-selected td{background:rgba(56,189,248,.07)}
-.tracks-table tr.row-random td{background:rgba(234,179,8,.1);border-left:2px solid var(--accent2)}
+.tracks-table tr.row-random td{background:rgba(234,179,8,.12)}
 .track-num{font-family:var(--mono);font-size:.65rem;color:var(--muted);width:30px}
 .track-artist{color:var(--muted);font-size:.78rem;margin-top:2px;font-family:var(--mono)}
 
@@ -497,7 +497,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- DISCOS -->
 <div class="view active" id="view-discos">
-  <div id="discos-filters-bar" style="position:sticky;top:var(--nav-h,96px);z-index:90;background:var(--bg);padding:.5rem 0;margin-bottom:0">
+  <div id="discos-filters-bar" style="position:sticky;top:var(--nav-h,96px);z-index:90;background:var(--bg);padding:.5rem 2rem;margin:0 -2rem;margin-bottom:0">
   <div class="section-header" style="margin-bottom:.5rem">
     <div class="section-title"><small data-i18n="sub_collection">// colección</small><span data-i18n="nav_discs">DISCOS</span> <span id="discos-count" style="font-family:var(--mono);font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:1px"></span></div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
@@ -531,7 +531,6 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </div>
       <button class="btn btn-primary" onclick="openModalDisco()" data-i18n="btn_new_disc">+ Nuevo Disco</button>
     </div>
-  </div>
   </div>
   <!-- Batch delete bar -->
   <div id="disco-batch-bar" style="display:none;background:var(--bg2);border:1px solid #ff4444;border-radius:2px;padding:.6rem 1rem;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
@@ -587,7 +586,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- ALL TRACKS -->
 <div class="view" id="view-tracks">
-  <div id="tracks-filters-bar" style="position:sticky;top:var(--nav-h,96px);z-index:90;background:var(--bg);padding:.5rem 0;margin-bottom:0">
+  <div id="tracks-filters-bar" style="position:sticky;top:var(--nav-h,96px);z-index:90;background:var(--bg);padding:.5rem 2rem;margin:0 -2rem;margin-bottom:0">
   <div class="section-header" style="margin-bottom:.5rem">
     <div class="section-title"><small>// biblioteca</small>TRACKS</div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
@@ -607,7 +606,6 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </div>
 
     </div>
-  </div>
   </div>
   <!-- Batch add to playlist bar -->
   <div id="batch-bar" style="display:none;background:var(--bg2);border:1px solid var(--blue);border-radius:2px;padding:.6rem 1rem;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
@@ -4547,12 +4545,34 @@ function triggerPWAInstall() {
 }
 
 // Aplicar idioma al cargar
+// Scroll to top button + sticky offset
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('scroll-top-btn');
+  if (btn) btn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+});
+
+// Calcular top del sticky dinámicamente
+function updateStickyTop() {
+  const h = document.querySelector('header');
+  const nav = document.querySelector('.nav');
+  if (!h || !nav) return;
+  const top = h.offsetHeight + nav.offsetHeight;
+  ['discos-filters-bar','tracks-filters-bar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.top = top + 'px';
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const sel = document.getElementById('lang-select');
   if (sel) sel.value = currentLang;
   applyLang();
   buildAuthBg();
+  updateStickyTop();
+  window.addEventListener('resize', updateStickyTop);
 });
 </script>
+  <!-- Botón scroll to top flotante -->
+  <button id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;width:44px;height:44px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.5);align-items:center;justify-content:center">↑</button>
 </body>
 </html>
