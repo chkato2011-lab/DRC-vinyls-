@@ -497,7 +497,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- DISCOS -->
 <div class="view active" id="view-discos">
-  <div class="section-header">
+  <div id="discos-filters-bar" style="position:sticky;top:var(--nav-h,96px);z-index:90;background:var(--bg);padding:.5rem 0;margin-bottom:0">
+  <div class="section-header" style="margin-bottom:.5rem">
     <div class="section-title"><small data-i18n="sub_collection">// colección</small><span data-i18n="nav_discs">DISCOS</span> <span id="discos-count" style="font-family:var(--mono);font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:1px"></span></div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
       <select class="filter-select" id="filter-genero" onchange="renderDiscos()"><option value="" data-i18n="genre1_all">Género 1: todos</option></select>
@@ -530,6 +531,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </div>
       <button class="btn btn-primary" onclick="openModalDisco()" data-i18n="btn_new_disc">+ Nuevo Disco</button>
     </div>
+  </div>
   </div>
   <!-- Batch delete bar -->
   <div id="disco-batch-bar" style="display:none;background:var(--bg2);border:1px solid #ff4444;border-radius:2px;padding:.6rem 1rem;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
@@ -565,7 +567,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
     <table class="tracks-table">
       <thead><tr>
         <th style="width:30px"><input type="checkbox" id="detail-chk-all" onchange="detailSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
-        <th>#</th><th style="width:40px">YT</th><th data-i18n="col_name">Nombre</th><th data-i18n="col_artist">Artista</th><th data-i18n="col_genre">Género</th><th data-i18n="col_tags">Tags</th><th data-i18n="col_int">Int.</th><th></th>
+        <th>#</th><th style="width:32px">Pos</th><th style="width:40px">YT</th><th data-i18n="col_name">Nombre</th><th data-i18n="col_artist">Artista</th><th data-i18n="col_genre">Género</th><th data-i18n="col_tags">Tags</th><th data-i18n="col_int">Int.</th><th></th>
       </tr></thead>
       <tbody id="detail-tracks"></tbody>
     </table>
@@ -585,7 +587,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 <!-- ALL TRACKS -->
 <div class="view" id="view-tracks">
-  <div class="section-header">
+  <div id="tracks-filters-bar" style="position:sticky;top:var(--nav-h,96px);z-index:90;background:var(--bg);padding:.5rem 0;margin-bottom:0">
+  <div class="section-header" style="margin-bottom:.5rem">
     <div class="section-title"><small>// biblioteca</small>TRACKS</div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
       <select class="filter-select" id="ft-artista" onchange="renderAllTracks()"><option value="" data-i18n="artist_all">Artista: todos</option></select>
@@ -604,6 +607,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </div>
 
     </div>
+  </div>
   </div>
   <!-- Batch add to playlist bar -->
   <div id="batch-bar" style="display:none;background:var(--bg2);border:1px solid var(--blue);border-radius:2px;padding:.6rem 1rem;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
@@ -2076,6 +2080,7 @@ function renderAllTracks(){
     const sel=selectedTracks.has(t._disco.id+'_'+t.id);
     return `<tr class="${sel?'row-selected':''}" onclick="toggleTrackRowSelect('${t._disco.id}','${t.id}',event)">
       <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="toggleTrackRowSelect('${t._disco.id}','${t.id}',{target:this})"></td>
+      <td style="font-family:var(--mono);font-size:.68rem;color:var(--muted);white-space:nowrap;padding:0 4px">${numToVinylPos(t.position||(()=>{const idx=t._disco.tracks?.findIndex(x=>x.id===t.id);return idx>=0?String(idx+1).padStart(2,'0'):''})())}</td>
       <td onclick="event.stopPropagation();openDisco('${t._disco.id}')" style="cursor:pointer;padding:3px">
         <div style="width:30px;height:30px;border-radius:1px;overflow:hidden;background:var(--bg3)">
           ${t._disco.cover?`<img src="${t._disco.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--border);font-size:8px">◼</div>`}
