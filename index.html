@@ -4547,11 +4547,74 @@ function triggerPWAInstall() {
 }
 
 // Aplicar idioma al cargar
-// Scroll to top button + sticky offset
+// Botón flotante + panel de filtros
 window.addEventListener('scroll', () => {
   const btn = document.getElementById('scroll-top-btn');
-  if (btn) btn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+  if (!btn) return;
+  // Detectar qué vista está activa
+  const viewDiscos = document.getElementById('view-discos');
+  const viewTracks = document.getElementById('view-tracks');
+  const discoActive = viewDiscos?.classList.contains('active');
+  const tracksActive = viewTracks?.classList.contains('active');
+  btn.style.display = (window.scrollY > 200 && (discoActive || tracksActive)) ? 'flex' : 'none';
 });
+
+function toggleFloatingFilters() {
+  const panel = document.getElementById('floating-filters-panel');
+  const content = document.getElementById('floating-filters-content');
+  if (panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    return;
+  }
+  // Copiar los filtros de la vista activa al panel flotante
+  const viewDiscos = document.getElementById('view-discos');
+  const viewTracks = document.getElementById('view-tracks');
+  const label = document.getElementById('floating-panel-label');
+
+  if (viewDiscos?.classList.contains('active')) {
+    const bar = document.getElementById('discos-filters-bar');
+    if (bar) {
+      content.innerHTML = bar.innerHTML;
+      if (label) label.textContent = '// DISCOS · FILTROS';
+      // Reasignar eventos a los clones
+      content.querySelectorAll('select[id]').forEach(sel => {
+        const orig = document.getElementById(sel.id);
+        if (orig) {
+          sel.value = orig.value;
+          sel.onchange = (e) => { orig.value = e.target.value; orig.dispatchEvent(new Event('change')); };
+        }
+      });
+      content.querySelectorAll('input[id]').forEach(inp => {
+        const orig = document.getElementById(inp.id);
+        if (orig) {
+          inp.value = orig.value;
+          inp.oninput = (e) => { orig.value = e.target.value; orig.dispatchEvent(new Event('input')); };
+        }
+      });
+    }
+  } else if (viewTracks?.classList.contains('active')) {
+    const bar = document.getElementById('tracks-filters-bar');
+    if (bar) {
+      content.innerHTML = bar.innerHTML;
+      if (label) label.textContent = '// TRACKS · FILTROS';
+      content.querySelectorAll('select[id]').forEach(sel => {
+        const orig = document.getElementById(sel.id);
+        if (orig) {
+          sel.value = orig.value;
+          sel.onchange = (e) => { orig.value = e.target.value; orig.dispatchEvent(new Event('change')); };
+        }
+      });
+      content.querySelectorAll('input[id]').forEach(inp => {
+        const orig = document.getElementById(inp.id);
+        if (orig) {
+          inp.value = orig.value;
+          inp.oninput = (e) => { orig.value = e.target.value; orig.dispatchEvent(new Event('input')); };
+        }
+      });
+    }
+  }
+  panel.style.display = 'block';
+}
 
 // Calcular top del sticky dinámicamente
 function updateStickyTop() {
@@ -4574,7 +4637,16 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', updateStickyTop);
 });
 </script>
-  <!-- Botón scroll to top flotante -->
-  <button id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;width:44px;height:44px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.5);align-items:center;justify-content:center">↑</button>
+  <!-- Botón flotante + panel de filtros flotante -->
+  <button id="scroll-top-btn" onclick="toggleFloatingFilters()" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;width:44px;height:44px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.5);align-items:center;justify-content:center">⊞</button>
+
+  <!-- Panel flotante de filtros -->
+  <div id="floating-filters-panel" style="display:none;position:fixed;top:0;left:0;right:0;z-index:199;background:rgba(10,10,10,0.97);border-bottom:1px solid var(--border);padding:1rem 2rem;box-shadow:0 4px 20px rgba(0,0,0,.7);backdrop-filter:blur(10px)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+      <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:2px" id="floating-panel-label">// FILTROS</span>
+      <button onclick="toggleFloatingFilters()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:.6rem;padding:.2rem .6rem;border-radius:2px;cursor:pointer">✕</button>
+    </div>
+    <div id="floating-filters-content"></div>
+  </div>
 </body>
 </html>
