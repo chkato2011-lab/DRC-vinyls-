@@ -4614,6 +4614,40 @@ function toggleFloatingFilters() {
     }
   }
   panel.style.display = 'block';
+
+  // Si hay tracks seleccionados en la vista tracks, mostrar también el batch bar en el panel
+  if (viewTracks?.classList.contains('active') && selectedTracks.size > 0) {
+    const batchBar = document.getElementById('batch-bar');
+    if (batchBar) {
+      const batchClone = batchBar.cloneNode(true);
+      batchClone.id = 'floating-batch-bar';
+      batchClone.style.display = 'flex';
+      batchClone.style.marginTop = '.8rem';
+      // Reasignar eventos del selector de playlist y botones
+      const origSel = document.getElementById('batch-playlist-sel');
+      const cloneSel = batchClone.querySelector('#batch-playlist-sel');
+      if (cloneSel && origSel) {
+        cloneSel.id = 'floating-batch-playlist-sel';
+        cloneSel.value = origSel.value;
+        cloneSel.onchange = (e) => { if(origSel) origSel.value = e.target.value; };
+      }
+      // Botón agregar
+      const addBtn = batchClone.querySelector('button[onclick*="batchAddToPlaylist"]');
+      if (addBtn) {
+        addBtn.onclick = () => {
+          const sel = document.getElementById('floating-batch-playlist-sel');
+          if (sel && origSel) origSel.value = sel.value;
+          batchAddToPlaylist();
+          panel.style.display = 'none';
+        };
+      }
+      // Botón limpiar selección
+      const clearBtn = batchClone.querySelector('button[onclick*="selectedTracks.clear"]');
+      if (clearBtn) clearBtn.onclick = () => { selectedTracks.clear(); renderAllTracks(); panel.style.display='none'; };
+
+      content.appendChild(batchClone);
+    }
+  }
 }
 
 // Calcular top del sticky dinámicamente
