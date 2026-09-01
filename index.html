@@ -136,6 +136,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .tracks-table tr:hover td{background:var(--bg2)}
 .tracks-table tr.row-selected td{background:rgba(56,189,248,.07)}
 .tracks-table tr.row-random td{background:rgba(234,179,8,.12)}
+.disco-row.row-random,.row-random{outline:2px solid var(--accent2);background:rgba(234,179,8,.08) !important}
 .track-num{font-family:var(--mono);font-size:.65rem;color:var(--muted);width:30px}
 .track-artist{color:var(--muted);font-size:.78rem;margin-top:2px;font-family:var(--mono)}
 
@@ -529,7 +530,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
           <button class="export-item" onclick="exportCSV('todo');closeExportMenus()">CSV — Colección Completa</button>
         </div>
       </div>
-      <button onclick="randomDisco()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">🎲 <span data-i18n="btn_random">Aleatorio</span></button>
+      <button onclick="randomDisco()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700"><span data-i18n="btn_random">Aleatorio</span></button>
       <button class="btn btn-primary" onclick="openModalDisco()" data-i18n="btn_new_disc">+ Nuevo Disco</button>
     </div>
   </div>
@@ -601,7 +602,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </select>
       <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="" data-i18n="tag_all">Tags: todos</option></select>
       <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="" data-i18n="label_all">Sello: todos</option></select>
-      <button onclick="randomTrack()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">🎲 <span data-i18n="btn_random">Aleatorio</span></button>
+      <button onclick="randomTrack()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700"><span data-i18n="btn_random">Aleatorio</span></button>
       <div style="position:relative;display:inline-flex;align-items:center">
         <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." data-i18n-placeholder="search_ph" oninput="renderAllTracks();document.getElementById('clear-tracks').style.display=this.value?'flex':'none'">
         <button id="clear-tracks" onclick="document.getElementById('search-tracks').value='';renderAllTracks();this.style.display='none'" style="display:none;position:absolute;right:6px;width:18px;height:18px;border-radius:50%;background:#cc3300;border:none;color:#fff;font-size:.6rem;cursor:pointer;align-items:center;justify-content:center;font-weight:700">✕</button>
@@ -1737,7 +1738,7 @@ function updateDetailBatchBar(d){
     const sel=document.getElementById('detail-batch-pl-sel');
     const cur=sel.value;
     sel.innerHTML='<option value="">Elegir playlist...</option>'+
-      state.playlists.map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${p.nombre}</option>`).join('');
+      [...state.playlists].reverse().map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${p.nombre}</option>`).join('');
   }
 }
 
@@ -1783,29 +1784,39 @@ function numToVinylPos(pos) {
 }
 
 function randomDisco() {
-  const rows = document.querySelectorAll('#discos-list tr, #discos-grid .disco-card, #discos-grid .disco-row');
-  if (!rows.length) {
-    // Buscar en la lista de discos renderizada
-    const filtered = state.discos.filter(d => {
-      const gf = document.getElementById('filter-genero')?.value || '';
-      const gf2 = document.getElementById('filter-genero2')?.value || '';
-      const sf = document.getElementById('filter-sello')?.value || '';
-      const s = document.getElementById('search-discos')?.value?.toLowerCase() || '';
-      const dgens = Array.isArray(d.genero) ? d.genero : [d.genero].filter(Boolean);
-      if (gf && gf2) { if (!dgens.includes(gf) && !dgens.includes(gf2)) return false; }
-      else if (gf && !dgens.includes(gf)) return false;
-      else if (gf2 && !dgens.includes(gf2)) return false;
-      if (sf && d.sello !== sf) return false;
-      if (s && !d.nombre?.toLowerCase().includes(s) && !d.sello?.toLowerCase().includes(s) && !d.codigo?.toLowerCase().includes(s)) return false;
-      return true;
-    });
-    if (!filtered.length) return;
-    const disco = filtered[Math.floor(Math.random() * filtered.length)];
+  // Obtener discos filtrados según los filtros activos
+  const gf = document.getElementById('filter-genero')?.value || '';
+  const gf2 = document.getElementById('filter-genero2')?.value || '';
+  const sf = document.getElementById('filter-sello')?.value || '';
+  const s = document.getElementById('search-discos')?.value?.toLowerCase() || '';
+  const sortVal = document.getElementById('disco-sort')?.value || '';
+
+  const filtered = state.discos.filter(d => {
+    const dgens = Array.isArray(d.genero) ? d.genero : [d.genero].filter(Boolean);
+    if (gf && gf2) { if (!dgens.includes(gf) && !dgens.includes(gf2)) return false; }
+    else if (gf && !dgens.includes(gf)) return false;
+    else if (gf2 && !dgens.includes(gf2)) return false;
+    if (sf && d.sello !== sf) return false;
+    if (s && !d.nombre?.toLowerCase().includes(s) && !d.sello?.toLowerCase().includes(s) && !d.codigo?.toLowerCase().includes(s)) return false;
+    return true;
+  });
+
+  if (!filtered.length) return;
+
+  // Quitar selección anterior
+  document.querySelectorAll('.disco-row, tr[data-disco-id]').forEach(r => r.classList.remove('row-random'));
+
+  const disco = filtered[Math.floor(Math.random() * filtered.length)];
+
+  // Hacer scroll y marcar la fila sin entrar
+  const row = document.querySelector(`[onclick*="openDisco('${disco.id}')"], tr[data-id="${disco.id}"]`);
+  if (row) {
+    row.classList.add('row-random');
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    // fallback: scroll al primer elemento visible y abrir
     openDisco(disco.id);
-    return;
   }
-  const row = rows[Math.floor(Math.random() * rows.length)];
-  row.click();
 }
 
 function randomTrack() {
@@ -1922,7 +1933,7 @@ function openAddDetailTracksToPlaylist(){
   // Populate playlist selector
   const sel=document.getElementById('detail-pl-sel');
   sel.innerHTML='<option value="">— Elegir playlist —</option>'+
-    state.playlists.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
+    [...state.playlists].reverse().map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
 
   // Render track checklist — all selected by default
   const list=document.getElementById('detail-pl-tracklist');
@@ -2052,7 +2063,7 @@ function updateAllTrackFilters(){
   // batch playlist options
   const bps=document.getElementById('batch-playlist-sel');
   const curBp=bps.value;
-  bps.innerHTML='<option value="">Elegir playlist...</option>'+state.playlists.map(p=>`<option value="${p.id}"${p.id===curBp?' selected':''}>${p.nombre}</option>`).join('');
+  bps.innerHTML='<option value="">Elegir playlist...</option>'+[...state.playlists].reverse().map(p=>`<option value="${p.id}"${p.id===curBp?' selected':''}>${p.nombre}</option>`).join('');
 }
 
 function renderAllTracks(){
