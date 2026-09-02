@@ -530,7 +530,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
           <button class="export-item" onclick="exportCSV('todo');closeExportMenus()">CSV — Colección Completa</button>
         </div>
       </div>
-      <button onclick="randomDisco()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700"><span data-i18n="btn_random">Aleatorio</span></button>
+      <button onclick="randomDisco()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">Aleatorio</button>
       <button class="btn btn-primary" onclick="openModalDisco()" data-i18n="btn_new_disc">+ Nuevo Disco</button>
     </div>
   </div>
@@ -602,7 +602,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </select>
       <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="" data-i18n="tag_all">Tags: todos</option></select>
       <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="" data-i18n="label_all">Sello: todos</option></select>
-      <button onclick="randomTrack()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700"><span data-i18n="btn_random">Aleatorio</span></button>
+      <button onclick="randomTrack()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">Aleatorio</button>
       <div style="position:relative;display:inline-flex;align-items:center">
         <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." data-i18n-placeholder="search_ph" oninput="renderAllTracks();document.getElementById('clear-tracks').style.display=this.value?'flex':'none'">
         <button id="clear-tracks" onclick="document.getElementById('search-tracks').value='';renderAllTracks();this.style.display='none'" style="display:none;position:absolute;right:6px;width:18px;height:18px;border-radius:50%;background:#cc3300;border:none;color:#fff;font-size:.6rem;cursor:pointer;align-items:center;justify-content:center;font-weight:700">✕</button>
@@ -1808,14 +1808,19 @@ function randomDisco() {
 
   const disco = filtered[Math.floor(Math.random() * filtered.length)];
 
-  // Hacer scroll y marcar la fila sin entrar
-  const row = document.querySelector(`[onclick*="openDisco('${disco.id}')"], tr[data-id="${disco.id}"]`);
+  // Marcar fila y hacer scroll sin entrar al disco
+  // Buscar por onclick que contenga el id del disco
+  const allRows = document.querySelectorAll('[onclick*="openDisco"]');
+  let row = null;
+  allRows.forEach(r => { if (r.getAttribute('onclick')?.includes(disco.id)) row = r; });
+
   if (row) {
     row.classList.add('row-random');
     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else {
-    // fallback: scroll al primer elemento visible y abrir
-    openDisco(disco.id);
+    // Si no encontró fila visible, igual marcar visualmente el primero disponible
+    const anyRow = document.querySelector('.disco-row, .disco-card');
+    if (anyRow) { anyRow.classList.add('row-random'); anyRow.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   }
 }
 
