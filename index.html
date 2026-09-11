@@ -177,6 +177,8 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .pl-track-row{display:flex;align-items:center;gap:.8rem;padding:.65rem .8rem;border-bottom:1px solid var(--border);border-radius:2px;transition:background .15s}
 .pl-track-row:hover{background:var(--bg2)}
 .pl-track-row.drag-over{border-top:2px solid var(--blue)}
+.tracks-table tr.dragging{opacity:.4}
+.tracks-table tr.drag-over-tr{border-top:3px solid var(--blue)}
 .pl-drag-handle{color:var(--muted);cursor:grab;font-size:1.1rem;flex-shrink:0;user-select:none;opacity:.5;transition:opacity .15s}
 .pl-track-row:hover .pl-drag-handle{opacity:1}
 .pl-track-thumb{width:42px;height:42px;flex-shrink:0;background:var(--bg3);overflow:hidden;border-radius:1px;display:flex;align-items:center;justify-content:center}
@@ -691,6 +693,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   <div id="pl-tracks-wrapper" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
   <table class="tracks-table" id="pl-tracks-table" style="display:none;min-width:700px">
     <thead><tr>
+      <th style="width:20px"></th>
       <th style="width:30px"><input type="checkbox" id="pl-chk-all" onchange="plSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
       <th style="width:34px"></th>
       <th style="width:40px">#</th>
@@ -1691,7 +1694,8 @@ function renderDetailTracks(d){
   tb.innerHTML=d.tracks.map((t,i)=>{
     const key=d.id+'_'+t.id;
     const sel=detailSelectedTracks.has(key);
-    return `<tr class="${sel?'row-selected':''}">
+    return `<tr class="${sel?'row-selected':''}" draggable="true" ondragstart="plDragStart(event,${i})" ondragover="plDragOver(event,${i})" ondrop="plDrop(event,${i})" ondragleave="plDragLeave(event)" style="cursor:grab">
+      <td style="color:var(--border);font-size:1rem;padding:0 4px;cursor:grab;user-select:none" title="Arrastrar">⠿</td>
     <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="toggleDetailTrack('${d.id}','${t.id}',this)"></td>
     <td class="track-num">${numToVinylPos(t.position||String(i+1).padStart(2,'0'))}</td>
     <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank" onclick="setActiveYt(this)">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
@@ -2357,7 +2361,8 @@ function renderPlDetail(pl){
     const sel=plSelectedTracks.has(i);
     const trackIdxInDisco=disco.tracks.findIndex(t=>t.id===track.id);
     const pos=track.position||(trackIdxInDisco>=0?String(trackIdxInDisco+1).padStart(2,'0'):'');
-    return `<tr class="${sel?'row-selected':''}">
+    return `<tr class="${sel?'row-selected':''}" draggable="true" ondragstart="plDragStart(event,${i})" ondragover="plDragOver(event,${i})" ondrop="plDrop(event,${i})" ondragleave="plDragLeave(event)" style="cursor:grab">
+      <td style="color:var(--border);font-size:1rem;padding:0 4px;cursor:grab;user-select:none" title="Arrastrar">⠿</td>
       <td><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="togglePlTrack(${i},this)"></td>
       <td onclick="openDisco('${disco.id}')" style="cursor:pointer" title="Ver disco">${disco.cover?`<img src="${disco.cover}" referrerpolicy="no-referrer" style="width:34px;height:34px;object-fit:cover;border-radius:1px">`:'<div class="mini-vinyl" style="width:28px;height:28px;box-shadow:0 0 0 2px #111,0 0 0 4px #222"></div>'}</td>
       <td style="font-family:var(--mono);font-size:.7rem;color:var(--muted);white-space:nowrap">${pos}</td>
@@ -2474,15 +2479,35 @@ function plClearSelection(){
   const pl=state.playlists.find(x=>x.id===state.currentPlId);
   if(pl) renderPlDetail(pl);
 }
-function plDragStart(e,idx){dragSrc=idx;e.currentTarget.classList.add('dragging');}
-function plDragOver(e,idx){e.preventDefault();if(idx!==dragSrc)e.currentTarget.classList.add('drag-over');}
-function plDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function plDragStart(e,idx){
+  dragSrc=idx;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function plDragOver(e,idx){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  // Quitar clase de todas las filas y poner en la actual
+  document.querySelectorAll('#pl-tracks-list tr').forEach(r=>r.classList.remove('drag-over-tr'));
+  if(idx!==dragSrc) e.currentTarget.classList.add('drag-over-tr');
+}
+function plDragLeave(e){
+  e.currentTarget.classList.remove('drag-over-tr');
+  e.currentTarget.classList.remove('drag-over');
+}
 function plDrop(e,idx){
-  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  e.preventDefault();
+  document.querySelectorAll('#pl-tracks-list tr').forEach(r=>{r.classList.remove('drag-over-tr');r.classList.remove('dragging');});
   if(dragSrc===null||dragSrc===idx)return;
   const pl=state.playlists.find(x=>x.id===state.currentPlId);
-  const[moved]=pl.tracks.splice(dragSrc,1);pl.tracks.splice(idx,0,moved);
-  dragSrc=null;plSelectedTracks.clear();save();renderPlDetail(pl);
+  // Usar índices originales (i) no los del sort
+  const[moved]=pl.tracks.splice(dragSrc,1);
+  pl.tracks.splice(idx,0,moved);
+  dragSrc=null;
+  plSort={col:'',dir:'asc'}; // resetear sort al reordenar manualmente
+  plSelectedTracks.clear();
+  save();if(currentUser)syncToCloud(true);
+  renderPlDetail(pl);
 }
 function removeFromPlaylist(idx){
   const pl=state.playlists.find(x=>x.id===state.currentPlId);
