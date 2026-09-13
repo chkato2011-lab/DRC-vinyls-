@@ -136,9 +136,6 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .tracks-table tr:hover td{background:var(--bg2)}
 .tracks-table tr.row-selected td{background:rgba(56,189,248,.07)}
 .tracks-table tr.row-random td{background:rgba(234,179,8,.12)}
-.tracks-table tr.playing td{background:rgba(255,60,0,.08)}
-.tracks-table tr.playing .yt-link{background:rgba(204,0,0,.3);border-color:#cc0000;color:#ff4444}
-.disco-row.row-random,.row-random{outline:2px solid var(--accent2);background:rgba(234,179,8,.08) !important}
 .track-num{font-family:var(--mono);font-size:.65rem;color:var(--muted);width:30px}
 .track-artist{color:var(--muted);font-size:.78rem;margin-top:2px;font-family:var(--mono)}
 
@@ -153,7 +150,6 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 
 .yt-link{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.65rem;color:#992222;text-decoration:none;border:1px solid #551111;padding:2px 6px;border-radius:2px;transition:all .15s;font-weight:700}
 .yt-link:hover{border-color:#ff3333;color:#ff3333;background:rgba(255,50,50,.08)}
-.yt-link.playing{border-color:#ff3333;color:#ff3333;background:rgba(255,50,50,.15);box-shadow:0 0 6px rgba(255,50,50,.4)}
 
 /* DESTAQUE TAGS */
 .destaque-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:10px;background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.4);color:var(--purple);white-space:nowrap}
@@ -177,8 +173,6 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .pl-track-row{display:flex;align-items:center;gap:.8rem;padding:.65rem .8rem;border-bottom:1px solid var(--border);border-radius:2px;transition:background .15s}
 .pl-track-row:hover{background:var(--bg2)}
 .pl-track-row.drag-over{border-top:2px solid var(--blue)}
-.tracks-table tr.dragging{opacity:.4}
-.tracks-table tr.drag-over-tr{border-top:3px solid var(--blue)}
 .pl-drag-handle{color:var(--muted);cursor:grab;font-size:1.1rem;flex-shrink:0;user-select:none;opacity:.5;transition:opacity .15s}
 .pl-track-row:hover .pl-drag-handle{opacity:1}
 .pl-track-thumb{width:42px;height:42px;flex-shrink:0;background:var(--bg3);overflow:hidden;border-radius:1px;display:flex;align-items:center;justify-content:center}
@@ -535,7 +529,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
           <button class="export-item" onclick="exportCSV('todo');closeExportMenus()">CSV — Colección Completa</button>
         </div>
       </div>
-      <button onclick="randomDisco()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">Aleatorio</button>
+      <button class="btn btn-primary" onclick="openModalDisco()" data-i18n="btn_new_disc">+ Nuevo Disco</button>
     </div>
   </div>
   </div><!-- /discos-filters-bar -->
@@ -568,7 +562,20 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </div>
     </div>
   </div>
-  <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// tracklist</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase">// tracklist</div>
+    <select id="pl-sort-select" class="filter-select" style="font-size:.65rem;padding:.3rem .6rem" onchange="plSortFromSelect(this.value)">
+      <option value="custom">Orden personalizado</option>
+      <option value="nombre_asc">Nombre A-Z</option>
+      <option value="nombre_desc">Nombre Z-A</option>
+      <option value="artista_asc">Artista A-Z</option>
+      <option value="intensidad_desc">Intensidad ↓</option>
+      <option value="intensidad_asc">Intensidad ↑</option>
+      <option value="sello_asc">Sello A-Z</option>
+      <option value="disco_asc">Disco A-Z</option>
+      <option value="genero_asc">Género A-Z</option>
+    </select>
+  </div>
   <div style="overflow-x:auto">
     <table class="tracks-table">
       <thead><tr>
@@ -606,7 +613,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </select>
       <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="" data-i18n="tag_all">Tags: todos</option></select>
       <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="" data-i18n="label_all">Sello: todos</option></select>
-      <button onclick="randomTrack()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">Aleatorio</button>
+      <button onclick="randomTrack()" style="background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;transition:all .15s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🎲 <span data-i18n="btn_random">Aleatorio</span></button>
       <div style="position:relative;display:inline-flex;align-items:center">
         <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." data-i18n-placeholder="search_ph" oninput="renderAllTracks();document.getElementById('clear-tracks').style.display=this.value?'flex':'none'">
         <button id="clear-tracks" onclick="document.getElementById('search-tracks').value='';renderAllTracks();this.style.display='none'" style="display:none;position:absolute;right:6px;width:18px;height:18px;border-radius:50%;background:#cc3300;border:none;color:#fff;font-size:.6rem;cursor:pointer;align-items:center;justify-content:center;font-weight:700">✕</button>
@@ -676,7 +683,20 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       <button class="btn btn-sm btn-danger" onclick="deleteCurrentPlaylist()">✕ Eliminar</button>
     </div>
   </div>
-  <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// tracklist</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase">// tracklist</div>
+    <select id="pl-sort-select" class="filter-select" style="font-size:.65rem;padding:.3rem .6rem" onchange="plSortFromSelect(this.value)">
+      <option value="custom">Orden personalizado</option>
+      <option value="nombre_asc">Nombre A-Z</option>
+      <option value="nombre_desc">Nombre Z-A</option>
+      <option value="artista_asc">Artista A-Z</option>
+      <option value="intensidad_desc">Intensidad ↓</option>
+      <option value="intensidad_asc">Intensidad ↑</option>
+      <option value="sello_asc">Sello A-Z</option>
+      <option value="disco_asc">Disco A-Z</option>
+      <option value="genero_asc">Género A-Z</option>
+    </select>
+  </div>
   <!-- Playlist batch bar -->
   <div id="pl-batch-bar" style="display:none;background:var(--bg2);border:1px solid var(--blue);border-radius:2px;padding:.6rem 1rem;margin-bottom:.8rem;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:.8rem">
@@ -693,7 +713,6 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   <div id="pl-tracks-wrapper" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
   <table class="tracks-table" id="pl-tracks-table" style="display:none;min-width:700px">
     <thead><tr>
-      <th style="width:20px"></th>
       <th style="width:30px"><input type="checkbox" id="pl-chk-all" onchange="plSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
       <th style="width:34px"></th>
       <th style="width:40px">#</th>
@@ -923,9 +942,6 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
   </div>
 
 
-    <div style="margin-bottom:1rem">
-      <button class="btn btn-primary" onclick="openModalDisco()" style="font-size:.75rem">+ Nuevo Disco manual</button>
-    </div>
     <!-- Token setup -->
     <!-- Token bar: collapsible -->
     <div id="dcg-token-bar" style="margin-bottom:1.2rem">
@@ -1581,7 +1597,7 @@ function renderDiscos(){
     c.innerHTML=`<div style="overflow-x:auto;width:100%"><table class="disk-list-table"><tbody>${f.map(d=>{
       const artists=[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))];
       const gens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
-      return `<tr class="${selectedDiscos.has(d.id)?'selected':''}" onclick="discoRowClick(event,'${d.id}')" data-id="${d.id}">
+      return `<tr class="${selectedDiscos.has(d.id)?'selected':''}" onclick="discoRowClick(event,'${d.id}')">
         <td style="width:18px;padding-left:.3rem"><input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)" style="accent-color:var(--accent)"></td>
         <td style="width:46px;padding:4px"><div class="disk-list-thumb">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl"></div>'}</div></td>
         <td><div class="disk-list-name">${d.nombre}</div><div class="disk-list-sello">${d.sello||'—'}</div></td>
@@ -1594,7 +1610,7 @@ function renderDiscos(){
     }).join('')}</tbody></table></div>`;
   } else {
     c.innerHTML=`<div class="disk-grid">${f.map(d=>`
-      <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')" data-id="${d.id}">
+      <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')">
         <input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)">
         <div class="disk-cover">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer" alt="${d.nombre}">`:'<div class="disk-cover-placeholder"></div>'}</div>
         <div class="disk-info">
@@ -1659,11 +1675,6 @@ function updateSelect(id,opts,allLabel,current){
   s.innerHTML=`<option value="">${allLabel}</option>`+opts.map(o=>`<option value="${o}"${o===current?' selected':''}>${o}</option>`).join('');
 }
 function openDisco(id){
-  // Ocultar panel flotante
-  const fp = document.getElementById('floating-filters-panel');
-  if (fp) fp.style.display = 'none';
-  const sb = document.getElementById('scroll-top-btn');
-  if (sb) sb.style.display = 'none';
   state.currentDiscoId=id;
   pushNav('detail', {id});
   detailSelectedTracks.clear(); // reset selection on new disco
@@ -1694,11 +1705,10 @@ function renderDetailTracks(d){
   tb.innerHTML=d.tracks.map((t,i)=>{
     const key=d.id+'_'+t.id;
     const sel=detailSelectedTracks.has(key);
-    return `<tr class="${sel?'row-selected':''}" draggable="true" ondragstart="plDragStart(event,${i})" ondragover="plDragOver(event,${i})" ondrop="plDrop(event,${i})" ondragleave="plDragLeave(event)" style="cursor:grab">
-      <td style="color:var(--border);font-size:1rem;padding:0 4px;cursor:grab;user-select:none" title="Arrastrar">⠿</td>
+    return `<tr class="${sel?'row-selected':''}">
     <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="toggleDetailTrack('${d.id}','${t.id}',this)"></td>
     <td class="track-num">${numToVinylPos(t.position||String(i+1).padStart(2,'0'))}</td>
-    <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank" onclick="setActiveYt(this)">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
+    <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
     <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:2px">💬 ${t.comentario}</div>`:''}</td>
     <td><div class="track-artist">${t.artista}</div></td>
     <td>${(Array.isArray(t.genero)?t.genero:[t.genero].filter(Boolean)).map(g=>`<span class="tag" style="color:#e03030;border-color:#e03030">${g}</span>`).join(' ')}</td>
@@ -1747,7 +1757,7 @@ function updateDetailBatchBar(d){
     const sel=document.getElementById('detail-batch-pl-sel');
     const cur=sel.value;
     sel.innerHTML='<option value="">Elegir playlist...</option>'+
-      [...state.playlists].reverse().map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${p.nombre}</option>`).join('');
+      state.playlists.map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${p.nombre}</option>`).join('');
   }
 }
 
@@ -1790,39 +1800,6 @@ function numToVinylPos(pos) {
     'D1','D2','D3','D4'  // 9-12
   ];
   return sideMap[n] || pos;
-}
-
-function randomDisco() {
-  // Obtener discos filtrados según los filtros activos
-  const gf = document.getElementById('filter-genero')?.value || '';
-  const gf2 = document.getElementById('filter-genero2')?.value || '';
-  const sf = document.getElementById('filter-sello')?.value || '';
-  const s = document.getElementById('search-discos')?.value?.toLowerCase() || '';
-  const sortVal = document.getElementById('disco-sort')?.value || '';
-
-  const filtered = state.discos.filter(d => {
-    const dgens = Array.isArray(d.genero) ? d.genero : [d.genero].filter(Boolean);
-    if (gf && gf2) { if (!dgens.includes(gf) && !dgens.includes(gf2)) return false; }
-    else if (gf && !dgens.includes(gf)) return false;
-    else if (gf2 && !dgens.includes(gf2)) return false;
-    if (sf && d.sello !== sf) return false;
-    if (s && !d.nombre?.toLowerCase().includes(s) && !d.sello?.toLowerCase().includes(s) && !d.codigo?.toLowerCase().includes(s)) return false;
-    return true;
-  });
-
-  if (!filtered.length) return;
-
-  // Quitar selección anterior
-  document.querySelectorAll('[data-id]').forEach(r => r.classList.remove('row-random'));
-
-  const disco = filtered[Math.floor(Math.random() * filtered.length)];
-
-  // Buscar por data-id — funciona en lista (tr) y grid (div.disk-card)
-  const row = document.querySelector(`[data-id="${disco.id}"]`);
-  if (row) {
-    row.classList.add('row-random');
-    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
 }
 
 function randomTrack() {
@@ -1939,7 +1916,7 @@ function openAddDetailTracksToPlaylist(){
   // Populate playlist selector
   const sel=document.getElementById('detail-pl-sel');
   sel.innerHTML='<option value="">— Elegir playlist —</option>'+
-    [...state.playlists].reverse().map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
+    state.playlists.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
 
   // Render track checklist — all selected by default
   const list=document.getElementById('detail-pl-tracklist');
@@ -2069,7 +2046,7 @@ function updateAllTrackFilters(){
   // batch playlist options
   const bps=document.getElementById('batch-playlist-sel');
   const curBp=bps.value;
-  bps.innerHTML='<option value="">Elegir playlist...</option>'+[...state.playlists].reverse().map(p=>`<option value="${p.id}"${p.id===curBp?' selected':''}>${p.nombre}</option>`).join('');
+  bps.innerHTML='<option value="">Elegir playlist...</option>'+state.playlists.map(p=>`<option value="${p.id}"${p.id===curBp?' selected':''}>${p.nombre}</option>`).join('');
 }
 
 function renderAllTracks(){
@@ -2135,7 +2112,7 @@ function renderAllTracks(){
           ${t._disco.cover?`<img src="${t._disco.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--border);font-size:8px">◼</div>`}
         </div>
       </td>
-      <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank" onclick="event.stopPropagation();setActiveYt(this)">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
+      <td>${t.youtube?`<a class="yt-link" href="${t.youtube}" target="_blank" onclick="event.stopPropagation()">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
       <td><div>${t.nombre}</div>${t.comentario?`<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted)">💬 ${t.comentario}</div>`:''}</td>
       <td><div class="track-artist">${t.artista}</div></td>
       <td><div style="cursor:pointer;color:var(--accent);font-size:.82rem" onclick="event.stopPropagation();openDisco('${t._disco.id}')">${t._disco.nombre}</div></td>
@@ -2314,9 +2291,36 @@ function openPlaylist(id){
   renderPlDetail(pl);
 }
 
+function plSortFromSelect(val) {
+  const pl = state.playlists.find(x=>x.id===state.currentPlId);
+  if (!pl) return;
+  if (val === 'custom') {
+    // Restaurar orden personalizado guardado
+    if (pl.customOrder && pl.customOrder.length) {
+      pl.tracks = pl.customOrder.map(ref =>
+        pl.tracks.find(t => t.discoId===ref.discoId && t.trackId===ref.trackId)
+      ).filter(Boolean);
+    }
+    plSort = {col:'', dir:'asc'};
+  } else {
+    const[col, dir] = val.split('_');
+    plSort = {col, dir: dir||'asc'};
+  }
+  // Sincronizar select
+  const sel = document.getElementById('pl-sort-select');
+  if (sel) sel.value = val;
+  renderPlDetail(pl);
+}
+
 function sortPlDetail(col){
   if(plSort.col===col) plSort.dir=plSort.dir==='asc'?'desc':'asc';
   else {plSort.col=col;plSort.dir='asc';}
+  // Sincronizar listbox
+  const sel = document.getElementById('pl-sort-select');
+  if (sel) {
+    const val = plSort.col + '_' + plSort.dir;
+    sel.value = ['nombre_asc','nombre_desc','artista_asc','intensidad_desc','intensidad_asc','sello_asc','disco_asc','genero_asc'].includes(val) ? val : 'custom';
+  }
   const pl=state.playlists.find(x=>x.id===state.currentPlId);
   if(pl) renderPlDetail(pl);
 }
@@ -2326,6 +2330,10 @@ function renderPlDetail(pl){
   const tbody=document.getElementById('pl-tracks-list'),em=document.getElementById('pl-empty');
   const table=document.getElementById('pl-tracks-table');
   document.getElementById('pl-detail-count').textContent=`${pl.tracks.length} track${pl.tracks.length!==1?'s':''}`;
+  // Resetear sort al abrir playlist y setear listbox
+  plSort = {col:'', dir:'asc'};
+  const plSortSel = document.getElementById('pl-sort-select');
+  if (plSortSel) plSortSel.value = 'custom';
   if(!pl.tracks.length){tbody.innerHTML='';table.style.display='none';document.getElementById('pl-tracks-wrapper').style.display='none';em.style.display='block';updatePlBatchBar(pl);return;}
   em.style.display='none';
   table.style.display='';document.getElementById('pl-tracks-wrapper').style.display='';
@@ -2361,12 +2369,11 @@ function renderPlDetail(pl){
     const sel=plSelectedTracks.has(i);
     const trackIdxInDisco=disco.tracks.findIndex(t=>t.id===track.id);
     const pos=track.position||(trackIdxInDisco>=0?String(trackIdxInDisco+1).padStart(2,'0'):'');
-    return `<tr class="${sel?'row-selected':''}" draggable="true" ondragstart="plDragStart(event,${i})" ondragover="plDragOver(event,${i})" ondrop="plDrop(event,${i})" ondragleave="plDragLeave(event)" style="cursor:grab">
-      <td style="color:var(--border);font-size:1rem;padding:0 4px;cursor:grab;user-select:none" title="Arrastrar">⠿</td>
+    return `<tr class="${sel?'row-selected':''}">
       <td><input type="checkbox" ${sel?'checked':''} style="accent-color:var(--blue);cursor:pointer" onchange="togglePlTrack(${i},this)"></td>
       <td onclick="openDisco('${disco.id}')" style="cursor:pointer" title="Ver disco">${disco.cover?`<img src="${disco.cover}" referrerpolicy="no-referrer" style="width:34px;height:34px;object-fit:cover;border-radius:1px">`:'<div class="mini-vinyl" style="width:28px;height:28px;box-shadow:0 0 0 2px #111,0 0 0 4px #222"></div>'}</td>
       <td style="font-family:var(--mono);font-size:.7rem;color:var(--muted);white-space:nowrap">${pos}</td>
-      <td>${track.youtube?`<a class="yt-link" href="${track.youtube}" target="_blank" onclick="event.stopPropagation();setActiveYt(this)">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
+      <td>${track.youtube?`<a class="yt-link" href="${track.youtube}" target="_blank" onclick="event.stopPropagation()">▶</a>`:'<span style="color:var(--border)">—</span>'}</td>
       <td style="font-weight:600">${track.nombre}</td>
       <td style="color:var(--muted);font-size:.82rem">${track.artista||'—'}</td>
       <td style="color:var(--muted);font-size:.82rem">${disco.nombre}</td>
@@ -2374,10 +2381,7 @@ function renderPlDetail(pl){
       <td style="font-size:.82rem">${genres.join('/')||'—'}</td>
       <td>${dests.map(d=>`<span class="destaque-tag">${d}</span>`).join(' ')||'—'}</td>
       <td>${renderDots(track.intensidad)}</td>
-      <td onclick="event.stopPropagation()" style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="editTrack('${disco.id}','${track.id}')" title="Editar track" style="margin-right:2px">✎</button>
-        <button class="btn btn-sm btn-danger" onclick="removeFromPlaylist(${i})">✕</button>
-      </td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-danger" onclick="removeFromPlaylist(${i})">✕</button></td>
     </tr>`;
   }).join('');
   updatePlBatchBar(pl);
@@ -2486,25 +2490,22 @@ function plDragStart(e,idx){
 }
 function plDragOver(e,idx){
   e.preventDefault();
-  e.dataTransfer.dropEffect='move';
-  // Quitar clase de todas las filas y poner en la actual
   document.querySelectorAll('#pl-tracks-list tr').forEach(r=>r.classList.remove('drag-over-tr'));
   if(idx!==dragSrc) e.currentTarget.classList.add('drag-over-tr');
 }
-function plDragLeave(e){
-  e.currentTarget.classList.remove('drag-over-tr');
-  e.currentTarget.classList.remove('drag-over');
-}
+function plDragLeave(e){e.currentTarget.classList.remove('drag-over-tr');e.currentTarget.classList.remove('drag-over');}
 function plDrop(e,idx){
   e.preventDefault();
-  document.querySelectorAll('#pl-tracks-list tr').forEach(r=>{r.classList.remove('drag-over-tr');r.classList.remove('dragging');});
+  document.querySelectorAll('#pl-tracks-list tr').forEach(r=>{r.classList.remove('drag-over-tr');r.classList.remove('dragging');r.classList.remove('drag-over');});
   if(dragSrc===null||dragSrc===idx)return;
   const pl=state.playlists.find(x=>x.id===state.currentPlId);
-  // Usar índices originales (i) no los del sort
   const[moved]=pl.tracks.splice(dragSrc,1);
   pl.tracks.splice(idx,0,moved);
+  pl.customOrder=[...pl.tracks]; // guardar orden personalizado
   dragSrc=null;
-  plSort={col:'',dir:'asc'}; // resetear sort al reordenar manualmente
+  plSort={col:'',dir:'asc'};
+  const sel=document.getElementById('pl-sort-select');
+  if(sel) sel.value='custom';
   plSelectedTracks.clear();
   save();if(currentUser)syncToCloud(true);
   renderPlDetail(pl);
@@ -3785,12 +3786,6 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 let currentUser = null;
 let currentSubscription = null; // {plan, status, expires_at}
 
-function setActiveYt(el) {
-  if (activeYtLink && activeYtLink !== el) activeYtLink.classList.remove('playing');
-  el.classList.add('playing');
-  activeYtLink = el;
-}
-
 function getUserPlan() {
   if (!currentSubscription) return 'trial';
   return currentSubscription.plan || 'trial';
@@ -4159,12 +4154,7 @@ function pushNav(state_name, params={}) {
 
 window.addEventListener('popstate', function(e) {
   const s = e.state;
-  if (!s) {
-    // Sin estado - ocultar panel flotante y volver a discos
-    const fp = document.getElementById('floating-filters-panel');
-    if (fp) fp.style.display = 'none';
-    return;
-  }
+  if (!s) return;
   if (s.nav === 'discos' || s.nav === 'tracks' || s.nav === 'playlists' || s.nav === 'import') {
     showView(s.nav);
   } else if (s.nav === 'detail') {
@@ -4537,7 +4527,6 @@ const TRANSLATIONS = {
 };
 
 let currentLang = localStorage.getItem('disc_lang') || 'es';
-let activeYtLink = null; // botón ▶ activo actualmente
 
 function t(key) {
   return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS['es']?.[key] || key;
@@ -4636,17 +4625,12 @@ function triggerPWAInstall() {
 window.addEventListener('scroll', () => {
   const btn = document.getElementById('scroll-top-btn');
   if (!btn) return;
+  // Detectar qué vista está activa
   const viewDiscos = document.getElementById('view-discos');
   const viewTracks = document.getElementById('view-tracks');
   const discoActive = viewDiscos?.classList.contains('active');
   const tracksActive = viewTracks?.classList.contains('active');
-  const show = window.scrollY > 200 && (discoActive || tracksActive);
-  btn.style.display = show ? 'flex' : 'none';
-  // Ocultar panel flotante al llegar al top
-  if (window.scrollY < 50) {
-    const panel = document.getElementById('floating-filters-panel');
-    if (panel) panel.style.display = 'none';
-  }
+  btn.style.display = (window.scrollY > 200 && (discoActive || tracksActive)) ? 'flex' : 'none';
 });
 
 function toggleFloatingFilters() {
