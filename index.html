@@ -602,7 +602,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
       </select>
       <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="" data-i18n="tag_all">Tags: todos</option></select>
       <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="" data-i18n="label_all">Sello: todos</option></select>
-      <button onclick="randomTrack()" style="background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;transition:all .15s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🎲 <span data-i18n="btn_random">Aleatorio</span></button>
+      <button onclick="randomTrack()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">Aleatorio</button>
       <div style="position:relative;display:inline-flex;align-items:center">
         <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." data-i18n-placeholder="search_ph" oninput="renderAllTracks();document.getElementById('clear-tracks').style.display=this.value?'flex':'none'">
         <button id="clear-tracks" onclick="document.getElementById('search-tracks').value='';renderAllTracks();this.style.display='none'" style="display:none;position:absolute;right:6px;width:18px;height:18px;border-radius:50%;background:#cc3300;border:none;color:#fff;font-size:.6rem;cursor:pointer;align-items:center;justify-content:center;font-weight:700">✕</button>
@@ -1776,6 +1776,33 @@ function numToVinylPos(pos) {
     'D1','D2','D3','D4'  // 9-12
   ];
   return sideMap[n] || pos;
+}
+
+function randomDisco() {
+  // Quitar selección anterior
+  document.querySelectorAll('[data-id]').forEach(r => r.classList.remove('row-random'));
+  // Obtener discos filtrados actualmente visibles
+  const gf = document.getElementById('filter-genero')?.value || '';
+  const gf2 = document.getElementById('filter-genero2')?.value || '';
+  const sf = document.getElementById('filter-sello')?.value || '';
+  const s = document.getElementById('search-discos')?.value?.toLowerCase() || '';
+  const filtered = state.discos.filter(d => {
+    const dgens = Array.isArray(d.genero) ? d.genero : [d.genero].filter(Boolean);
+    if (gf && gf2) { if (!dgens.includes(gf) && !dgens.includes(gf2)) return false; }
+    else if (gf && !dgens.includes(gf)) return false;
+    else if (gf2 && !dgens.includes(gf2)) return false;
+    if (sf && d.sello !== sf) return false;
+    if (s && !d.nombre?.toLowerCase().includes(s) && !d.sello?.toLowerCase().includes(s) && !d.codigo?.toLowerCase().includes(s)) return false;
+    return true;
+  });
+  if (!filtered.length) return;
+  const disco = filtered[Math.floor(Math.random() * filtered.length)];
+  // Marcar fila por data-id sin entrar al disco
+  const row = document.querySelector(`[data-id="${disco.id}"]`);
+  if (row) {
+    row.classList.add('row-random');
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
 function randomTrack() {
