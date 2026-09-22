@@ -4320,8 +4320,6 @@ async function loadAdminData() {
   const tbody = document.getElementById('admin-users-body');
   tbody.innerHTML = '<tr><td colspan="10" style="color:var(--muted);text-align:center">Cargando...</td></tr>';
   const { data, error } = await supa.rpc('get_all_subscriptions');
-  // Debug temporal
-  console.log('admin data:', data, 'error:', error);
   if (error || !data) {
     tbody.innerHTML = `<tr><td colspan="10" style="color:var(--accent)">Error: ${error?.message || 'sin datos'}</td></tr>`;
     return;
