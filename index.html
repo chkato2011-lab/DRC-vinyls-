@@ -532,7 +532,7 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
           <button class="export-item" onclick="exportCSV('todo');closeExportMenus()">CSV — Colección Completa</button>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="openModalDisco()" data-i18n="btn_new_disc">+ Nuevo Disco</button>
+      
     </div>
   </div>
   </div><!-- /discos-filters-bar -->
@@ -1574,7 +1574,7 @@ function renderDiscos(){
     c.innerHTML=`<div style="overflow-x:auto;width:100%"><table class="disk-list-table"><tbody>${f.map(d=>{
       const artists=[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))];
       const gens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
-      return `<tr class="${selectedDiscos.has(d.id)?'selected':''}" onclick="discoRowClick(event,'${d.id}')">
+      return `<tr class="${selectedDiscos.has(d.id)?'selected':''}" onclick="discoRowClick(event,'${d.id}')" data-id="${d.id}">
         <td style="width:18px;padding-left:.3rem"><input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)" style="accent-color:var(--accent)"></td>
         <td style="width:46px;padding:4px"><div class="disk-list-thumb">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl"></div>'}</div></td>
         <td><div class="disk-list-name">${d.nombre}</div><div class="disk-list-sello">${d.sello||'—'}</div></td>
@@ -1587,7 +1587,7 @@ function renderDiscos(){
     }).join('')}</tbody></table></div>`;
   } else {
     c.innerHTML=`<div class="disk-grid">${f.map(d=>`
-      <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')">
+      <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')" data-id="${d.id}">
         <input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)">
         <div class="disk-cover">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer" alt="${d.nombre}">`:'<div class="disk-cover-placeholder"></div>'}</div>
         <div class="disk-info">
