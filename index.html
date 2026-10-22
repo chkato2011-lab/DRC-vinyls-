@@ -135,9 +135,9 @@ main{max-width:1400px;margin:0 auto;padding:2rem}
 .tracks-table td{padding:.7rem .8rem;border-bottom:1px solid var(--border);font-size:.86rem;vertical-align:middle}
 .tracks-table tr:hover td{background:var(--bg2)}
 .tracks-table tr.row-selected td{background:rgba(56,189,248,.07)}
+.tracks-table tr.drag-over-tr{border-top:3px solid #38bdf8 !important}
+.tracks-table tr.dragging{opacity:.35}
 .tracks-table tr.row-random td{background:rgba(234,179,8,.12)}
-.disk-card.row-random{outline:3px solid var(--accent2) !important;background:rgba(234,179,8,.1) !important}
-tr[data-id].row-random td{background:rgba(234,179,8,.1) !important}
 .track-num{font-family:var(--mono);font-size:.65rem;color:var(--muted);width:30px}
 .track-artist{color:var(--muted);font-size:.78rem;margin-top:2px;font-family:var(--mono)}
 
@@ -525,13 +525,14 @@ tr[data-id].row-random td{background:rgba(234,179,8,.1) !important}
       </div>
       <div class="export-wrap">
         <button class="btn" onclick="toggleExportMenu('exp-discos')" data-i18n="btn_export">↓ Exportar</button>
+      <button onclick="randomDisco()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">Aleatorio</button>
         <div class="export-menu" id="exp-discos">
           <button class="export-item" onclick="exportCSV('discos');closeExportMenus()">CSV — Lista de Discos</button>
           <button class="export-item" onclick="exportCSV('tracks');closeExportMenus()">CSV — Todos los Tracks</button>
           <button class="export-item" onclick="exportCSV('todo');closeExportMenus()">CSV — Colección Completa</button>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="openModalDisco()" data-i18n="btn_new_disc">+ Nuevo Disco</button>
+      
     </div>
   </div>
   </div><!-- /discos-filters-bar -->
@@ -602,7 +603,7 @@ tr[data-id].row-random td{background:rgba(234,179,8,.1) !important}
       </select>
       <select class="filter-select" id="ft-destaque" onchange="renderAllTracks()"><option value="" data-i18n="tag_all">Tags: todos</option></select>
       <select class="filter-select" id="ft-sello" onchange="renderAllTracks()"><option value="" data-i18n="label_all">Sello: todos</option></select>
-      <button onclick="randomTrack()" style="background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;transition:all .15s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🎲 <span data-i18n="btn_random">Aleatorio</span></button>
+      <button onclick="randomTrack()" style="background:var(--accent);border:none;color:#fff;font-family:var(--mono);font-size:.65rem;padding:.45rem .8rem;border-radius:2px;cursor:pointer;letter-spacing:1px;font-weight:700">Aleatorio</button>
       <div style="position:relative;display:inline-flex;align-items:center">
         <input type="text" class="search-input" id="search-tracks" placeholder="Buscar..." data-i18n-placeholder="search_ph" oninput="renderAllTracks();document.getElementById('clear-tracks').style.display=this.value?'flex':'none'">
         <button id="clear-tracks" onclick="document.getElementById('search-tracks').value='';renderAllTracks();this.style.display='none'" style="display:none;position:absolute;right:6px;width:18px;height:18px;border-radius:50%;background:#cc3300;border:none;color:#fff;font-size:.6rem;cursor:pointer;align-items:center;justify-content:center;font-weight:700">✕</button>
@@ -1573,7 +1574,7 @@ function renderDiscos(){
     c.innerHTML=`<div style="overflow-x:auto;width:100%"><table class="disk-list-table"><tbody>${f.map(d=>{
       const artists=[...new Set(d.tracks.map(t=>t.artista).filter(Boolean))];
       const gens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
-      return `<tr class="${selectedDiscos.has(d.id)?'selected':''}" onclick="discoRowClick(event,'${d.id}')">
+      return `<tr class="${selectedDiscos.has(d.id)?'selected':''}" onclick="discoRowClick(event,'${d.id}')" data-id="${d.id}">
         <td style="width:18px;padding-left:.3rem"><input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)" style="accent-color:var(--accent)"></td>
         <td style="width:46px;padding:4px"><div class="disk-list-thumb">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="mini-vinyl"></div>'}</div></td>
         <td><div class="disk-list-name">${d.nombre}</div><div class="disk-list-sello">${d.sello||'—'}</div></td>
@@ -1586,7 +1587,7 @@ function renderDiscos(){
     }).join('')}</tbody></table></div>`;
   } else {
     c.innerHTML=`<div class="disk-grid">${f.map(d=>`
-      <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')">
+      <div class="disk-card${selectedDiscos.has(d.id)?' selected':''}" onclick="discoCardClick(event,'${d.id}')" data-id="${d.id}">
         <input type="checkbox" class="disco-chk" ${selectedDiscos.has(d.id)?'checked':''} onclick="event.stopPropagation();toggleDiscoSelect('${d.id}',this)">
         <div class="disk-cover">${d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer" alt="${d.nombre}">`:'<div class="disk-cover-placeholder"></div>'}</div>
         <div class="disk-info">
@@ -1776,6 +1777,26 @@ function numToVinylPos(pos) {
     'D1','D2','D3','D4'  // 9-12
   ];
   return sideMap[n] || pos;
+}
+
+function randomDisco() {
+  document.querySelectorAll('[data-id]').forEach(r => r.classList.remove('row-random'));
+  const gf = document.getElementById('filter-genero')?.value || '';
+  const gf2 = document.getElementById('filter-genero2')?.value || '';
+  const sf = document.getElementById('filter-sello')?.value || '';
+  const s = document.getElementById('search-discos')?.value?.toLowerCase() || '';
+  const filtered = state.discos.filter(d => {
+    const dgens = Array.isArray(d.genero) ? d.genero : [d.genero].filter(Boolean);
+    if (gf && !dgens.includes(gf)) return false;
+    if (gf2 && !dgens.includes(gf2)) return false;
+    if (sf && d.sello !== sf) return false;
+    if (s && !d.nombre?.toLowerCase().includes(s) && !d.sello?.toLowerCase().includes(s) && !d.codigo?.toLowerCase().includes(s)) return false;
+    return true;
+  });
+  if (!filtered.length) return;
+  const disco = filtered[Math.floor(Math.random() * filtered.length)];
+  const row = document.querySelector(`[data-id="${disco.id}"]`);
+  if (row) { row.classList.add('row-random'); row.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 }
 
 function randomTrack() {
@@ -2429,8 +2450,15 @@ function plClearSelection(){
   if(pl) renderPlDetail(pl);
 }
 function plDragStart(e,idx){dragSrc=idx;e.currentTarget.classList.add('dragging');}
-function plDragOver(e,idx){e.preventDefault();if(idx!==dragSrc)e.currentTarget.classList.add('drag-over');}
-function plDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function plDragOver(e,idx){
+  e.preventDefault();
+  document.querySelectorAll('#pl-tracks-list tr').forEach(r=>r.classList.remove('drag-over-tr'));
+  if(idx!==dragSrc) e.currentTarget.classList.add('drag-over-tr');
+  const y=e.clientY,zone=80;
+  if(y<zone) window.scrollBy({top:-60,behavior:'smooth'});
+  else if(y>window.innerHeight-zone) window.scrollBy({top:60,behavior:'smooth'});
+}
+function plDragLeave(e){e.currentTarget.classList.remove('drag-over-tr');}
 function plDrop(e,idx){
   e.preventDefault();e.currentTarget.classList.remove('drag-over');
   if(dragSrc===null||dragSrc===idx)return;
