@@ -914,6 +914,147 @@ tr[data-id].row-random td{background:rgba(234,179,8,.1) !important}
   </div>
 
 </div>
+  <!-- Manual -->
+  <div style="margin-bottom:2rem">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem">// manual</div>
+    <div style="max-width:480px">
+      <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.info-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(90deg)':''" style="background:none;border:1px solid var(--blue);border-radius:2px;padding:.4rem .9rem;cursor:pointer;font-family:var(--mono);font-size:.63rem;color:var(--blue);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+        <span class="info-arrow" style="font-size:.6rem;transition:transform .2s">+</span> <span data-i18n="btn_manual">Manual</span>
+      </button>
+      <div style="display:none" class="restore-info restore-info-body">
+        <div data-manual="es" style="font-family:var(--mono);font-size:.7rem;line-height:1.9;color:var(--text)"><strong>¿Qué es DISC?</strong><br>
+Una plataforma para tener tu colección de vinilos en tu dispositivo móvil o PC. Te permite encontrar discos rápidamente o recordar aquellos que tenés olvidados. La app utiliza la biblioteca de Discogs para encontrar cada disco. Cada track es enlazado a YouTube. Armá tus playlists en cualquier momento, estés donde estés. Optimizá esas horas de diggin' en tu estudio. Clasificá tus discos y/o cada track.<br><br>
+
+<strong>1.1 Importar biblioteca desde Discogs</strong><br>
+Si tenés tu biblioteca en Discogs la podés importar. La app se conecta con Discogs mediante un token y la importará completamente.<br><br>
+<em>Paso 1 — Obtener token de Discogs</em><br>
+1. Entrá en discogs.com → Configuración → Desarrolladores<br>
+2. Hacé clic en "Generate new token"<br>
+3. Copiá el token generado<br>
+4. Pegalo en Token Discogs y guardá<br><br>
+<em>Paso 2 — Exportar tu colección de Discogs</em><br>
+1. Entrá a discogs.com → Mi colección<br>
+2. Clic en "Export" (esquina superior derecha)<br>
+3. Descargá el archivo CSV cuando esté listo<br><br>
+<em>Paso 3 — Importar</em><br>
+Andá a la pestaña CSV e importá el archivo. Comenzará a importar tu colección y te pedirá que confirmes cada 10 discos.<br><br>
+
+<strong>1.2 Importar disco 1 por 1</strong><br>
+Buscá por código de catálogo. Si hay múltiples versiones te pregunta cuál elegir. Los fallidos quedan en "Discos no encontrados". ⏱ ~3-4 seg por disco.<br><br>
+
+<strong>2.1 Pestaña Discos</strong><br>
+Tu biblioteca organizada por discos. Podés ordenarla por nombre de disco, nombre de sello o fecha de añadido.<br><br>
+
+<strong>2.2 Búsqueda</strong><br>
+• Género: combiná hasta 2 géneros (ej: "Break" &amp; "House")<br>
+• Sello: filtrá por los sellos de tu colección<br>
+• Texto: buscá por código, nombre de disco o artista<br>
+• Aleatorio: recorré tu colección al azar y redescubrí discos olvidados<br><br>
+
+<strong>2.3 Exportar</strong><br>
+Exportá tu colección a CSV para tener un respaldo.<br><br>
+
+<strong>2.4.1 Dentro del disco</strong><br>
+Encontrás los tracks del disco. Podés editar el género y cambiar la foto de portada.<br><br>
+
+<strong>2.4.2 Editar track</strong><br>
+Editá cada track: género, intensidad, tags, comentario y enlace a YouTube.<br><br>
+
+<strong>2.5 Agregar a playlist</strong><br>
+Seleccionando el check de cada track se habilita el cuadro de agregar a playlist. Podés seleccionar uno o varios tracks. Desde ahí también podés crear nuevas playlists.<br><br>
+
+<strong>3.1 Pestaña Tracks</strong><br>
+Vista general de todos tus tracks. Buscá sin pasar por el disco. Ordená por nombre, artista, sello, disco, género o intensidad.<br><br>
+
+<strong>3.2 Filtros combinados</strong><br>
+Combiná hasta 2 géneros, filtrá por intensidad, tags o sello.<br><br>
+
+<strong>3.3 Aleatorio</strong><br>
+Botón aleatorio para recorrer tu colección de tracks al azar.<br><br>
+
+<strong>4.1 Pestaña Playlists</strong><br>
+Lista de tus playlists. Podés crear nuevas, borrarlas o editarlas.<br><br>
+
+<strong>4.2 Dentro de la playlist</strong><br>
+Agregá o eliminá tracks, editá la información de cada uno. Reordenás manualmente arrastrando las filas, o por intensidad, nombre de artista, sello, etc.<br><br>
+
+<strong>4.3 Exportar playlist</strong><br>
+Exportá con el botón CSV. Ideal para compartir con tu compañero en un b2b. El CSV incluye toda la info de los tracks y los enlaces a YouTube.<br><br>
+
+<strong>5.1 Pestaña App</strong><br>
+Para Android e iOS: podés crear el acceso directo a la app en tu pantalla de inicio.<br><br>
+
+<strong>6.1 Respaldo</strong><br>
+Arriba a la derecha está el botón guardar y restaurar. Hace un respaldo de toda tu librería exclusivamente para la aplicación.</div>
+        <div data-manual="en" style="display:none;font-family:var(--mono);font-size:.7rem;line-height:1.9;color:var(--text)"><strong>What is DISC?</strong><br>
+A platform to keep your vinyl collection on your mobile device or PC. Find records quickly or rediscover forgotten ones. The app uses the Discogs library to find each record. Each track is linked to YouTube. Build your playlists anytime, anywhere. Optimize those digging hours in your studio. Classify your records and/or each track.<br><br>
+
+<strong>1.1 Import library from Discogs</strong><br>
+If you have your library on Discogs, you can import it. The app connects to Discogs via a token and will import it completely.<br><br>
+<em>Step 1 — Get your Discogs token</em><br>
+1. Go to discogs.com → Settings → Developers<br>
+2. Click "Generate new token"<br>
+3. Copy the generated token<br>
+4. Paste it in Discogs Token and save<br><br>
+<em>Step 2 — Export your Discogs collection</em><br>
+1. Go to discogs.com → My collection<br>
+2. Click "Export" (top right corner)<br>
+3. Download the CSV file when ready<br><br>
+<em>Step 3 — Import</em><br>
+Go to the CSV tab and import the file. It will start importing your collection and ask you to confirm every 10 records.<br><br>
+
+<strong>1.2 Import disc one by one</strong><br>
+Search by catalog number. If there are multiple versions, you'll be asked to choose. Failed ones are saved in "Discs not found". ⏱ ~3-4 sec per disc.<br><br>
+
+<strong>2.1 Discs tab</strong><br>
+Your library organized by discs. Sort by disc name, label name or date added.<br><br>
+
+<strong>2.2 Search</strong><br>
+• Genre: combine up to 2 genres (e.g. "Break" &amp; "House")<br>
+• Label: filter by labels in your collection<br>
+• Text: search by code, disc name or artist<br>
+• Random: browse your collection randomly and rediscover forgotten records<br><br>
+
+<strong>2.3 Export</strong><br>
+Export your collection to CSV for backup.<br><br>
+
+<strong>2.4.1 Inside the disc</strong><br>
+See the disc's tracks. Edit the genre and change the cover photo.<br><br>
+
+<strong>2.4.2 Edit track</strong><br>
+Edit each track: genre, intensity, tags, comment and YouTube link.<br><br>
+
+<strong>2.5 Add to playlist</strong><br>
+Checking a track enables the add to playlist panel. Select one or more tracks. You can also create new playlists from there.<br><br>
+
+<strong>3.1 Tracks tab</strong><br>
+Overview of all your tracks. Search without going through the disc. Sort by name, artist, label, disc, genre or intensity.<br><br>
+
+<strong>3.2 Combined filters</strong><br>
+Combine up to 2 genres, filter by intensity, tags or label.<br><br>
+
+<strong>3.3 Random</strong><br>
+Random button to browse your track collection at random.<br><br>
+
+<strong>4.1 Playlists tab</strong><br>
+Your playlists list. Create new ones, delete or edit them.<br><br>
+
+<strong>4.2 Inside the playlist</strong><br>
+Add or remove tracks, edit each track's info. Reorder manually by dragging rows, or by intensity, artist name, label, etc.<br><br>
+
+<strong>4.3 Export playlist</strong><br>
+Export with the CSV button. Great for sharing with your b2b partner. The CSV includes all track info and YouTube links.<br><br>
+
+<strong>5.1 App tab</strong><br>
+For Android and iOS: create the app shortcut on your home screen.<br><br>
+
+<strong>6.1 Backup</strong><br>
+Top right corner has the save and restore button. It backs up your entire library exclusively for the app.</div>
+      </div>
+    </div>
+  </div>
+
+
 
 <!-- IMPORT -->
 <div class="view" id="view-import">
@@ -4389,6 +4530,7 @@ const TRANSLATIONS = {
     tracks_word: 'tracks', yt_links_found: 'links de YouTube encontrados', videos_no_match: 'videos en Discogs (sin match por track)',
     nav_install: '↓ App', sub_install: '// descargá la app',
     welcome_line1: 'Plataforma para curadores de vinilos.',
+    btn_manual: 'Manual',
     trial_expired_title: 'PRUEBA GRATUITA VENCIDA',
     trial_expired_body: 'Tu período de prueba de 30 días ha finalizado.<br>Suscribite para continuar usando DISC sin límites.',
     plan_monthly: 'MENSUAL', plan_annual: 'ANUAL',
@@ -4466,6 +4608,7 @@ const TRANSLATIONS = {
     tracks_word: 'tracks', yt_links_found: 'YouTube links found', videos_no_match: 'videos on Discogs (no track match)',
     nav_install: '↓ App', sub_install: '// download the app',
     welcome_line1: 'Platform for vinyl curators.',
+    btn_manual: 'Manual',
     trial_expired_title: 'FREE TRIAL EXPIRED',
     trial_expired_body: 'Your 30-day free trial has ended.<br>Subscribe to keep using DISC without limits.',
     plan_monthly: 'MONTHLY', plan_annual: 'ANNUAL',
