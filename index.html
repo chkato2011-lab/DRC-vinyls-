@@ -1687,9 +1687,8 @@ function renderDiscos(){
   const sortVal = discoSortEl?.value || '';
   let f=state.discos.filter(d=>{
     const dgens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
-    if(gf&&gf2){if(!dgens.includes(gf)&&!dgens.includes(gf2))return false;}
-    else if(gf&&!dgens.includes(gf))return false;
-    else if(gf2&&!dgens.includes(gf2))return false;
+    if(gf&&!dgens.includes(gf))return false;
+    if(gf2&&!dgens.includes(gf2))return false;
     if(sf&&d.sello!==sf)return false;
     if(s&&!d.nombre.toLowerCase().includes(s)&&!d.sello?.toLowerCase().includes(s)&&!d.codigo?.toLowerCase().includes(s)&&!d.tracks.some(t=>t.artista?.toLowerCase().includes(s)))return false;
     return true;
@@ -2207,9 +2206,8 @@ function renderAllTracks(){
     ];
     const tdests=t.destaque||[];
     if(af&&t.artista!==af)return false;
-    if(gf&&gf2){if(!tgens.includes(gf)&&!tgens.includes(gf2))return false;}
-    else if(gf&&!tgens.includes(gf))return false;
-    else if(gf2&&!tgens.includes(gf2))return false;
+    if(gf&&!tgens.includes(gf))return false;
+    if(gf2&&!tgens.includes(gf2))return false;
     if(inf&&t.intensidad!=inf)return false;
     if(df&&!tdests.includes(df))return false;
     if(lf&&t._disco.sello!==lf)return false;
