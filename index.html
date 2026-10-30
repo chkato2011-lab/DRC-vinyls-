@@ -631,6 +631,7 @@ tr[data-id].row-random td{background:rgba(234,179,8,.1) !important}
       <thead>
         <tr>
           <th style="width:30px"><input type="checkbox" id="select-all-tracks" onchange="toggleSelectAllTracks(this)" style="accent-color:var(--blue);cursor:pointer"></th>
+          <th style="width:40px">#</th>
           <th style="width:34px"></th>
           <th style="width:40px">YT</th>
           <th onclick="sortTracks('nombre')" data-i18n="col_name">Nombre</th>
@@ -694,6 +695,7 @@ tr[data-id].row-random td{background:rgba(234,179,8,.1) !important}
   <div id="pl-tracks-wrapper" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
   <table class="tracks-table" id="pl-tracks-table" style="display:none;min-width:700px">
     <thead><tr>
+      <th style="width:20px"></th>
       <th style="width:30px"><input type="checkbox" id="pl-chk-all" onchange="plSelectAll(this)" style="accent-color:var(--blue);cursor:pointer"></th>
       <th style="width:34px"></th>
       <th style="width:40px">#</th>
@@ -2272,12 +2274,8 @@ function sortTracks(col){
   const ths=document.querySelectorAll('#all-tracks-table th');
   if(trackSort.col===col) trackSort.dir*=-1; else {trackSort.col=col;trackSort.dir=1;}
   ths.forEach(th=>{th.classList.remove('sort-asc','sort-desc');});
-  const colMap={nombre:1,artista:2,disco:3,sello:4,genero:5,subgenero:6,destaque:7,intensidad:8};
-  const idx=colMap[col];
-  if(idx!==undefined){
-    const th=ths[idx];
-    th.classList.add(trackSort.dir===1?'sort-asc':'sort-desc');
-  }
+  const th=[...ths].find(x=>(x.getAttribute('onclick')||'').includes("'"+col+"'"));
+  if(th) th.classList.add(trackSort.dir===1?'sort-asc':'sort-desc');
   renderAllTracks();
 }
 
