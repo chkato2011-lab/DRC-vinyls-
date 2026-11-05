@@ -1651,6 +1651,7 @@ function showView(name){
   if(name==='import') initDiscogsTab();
   if(name==='admin') loadAdminData();
   if(name==='install') applyLang();
+  if(typeof closeFloatingPanel==='function') closeFloatingPanel();
   updateStats(); closeExportMenus();
 }
 
@@ -1807,6 +1808,7 @@ function openDisco(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-detail').classList.add('active');
+  if(typeof closeFloatingPanel==='function') closeFloatingPanel();
   document.getElementById('detail-name').textContent=d.nombre;
   document.getElementById('detail-cover').innerHTML=d.cover?`<img src="${d.cover}" referrerpolicy="no-referrer">`:'<div class="disk-cover-placeholder"></div>';
   const gens=Array.isArray(d.genero)?d.genero:[d.genero].filter(Boolean);
@@ -2426,6 +2428,7 @@ function openPlaylist(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-pl-detail').classList.add('active');
+  if(typeof closeFloatingPanel==='function') closeFloatingPanel();
   document.getElementById('pl-detail-name').textContent=pl.nombre;
   document.getElementById('pl-detail-desc').textContent=pl.desc||'';
   renderPlDetail(pl);
@@ -4730,16 +4733,25 @@ function triggerPWAInstall() {
 
 // Aplicar idioma al cargar
 // Botón flotante + panel de filtros
-window.addEventListener('scroll', () => {
+function updateFloatBtn() {
   const btn = document.getElementById('scroll-top-btn');
   if (!btn) return;
-  // Detectar qué vista está activa
-  const viewDiscos = document.getElementById('view-discos');
-  const viewTracks = document.getElementById('view-tracks');
-  const discoActive = viewDiscos?.classList.contains('active');
-  const tracksActive = viewTracks?.classList.contains('active');
+  const discoActive = document.getElementById('view-discos')?.classList.contains('active');
+  const tracksActive = document.getElementById('view-tracks')?.classList.contains('active');
   btn.style.display = (window.scrollY > 200 && (discoActive || tracksActive)) ? 'flex' : 'none';
+}
+// Al llegar arriba el panel flotante se cierra solo (ahí ya se ve el panel normal)
+window.addEventListener('scroll', () => {
+  if (window.scrollY < 50) closeFloatingPanel();
+  else updateFloatBtn();
 });
+
+// Cierra el panel flotante (al entrar a un disco/playlist o cambiar de pestaña)
+function closeFloatingPanel() {
+  const panel = document.getElementById('floating-filters-panel');
+  if (panel) panel.style.display = 'none';
+  updateFloatBtn();
+}
 
 function toggleFloatingFilters() {
   const panel = document.getElementById('floating-filters-panel');
