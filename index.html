@@ -4667,6 +4667,10 @@ function applyLang() {
   // Actualizar selector
   const sel = document.getElementById('lang-select');
   if (sel) sel.value = currentLang;
+  // Manual: mostrar solo el texto del idioma activo
+  document.querySelectorAll('[data-manual]').forEach(el => {
+    el.style.display = el.getAttribute('data-manual') === currentLang ? 'block' : 'none';
+  });
 }
 
 function setLang(lang) {
